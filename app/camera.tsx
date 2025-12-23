@@ -1,3 +1,6 @@
+import TextRecognition, {
+  TextRecognitionScript,
+} from "@react-native-ml-kit/text-recognition";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef } from "react";
 import {
@@ -22,8 +25,20 @@ export default function CameraScreen() {
         });
         console.log("찍은 사진:", photo.uri);
         Alert.alert("찰칵! 📸", "사진이 찍혔습니다!");
+
+        console.log("글자 읽는 중...");
+        const result = await TextRecognition.recognize(
+          photo.uri,
+          TextRecognitionScript.KOREAN
+        );
+
+        // 결과 확인
+        console.log("전체 텍스트:", result.text);
+
+        Alert.alert(`글자를 찾았습니다!\n\n${result.text.slice(0, 50)}...`);
       } catch (error) {
         console.error(error);
+        Alert.alert("글자를 읽어오지 못했습니다.");
       }
     }
   };
