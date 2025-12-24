@@ -74,9 +74,7 @@ export default function CameraScreen() {
     setImageSize({ width: 0, height: 0 }); // 초기화
   };
 
-  let isLogPrinted = false;
-
-  const getAdjustedFrame = (frame: any, index: number) => {
+  const getAdjustedFrame = (frame: any) => {
     // 정보가 없으면 그냥 0 반환
     if (imageSize.width === 0 || viewSize.width === 0) return frame;
 
@@ -92,17 +90,6 @@ export default function CameraScreen() {
     // 3. 검은 여백(Offset) 계산 (가운데 정렬 때문에 생김)
     const offsetX = (viewSize.width - displayedWidth) / 2;
     const offsetY = (viewSize.height - displayedHeight) / 2;
-
-    if (index === 0 && !isLogPrinted) {
-      isLogPrinted = true;
-      console.log("---------------------------------");
-      console.log(`📸 원본 크기: ${imageSize.width} x ${imageSize.height}`);
-      console.log(`📱 화면 크기: ${viewSize.width} x ${viewSize.height}`);
-      console.log(`📐 계산된 비율(scale): ${scale.toFixed(4)}`);
-      console.log(`↔️ X축 여백(offsetX): ${offsetX.toFixed(2)}`);
-      console.log(`↕️ Y축 여백(offsetY): ${offsetY.toFixed(2)}`);
-      console.log("---------------------------------");
-    }
 
     // 4. 최종 좌표 계산 (원본좌표 * 비율 + 여백)
     return {
@@ -138,33 +125,45 @@ export default function CameraScreen() {
           }}
         />
 
-        {/* 변환된 좌표로 박스 그리기 */}
-        {ocrBlocks.map((block, index) => {
-          // 변환된 좌표 가져오기
-          const frame = getAdjustedFrame(block.frame, index);
-          return (
-            <View
-              key={index}
-              style={{
-                position: "absolute",
-                left: frame.left,
-                top: frame.top,
-                width: frame.width,
-                height: frame.height,
-                borderWidth: 2,
-                borderColor: "#00ff00", // 잘 보이게 초록색
-                backgroundColor: "rgba(0, 255, 0, 0.2)",
-              }}
-            />
-          );
-        })}
+        {/* 2. 선택 가능한 개별 문장(라인) 박스들 */}
+        {ocrBlocks.map((block, blockIndex) =>
+          block.lines.map((line: any, lineIndex: any) => {
+            const frame = getAdjustedFrame(line.frame);
+
+            return (
+              <Text
+                key={`${blockIndex}-${lineIndex}`}
+                selectable={true} // 꾹 눌러서 드래그 선택
+                adjustsFontSizeToFit={true} // 박스 크기에 글자 크기 자동 맞춤
+                numberOfLines={1}
+                minimumFontScale={0.1}
+                style={{
+                  position: "absolute",
+                  left: frame.left,
+                  top: frame.top,
+                  width: frame.width,
+                  height: frame.height,
+                  color: "rgba(255, 0, 0, 0.5)",
+                  fontSize: frame.height * 0.85,
+                  lineHeight: frame.heightm,
+                  textAlign: "center",
+                  textAlignVertical: "center",
+                  includeFontPadding: false,
+                  zIndex: 10,
+                }}
+              >
+                {line.text}
+              </Text>
+            );
+          })
+        )}
 
         <View style={styles.bottomBar}>
           <TouchableOpacity onPress={resetCamera} style={styles.cancelButton}>
             <Text style={styles.buttonText}>다시 찍기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton}>
-            <Text style={styles.buttonText}>저장하기</Text>
+          <TouchableOpacity style={styles.saveButton} onPress={resetCamera}>
+            <Text style={styles.buttonText}>완료</Text>
           </TouchableOpacity>
         </View>
       </View>
