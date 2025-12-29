@@ -2,7 +2,9 @@ import TextRecognition, {
   TextRecognitionScript,
 } from "@react-native-ml-kit/text-recognition";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import * as Clipboard from "expo-clipboard";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Alert,
@@ -16,12 +18,19 @@ import {
 } from "react-native";
 
 export default function CameraScreen() {
+  const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
-  // 1. 상태 변수들
+  // 상태 변수들
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [ocrBlocks, setOcrBlocks] = useState<any[]>([]);
+  const [ocrLines, setOcrLines] = useState<any[]>([]);
+
+  // 선택된 줄의 인덱스
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+
+  // 드래그 충돌 감지용 좌표 저장소
+  const boxRects = useRef<any[]>([]);
 
   // 원본 사진의 크기 (너비, 높이)
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -56,11 +65,16 @@ export default function CameraScreen() {
           TextRecognitionScript.KOREAN
         );
 
-        setOcrBlocks(result.blocks || []);
+        // 블록을 줄 단위로 쪼개서 저장
+        const allLines: any[] = [];
+        result.blocks?.forEach((block) => {
+          block.lines.forEach((line) => {
+            allLines.push(line);
+          });
+        });
 
-        if (result.blocks.length === 0) {
-          Alert.alert("알림", "글자를 찾지 못했습니다.");
-        }
+        setOcrLines(allLines);
+        setSelectedIndices([]);
       } catch (error) {
         console.error(error);
         Alert.alert("오류", "문제가 발생했습니다.");
@@ -70,33 +84,73 @@ export default function CameraScreen() {
 
   const resetCamera = () => {
     setCapturedImage(null);
-    setOcrBlocks([]);
+    setOcrLines([]);
     setImageSize({ width: 0, height: 0 }); // 초기화
+    setSelectedIndices([]);
+    boxRects.current = [];
+  };
+
+  // 터치로 라인 선택/해제하는 함수
+  const handleLinePress = (index: number) => {
+    setSelectedIndices((prev) => {
+      if (prev.includes(index)) {
+        // 이미 선택된 경우, 선택 해제
+        return prev.filter((i) => i !== index);
+      } else {
+        // 선택되지 않은 경우, 선택 추가
+        return [...prev, index];
+      }
+    });
+  };
+
+  const handleComplete = async () => {
+    if (selectedIndices.length === 0) {
+      Alert.alert("알림", "저장할 문장을 터치해서 선택해주세요.");
+      return;
+    }
+
+    // 선택된 줄들을 순서대로 합침
+    const selectedText = selectedIndices
+      .sort((a, b) => a - b)
+      .map((index) => ocrLines[index].text)
+      .join(" "); // 줄바꿈 대신 공백으로 연결
+
+    // 클립보드 복사
+    await Clipboard.setStringAsync(selectedText);
+
+    // 글쓰기 화면으로 이동
+    router.push({
+      pathname: "/write",
+      params: { text: selectedText },
+    });
   };
 
   const getAdjustedFrame = (frame: any) => {
     // 정보가 없으면 그냥 0 반환
     if (imageSize.width === 0 || viewSize.width === 0) return frame;
 
-    // 1. 축소 비율(Scale) 계산
+    // 축소 비율 계산
     const scaleX = viewSize.width / imageSize.width;
     const scaleY = viewSize.height / imageSize.height;
     const scale = Math.min(scaleX, scaleY);
 
-    // 2. 실제로 화면에 그려진 이미지 크기 계산
+    // 실제로 화면에 그려진 이미지 크기 계산
     const displayedWidth = imageSize.width * scale;
     const displayedHeight = imageSize.height * scale;
 
-    // 3. 검은 여백(Offset) 계산 (가운데 정렬 때문에 생김)
+    // 검은 여백 계산
     const offsetX = (viewSize.width - displayedWidth) / 2;
     const offsetY = (viewSize.height - displayedHeight) / 2;
 
-    // 4. 최종 좌표 계산 (원본좌표 * 비율 + 여백)
+    // 최종 좌표 계산 (원본좌표 * 비율 + 여백)
     return {
       left: frame.left * scale + offsetX,
       top: frame.top * scale + offsetY,
       width: frame.width * scale,
       height: frame.height * scale,
+      // 충돌 감지용 우측/하단 좌표 추가
+      right: (frame.left + frame.width) * scale + offsetX,
+      bottom: (frame.top + frame.height) * scale + offsetY,
     };
   };
 
@@ -115,62 +169,62 @@ export default function CameraScreen() {
   if (capturedImage) {
     return (
       <View style={styles.container}>
-        <Image
-          source={{ uri: capturedImage }}
-          style={styles.previewImage}
-          resizeMode="contain"
-          onLayout={(event: LayoutChangeEvent) => {
-            const { width, height } = event.nativeEvent.layout;
-            setViewSize({ width, height });
-          }}
-        />
+        <View style={{ flex: 1 }}>
+          <Image
+            source={{ uri: capturedImage }}
+            style={styles.previewImage}
+            resizeMode="contain"
+            onLayout={(event: LayoutChangeEvent) => {
+              const { width, height } = event.nativeEvent.layout;
+              setViewSize({ width, height });
+            }}
+          />
 
-        {/* 2. 선택 가능한 개별 문장(라인) 박스들 */}
-        {ocrBlocks.map((block, blockIndex) =>
-          block.lines.map((line: any, lineIndex: any) => {
+          {ocrLines.map((line, index) => {
             const frame = getAdjustedFrame(line.frame);
+            const isSelected = selectedIndices.includes(index);
 
             return (
-              <Text
-                key={`${blockIndex}-${lineIndex}`}
-                selectable={true} // 꾹 눌러서 드래그 선택
-                adjustsFontSizeToFit={true} // 박스 크기에 글자 크기 자동 맞춤
-                numberOfLines={1}
-                minimumFontScale={0.1}
+              <TouchableOpacity
+                key={index}
+                activeOpacity={0.8}
+                onPress={() => handleLinePress(index)}
                 style={{
                   position: "absolute",
                   left: frame.left,
                   top: frame.top,
                   width: frame.width,
                   height: frame.height,
-                  color: "rgba(255, 0, 0, 0.5)",
-                  fontSize: frame.height * 0.85,
-                  lineHeight: frame.heightm,
-                  textAlign: "center",
-                  textAlignVertical: "center",
-                  includeFontPadding: false,
-                  zIndex: 10,
+                  // 선택되면 노란색 형광펜
+                  backgroundColor: isSelected
+                    ? "rgba(255, 255, 0, 0.4)"
+                    : "transparent",
+                  // 테두리는 없거나 아주 옅게
+                  borderColor: isSelected ? "#E6B800" : "transparent",
+                  borderWidth: 1,
+                  borderRadius: 4,
                 }}
-              >
-                {line.text}
-              </Text>
+              />
             );
-          })
-        )}
+          })}
+        </View>
 
+        {/* 하단 버튼 바 */}
         <View style={styles.bottomBar}>
           <TouchableOpacity onPress={resetCamera} style={styles.cancelButton}>
             <Text style={styles.buttonText}>다시 찍기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={resetCamera}>
-            <Text style={styles.buttonText}>완료</Text>
+          <TouchableOpacity onPress={handleComplete} style={styles.saveButton}>
+            <Text style={styles.buttonText}>
+              {selectedIndices.length > 0 ? "선택 완료" : "문장 터치"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  //
+  // 촬영 화면
   return (
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing="back" />
@@ -240,8 +294,21 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "space-evenly",
+    zIndex: 20, // 버튼이 형광펜보다 위에 있게
   },
-  cancelButton: { padding: 15, backgroundColor: "#555", borderRadius: 10 },
-  saveButton: { padding: 15, backgroundColor: "#007AFF", borderRadius: 10 },
+  cancelButton: {
+    padding: 15,
+    backgroundColor: "#555",
+    borderRadius: 10,
+    width: 120,
+    alignItems: "center",
+  },
+  saveButton: {
+    padding: 15,
+    backgroundColor: "#007AFF",
+    borderRadius: 10,
+    width: 120,
+    alignItems: "center",
+  },
   buttonText: { color: "white", fontWeight: "bold" },
 });
