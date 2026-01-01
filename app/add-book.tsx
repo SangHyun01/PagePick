@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +20,7 @@ export default function AddBookScreen() {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [coverUri, setCoverUri] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // 화면이 켜질 때, 넘어온 파라미터가 있으면 자동으로 채워넣기
   useEffect(() => {
@@ -32,17 +34,42 @@ export default function AddBookScreen() {
       setCoverUri(Array.isArray(params.image) ? params.image[0] : params.image);
   }, [params]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert("알림", "책 제목을 입력해주세요.");
       return;
     }
 
-    console.log("저장할 책:", { title, author, coverUri });
+    setLoading(true);
 
-    Alert.alert("완료", "책장에 책이 추가되었습니다!", [
-      { text: "확인", onPress: () => router.dismissAll() },
-    ]);
+    try {
+      const { error } = await supabase.from("books").insert([
+        {
+          title: title,
+          author: author,
+          cover_url: coverUri,
+        },
+      ]);
+
+      if (error) {
+        throw error;
+      }
+
+      Alert.alert("완료", "서버 책장에 안전하게 저장되었습니다! ☁️", [
+        {
+          text: "확인",
+          onPress: () => {
+            router.dismissAll();
+            router.replace("/(tabs)/bookshelf");
+          },
+        },
+      ]);
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert("오류 발생", e.message || JSON.stringify(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

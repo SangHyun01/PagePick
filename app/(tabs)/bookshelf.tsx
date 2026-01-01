@@ -1,25 +1,56 @@
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
-// 임시 책 데이터 타입
 interface Book {
   id: string;
   title: string;
-  coverUri: string;
+  cover_url: string;
+  author?: string;
 }
 
 export default function BookshelfScreen() {
   const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]); // 초기에는 책이 없는 상태
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBooks();
+    }, [])
+  );
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("books")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setBooks(data);
+      }
+    } catch (e) {
+      console.error("불러오기 실패", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddBook = () => {
     Alert.alert(
@@ -61,9 +92,26 @@ export default function BookshelfScreen() {
 
   const renderBookItem = ({ item }: { item: Book }) => (
     <TouchableOpacity style={styles.bookItem}>
-      <View style={styles.bookCoverPlaceholder} />
+      {item.cover_url ? (
+        <Image
+          source={{ uri: item.cover_url }}
+          style={styles.bookCover}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={styles.bookCoverPlaceholder}>
+          {/* 표지가 없을 때 제목 첫 글자라도 보여주면 덜 심심합니다 */}
+          <Text style={{ fontSize: 20, color: "#aaa" }}>
+            {item.title?.substring(0, 1)}
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.bookTitle} numberOfLines={1}>
         {item.title}
+      </Text>
+      <Text style={styles.bookAuthor} numberOfLines={1}>
+        {item.author}
       </Text>
     </TouchableOpacity>
   );
@@ -139,6 +187,7 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 10,
     alignItems: "center",
+    maxWidth: "50%",
   },
   bookCoverPlaceholder: {
     width: 150,
@@ -149,6 +198,23 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontSize: 14,
+    textAlign: "center",
+  },
+  bookCover: {
+    width: 150,
+    height: 220,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: "#eee", // 로딩 전 배경색
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  bookAuthor: {
+    fontSize: 12,
+    color: "#888",
     textAlign: "center",
   },
 });
