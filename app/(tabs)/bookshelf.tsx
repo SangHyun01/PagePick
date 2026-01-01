@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, FlatList } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // 임시 책 데이터 타입
 interface Book {
@@ -22,15 +29,13 @@ export default function BookshelfScreen() {
         {
           text: "바코드 검색",
           onPress: () => {
-            // TODO: 바코드 스캐너 화면으로 이동
-            console.log("바코드 검색 선택");
+            router.push("/scan-barcode");
           },
         },
         {
           text: "직접 추가",
           onPress: () => {
-            // TODO: 새 책 추가 화면으로 이동
-            router.push('/add-book');
+            router.push("/add-book");
           },
         },
         {
@@ -45,7 +50,9 @@ export default function BookshelfScreen() {
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>책장이 비어있어요.</Text>
-      <Text style={styles.emptySubText}>아래 버튼을 눌러 첫 책을 추가해보세요.</Text>
+      <Text style={styles.emptySubText}>
+        아래 버튼을 눌러 첫 책을 추가해보세요.
+      </Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddBook}>
         <Ionicons name="add" size={60} color="#007AFF" />
       </TouchableOpacity>
@@ -54,9 +61,10 @@ export default function BookshelfScreen() {
 
   const renderBookItem = ({ item }: { item: Book }) => (
     <TouchableOpacity style={styles.bookItem}>
-      {/* <Image source={{ uri: item.coverUri }} style={styles.bookCover} /> */}
       <View style={styles.bookCoverPlaceholder} />
-      <Text style={styles.bookTitle} numberOfLines={1}>{item.title}</Text>
+      <Text style={styles.bookTitle} numberOfLines={1}>
+        {item.title}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -81,19 +89,19 @@ export default function BookshelfScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   listContentContainer: {
     flexGrow: 1,
@@ -102,45 +110,45 @@ const styles = StyleSheet.create({
   // Empty State Styles
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   emptyText: {
     fontSize: 18,
-    color: '#555',
+    color: "#555",
     marginBottom: 8,
   },
   emptySubText: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 40,
   },
   addButton: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
+    borderColor: "#007AFF",
+    borderStyle: "dashed",
   },
   // Book Item Styles
   bookItem: {
     flex: 1,
     margin: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   bookCoverPlaceholder: {
     width: 150,
     height: 220,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderRadius: 8,
     marginBottom: 8,
   },
   bookTitle: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
