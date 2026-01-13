@@ -91,7 +91,20 @@ export default function BookshelfScreen() {
   );
 
   const renderBookItem = ({ item }: { item: Book }) => (
-    <TouchableOpacity style={styles.bookItem}>
+    <TouchableOpacity
+      style={styles.bookItem}
+      onPress={() =>
+        router.push({
+          pathname: "/book-detail/[id]",
+          params: {
+            id: item.id,
+            title: item.title,
+            author: item.author,
+            cover_url: item.cover_url,
+          },
+        })
+      }
+    >
       {item.cover_url ? (
         <Image
           source={{ uri: item.cover_url }}
@@ -140,7 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 40,
     paddingBottom: 20,
     paddingHorizontal: 20,
     backgroundColor: "#fff",
