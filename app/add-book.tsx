@@ -21,6 +21,7 @@ export default function AddBookScreen() {
   const [author, setAuthor] = useState("");
   const [coverUri, setCoverUri] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isbn, setIsbn] = useState("");
 
   // 화면이 켜질 때, 넘어온 파라미터가 있으면 자동으로 채워넣기
   useEffect(() => {
@@ -32,6 +33,8 @@ export default function AddBookScreen() {
       );
     if (params.image)
       setCoverUri(Array.isArray(params.image) ? params.image[0] : params.image);
+    if (params.isbn)
+      setIsbn(Array.isArray(params.isbn) ? params.isbn[0] : params.isbn);
   }, [params]);
 
   const handleSave = async () => {
@@ -43,11 +46,46 @@ export default function AddBookScreen() {
     setLoading(true);
 
     try {
+      let duplicatedCheck;
+
+      if (isbn) {
+        duplicatedCheck = await supabase
+          .from("books")
+          .select("id, title")
+          .eq("isbn", isbn)
+          .maybeSingle();
+      } else {
+        duplicatedCheck = await supabase
+          .from("books")
+          .select("id, title")
+          .eq("title", title)
+          .eq("author", author)
+          .maybeSingle();
+      }
+
+      if (duplicatedCheck.data) {
+        Alert.alert(
+          "알림",
+          `'${duplicatedCheck.data.title}' 책은 이미 책장에 있습니다.`,
+          [
+            {
+              text: "확인",
+              onPress: () => {
+                router.dismissAll();
+                router.replace("/(tabs)/bookshelf");
+              },
+            },
+          ]
+        );
+        return;
+      }
+
       const { error } = await supabase.from("books").insert([
         {
           title: title,
           author: author,
           cover_url: coverUri,
+          isbn: isbn,
         },
       ]);
 
