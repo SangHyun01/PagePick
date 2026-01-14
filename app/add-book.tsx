@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -37,6 +39,84 @@ export default function AddBookScreen() {
       setIsbn(Array.isArray(params.isbn) ? params.isbn[0] : params.isbn);
   }, [params]);
 
+  // 표지 이미지 추가 (카메라 or 갤러리)
+  const handleImageAction = () => {
+    Alert.alert("표지 이미지 등록", "어떤 이미지를 사용하시겠어요?", [
+      {
+        text: "갤러리에서 선택",
+        onPress: pickImageFromLibrary,
+      },
+      {
+        text: "카메라 촬영",
+        onPress: pickImageFromCamera,
+      },
+      { text: "취소", style: "cancel" },
+    ]);
+  };
+
+  const pickImageFromLibrary = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [2, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setCoverUri(result.assets[0].uri);
+    }
+  };
+
+  // 카메라 열기
+  const pickImageFromCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert("알림", "카메라 권한이 필요합니다.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [2, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setCoverUri(result.assets[0].uri);
+    }
+  };
+
+  // 이미지 supabase store에 업로드
+  const uploadImage = async (uri: string) => {
+    if (uri.startsWith("http")) return uri;
+
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      // 파일명 랜덤 생성
+      const fileName = `${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(7)}.jpg`;
+
+      const { error } = await supabase.storage
+        .from("covers")
+        .upload(fileName, arrayBuffer, {
+          contentType: "image/jpeg",
+        });
+
+      if (error) throw error;
+
+      // 업로드 된 이미지의 공개 URL 받아오기
+      const { data } = supabase.storage.from("covers").getPublicUrl(fileName);
+      return data.publicUrl;
+    } catch (e) {
+      console.error("이미지 업로드 실패", e);
+      throw new Error("이미지 업로드에 실패했습니다.");
+    }
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert("알림", "책 제목을 입력해주세요.");
@@ -46,54 +126,53 @@ export default function AddBookScreen() {
     setLoading(true);
 
     try {
-      let duplicatedCheck;
-
-      if (isbn) {
-        duplicatedCheck = await supabase
+      // 중복 체크
+      if (isbn && isbn.length > 0) {
+        const { data: isbnCheck } = await supabase
           .from("books")
           .select("id, title")
           .eq("isbn", isbn)
           .maybeSingle();
-      } else {
-        duplicatedCheck = await supabase
-          .from("books")
-          .select("id, title")
-          .eq("title", title)
-          .eq("author", author)
-          .maybeSingle();
+        if (isbnCheck) {
+          Alert.alert("알림", "이미 등록된 책입니다. (ISBN)");
+          setLoading(false);
+          return;
+        }
       }
 
-      if (duplicatedCheck.data) {
-        Alert.alert(
-          "알림",
-          `'${duplicatedCheck.data.title}' 책은 이미 책장에 있습니다.`,
-          [
-            {
-              text: "확인",
-              onPress: () => {
-                router.dismissAll();
-                router.replace("/(tabs)/bookshelf");
-              },
-            },
-          ]
-        );
+      const { data: titleCheck } = await supabase
+        .from("books")
+        .select("id, title")
+        .eq("title", title.trim())
+        .eq("author", author.trim())
+        .maybeSingle();
+
+      if (titleCheck) {
+        Alert.alert("알림", "이미 등록된 책입니다.");
+        setLoading(false);
         return;
       }
 
+      // 이미지 업로드 처리
+      let finalCoverUrl = coverUri;
+      if (coverUri && !coverUri.startsWith("http")) {
+        // 로컬 파일인 경우에만 업로드 진행
+        finalCoverUrl = await uploadImage(coverUri);
+      }
+
+      // DB 저장
       const { error } = await supabase.from("books").insert([
         {
-          title: title,
-          author: author,
-          cover_url: coverUri,
+          title: title.trim(),
+          author: author.trim(),
+          cover_url: finalCoverUrl, // 업로드된 주소 저장
           isbn: isbn,
         },
       ]);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      Alert.alert("완료", "서버 책장에 안전하게 저장되었습니다! ☁️", [
+      Alert.alert("완료", "책장에 책이 추가되었습니다! 📚", [
         {
           text: "확인",
           onPress: () => {
@@ -104,7 +183,7 @@ export default function AddBookScreen() {
       ]);
     } catch (e: any) {
       console.error(e);
-      Alert.alert("오류 발생", e.message || JSON.stringify(e));
+      Alert.alert("오류", e.message || "문제가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -116,19 +195,24 @@ export default function AddBookScreen() {
         <Text style={styles.headerTitle}>새 책 추가 📚</Text>
 
         {/* 표지 이미지 미리보기 */}
-        <View style={styles.coverContainer}>
+        <TouchableOpacity
+          style={styles.imageContainer}
+          onPress={handleImageAction}
+        >
           {coverUri ? (
-            <Image
-              source={{ uri: coverUri }}
-              style={styles.coverImage}
-              resizeMode="contain"
-            />
+            <>
+              <Image source={{ uri: coverUri }} style={styles.bookCover} />
+              <View style={styles.editBadge}>
+                <Ionicons name="camera" size={16} color="white" />
+              </View>
+            </>
           ) : (
-            <View style={styles.emptyCover}>
-              <Text style={styles.emptyCoverText}>표지 없음</Text>
+            <View style={styles.placeholder}>
+              <Ionicons name="camera-outline" size={40} color="#999" />
+              <Text style={styles.placeholderText}>표지 등록</Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* 입력 폼 */}
         <View style={styles.form}>
@@ -201,4 +285,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveButtonText: { color: "white", fontSize: 18, fontWeight: "bold" },
+  imageContainer: { alignItems: "center", marginBottom: 30 },
+  bookCover: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+  },
+  placeholder: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderStyle: "dashed",
+  },
+  placeholderText: { marginTop: 8, color: "#999", fontSize: 14 },
+  editBadge: {
+    position: "absolute",
+    bottom: -5,
+    right: "30%",
+    backgroundColor: "#333",
+    padding: 6,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
 });
