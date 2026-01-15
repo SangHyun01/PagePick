@@ -1,6 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -53,6 +58,28 @@ export default function SelectBookScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddNewBook = () => {
+    Alert.alert("새 책 추가", "어떤 방법으로 추가하시겠어요?", [
+      {
+        text: "바코드 스캔",
+        onPress: () =>
+          router.push({
+            pathname: "/scan-barcode",
+            params: { returnTo: "select-book" },
+          }),
+      },
+      {
+        text: "직접 입력",
+        onPress: () =>
+          router.push({
+            pathname: "/add-book",
+            params: { returnTo: "select-book" },
+          }),
+      },
+      { text: "취소", style: "cancel" },
+    ]);
   };
 
   const handleSelectBook = async (bookId: number, bookTitle: string) => {
@@ -114,13 +141,14 @@ export default function SelectBookScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>취소</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>어떤 책인가요?</Text>
 
-        <TouchableOpacity onPress={() => router.push("/scan-barcode")}>
+        <TouchableOpacity onPress={handleAddNewBook}>
           <Text style={styles.addText}>+ 새 책</Text>
         </TouchableOpacity>
       </View>

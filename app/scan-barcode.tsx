@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -7,6 +7,7 @@ export default function ScanBarcodeScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false); // 중복 스캔 방지
+  const params = useLocalSearchParams();
 
   // 카메라 권한 확인
   if (!permission) return <View />;
@@ -64,6 +65,7 @@ export default function ScanBarcodeScreen() {
             image: book.image,
             isbn: isbn,
             description: book.description,
+            returnTo: params.returnTo,
           },
         });
       } else {

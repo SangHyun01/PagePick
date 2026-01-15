@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -40,9 +41,9 @@ export default function WriteScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← 뒤로</Text>
+          <Ionicons name="chevron-back" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>문장 다듬기 ✏️</Text>
+        <Text style={styles.headerTitle}>문장 다듬기</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -73,21 +74,21 @@ export default function WriteScreen() {
       {/* 하단 버튼 영역 */}
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
+          style={[styles.button, styles.primaryButton]}
           onPress={() => navigateToNext("/select-book")}
         >
-          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-            기존 책 선택
+          <Text style={[styles.buttonText, styles.primaryButtonText]}>
+            책 선택
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={() => navigateToNext("/add-book")}
         >
           <Text style={[styles.buttonText, styles.primaryButtonText]}>
             새 책 추가
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

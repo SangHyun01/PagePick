@@ -161,14 +161,18 @@ export default function AddBookScreen() {
       }
 
       // DB 저장
-      const { error } = await supabase.from("books").insert([
-        {
-          title: title.trim(),
-          author: author.trim(),
-          cover_url: finalCoverUrl, // 업로드된 주소 저장
-          isbn: isbn,
-        },
-      ]);
+      const { error } = await supabase
+        .from("books")
+        .insert([
+          {
+            title: title.trim(),
+            author: author.trim(),
+            cover_url: finalCoverUrl, // 업로드된 주소 저장
+            isbn: isbn,
+          },
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -176,8 +180,12 @@ export default function AddBookScreen() {
         {
           text: "확인",
           onPress: () => {
-            router.dismissAll();
-            router.replace("/(tabs)/bookshelf");
+            if (params.returnTo === "select-book") {
+              router.back();
+            } else {
+              router.dismissAll();
+              router.replace("/(tabs)/bookshelf");
+            }
           },
         },
       ]);
