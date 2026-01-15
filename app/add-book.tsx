@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -191,9 +191,27 @@ export default function AddBookScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.headerTitle}>새 책 추가 📚</Text>
+      <Stack.Screen options={{ headerShown: false }} />
 
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="chevron-back" size={28} color="#333" />
+        </TouchableOpacity>
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            새 책 추가
+          </Text>
+        </View>
+
+        <View style={{ width: 28, paddingHorizontal: 10 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 표지 이미지 미리보기 */}
         <TouchableOpacity
           style={styles.imageContainer}
@@ -234,7 +252,7 @@ export default function AddBookScreen() {
         </View>
       </ScrollView>
 
-      {/* 하단 저장 버튼 */}
+      {/*하단 저장 버튼 */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>책장에 꽂기</Text>
@@ -248,10 +266,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   scrollContent: { padding: 20 },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
-    marginTop: 40,
-    marginBottom: 30,
+    color: "#333",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 40,
+    paddingBottom: 15,
+    paddingHorizontal: 15,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  backButton: { padding: 4 },
+
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    marginHorizontal: 10,
   },
 
   coverContainer: { alignItems: "center", marginBottom: 30 },
