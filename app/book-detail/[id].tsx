@@ -40,6 +40,11 @@ export default function BookDetailScreen() {
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 책 정보 수정
+  const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
+  const [editTitle, setEditTitle] = useState(bookTitle);
+  const [editAuthor, setEditAuthor] = useState(bookAuthor);
+
   // 기록된 문장 수정
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSentence, setEditingSentence] = useState<Sentence | null>(null);
@@ -73,6 +78,94 @@ export default function BookDetailScreen() {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 책 관리 메뉴
+  const handleBookOptions = () => {
+    Alert.alert("책 관리", "이 책을 어떻게 하시겠어요?", [
+      {
+        text: "책 정보 수정",
+        onPress: () => {
+          setEditTitle(bookTitle);
+          setEditAuthor(bookAuthor);
+          setBookEditModalVisible(true);
+        },
+      },
+      {
+        text: "책 삭제하기",
+        style: "destructive",
+        onPress: confirmDeleteBook,
+      },
+      { text: "취소", style: "cancel" },
+    ]);
+  };
+
+  // 책 삭제
+  const confirmDeleteBook = () => {
+    Alert.alert(
+      "경고",
+      "책을 삭제하면 저장된 모든 문장들도 모두 사라집니다.\n정말 삭제하시겠습니까?",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+
+              // 문장들 먼저 삭제
+              await supabase.from("sentences").delete().eq("book_id", bookId);
+
+              // 책 삭제
+              const { error } = await supabase
+                .from("books")
+                .delete()
+                .eq("id", bookId);
+
+              if (error) throw error;
+
+              Alert.alert("삭제 완료", "책이 삭제되었습니다.", [
+                {
+                  text: "확인",
+                  onPress: () => {
+                    router.dismissAll();
+                    router.replace("/(tabs)/bookshelf");
+                  },
+                },
+              ]);
+            } catch (e) {
+              Alert.alert("오류", "책 삭제에 실패했습니다.");
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // 책 정보 수정
+  const handleUpdateBook = async () => {
+    if (!editTitle.trim()) {
+      Alert.alert("알림", "책 제목을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("books")
+        .update({ title: editTitle, author: editAuthor })
+        .eq("id", bookId);
+
+      if (error) throw error;
+
+      Alert.alert("성공", "책 정보가 수정되었습니다.");
+      setBookEditModalVisible(false);
+      router.setParams({ title: editTitle, author: editAuthor });
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "수정에 실패했습니다.");
     }
   };
 
@@ -216,6 +309,10 @@ export default function BookDetailScreen() {
           </Text>
         </View>
         <View style={{ width: 28, paddingHorizontal: 10 }} />
+
+        <TouchableOpacity onPress={handleBookOptions} style={{ padding: 5 }}>
+          <Ionicons name="settings-outline" size={24} color="#333" />
+        </TouchableOpacity>
       </View>
 
       {/* 책 정보 간략 표시 */}
@@ -248,6 +345,52 @@ export default function BookDetailScreen() {
           }
         />
       )}
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={bookEditModalVisible}
+        onRequestClose={() => setBookEditModalVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>책 정보 수정</Text>
+
+            <Text style={styles.label}>책 제목</Text>
+            <TextInput
+              style={styles.input}
+              value={editTitle}
+              onChangeText={setEditTitle}
+            />
+
+            <Text style={styles.label}>저자</Text>
+            <TextInput
+              style={styles.input}
+              value={editAuthor}
+              onChangeText={setEditAuthor}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={() => setBookEditModalVisible(false)}
+              >
+                <Text style={styles.btnTextCancel}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={handleUpdateBook}
+              >
+                <Text style={styles.btnTextSave}>수정 완료</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       <Modal
         animationType="fade"
