@@ -31,7 +31,7 @@ export default function AddBookScreen() {
       setTitle(Array.isArray(params.title) ? params.title[0] : params.title);
     if (params.author)
       setAuthor(
-        Array.isArray(params.author) ? params.author[0] : params.author
+        Array.isArray(params.author) ? params.author[0] : params.author,
       );
     if (params.image)
       setCoverUri(Array.isArray(params.image) ? params.image[0] : params.image);
@@ -176,7 +176,7 @@ export default function AddBookScreen() {
 
       if (error) throw error;
 
-      Alert.alert("완료", "책장에 책이 추가되었습니다! 📚", [
+      Alert.alert("완료", "책장에 책이 추가되었습니다!", [
         {
           text: "확인",
           onPress: () => {
@@ -248,6 +248,7 @@ export default function AddBookScreen() {
             value={title}
             onChangeText={setTitle}
             placeholder="제목을 입력하세요"
+            placeholderTextColor="#999"
           />
 
           <Text style={styles.label}>저자</Text>
@@ -256,6 +257,7 @@ export default function AddBookScreen() {
             value={author}
             onChangeText={setAuthor}
             placeholder="저자를 입력하세요"
+            placeholderTextColor="#999"
           />
         </View>
       </ScrollView>
