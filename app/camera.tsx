@@ -1,3 +1,4 @@
+import { SIZES } from "@/constants/theme";
 import TextRecognition, {
   TextRecognitionScript,
 } from "@react-native-ml-kit/text-recognition";
@@ -16,7 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 export default function CameraScreen() {
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function CameraScreen() {
         const manipResult = await manipulateAsync(
           photo.uri,
           [{ resize: { width: 900 } }], // 너비 900으로 줄이기
-          { format: SaveFormat.JPEG }
+          { format: SaveFormat.JPEG },
         );
 
         // 결과 저장
@@ -63,7 +63,7 @@ export default function CameraScreen() {
         console.log("글자 읽는 중...");
         const result = await TextRecognition.recognize(
           manipResult.uri,
-          TextRecognitionScript.KOREAN
+          TextRecognitionScript.KOREAN,
         );
 
         // 블록을 줄 단위로 쪼개서 저장
@@ -133,13 +133,13 @@ export default function CameraScreen() {
     // 축소 비율 계산
     const scaleX = viewSize.width / imageSize.width;
     const scaleY = viewSize.height / imageSize.height;
-    const scale = Math.min(scaleX, scaleY);
+
+    const scale = Math.max(scaleX, scaleY);
 
     // 실제로 화면에 그려진 이미지 크기 계산
     const displayedWidth = imageSize.width * scale;
     const displayedHeight = imageSize.height * scale;
 
-    // 검은 여백 계산
     const offsetX = (viewSize.width - displayedWidth) / 2;
     const offsetY = (viewSize.height - displayedHeight) / 2;
 
@@ -174,7 +174,7 @@ export default function CameraScreen() {
           <Image
             source={{ uri: capturedImage }}
             style={styles.previewImage}
-            resizeMode="contain"
+            resizeMode="cover"
             onLayout={(event: LayoutChangeEvent) => {
               const { width, height } = event.nativeEvent.layout;
               setViewSize({ width, height });
@@ -200,7 +200,6 @@ export default function CameraScreen() {
                   backgroundColor: isSelected
                     ? "rgba(255, 255, 0, 0.4)"
                     : "transparent",
-                  // 테두리는 없거나 아주 옅게
                   borderColor: isSelected ? "#E6B800" : "transparent",
                   borderWidth: 1,
                   borderRadius: 4,
