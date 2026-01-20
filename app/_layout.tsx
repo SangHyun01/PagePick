@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 export default function RootLayout() {
   const [session, setSession] = useState<any>(null);
@@ -47,7 +47,7 @@ export default function RootLayout() {
   // 로그인 체크 중일 때 로딩 표시
   if (!initialized) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.container}>
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
@@ -83,3 +83,11 @@ export default function RootLayout() {
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

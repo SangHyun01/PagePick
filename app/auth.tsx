@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SIZES } from "@/constants/theme";
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
@@ -89,7 +90,7 @@ export default function AuthScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.header}>
-        <Ionicons name="library" size={60} color="#007AFF" />
+        <Ionicons name="library" size={SIZES.largeTitle} color="#007AFF" />
         <Text style={styles.title}>내 손안의 서재</Text>
         <Text style={styles.subtitle}>
           {isLoginMode
@@ -103,7 +104,7 @@ export default function AuthScreen() {
         <View style={styles.inputContainer}>
           <Ionicons
             name="mail-outline"
-            size={20}
+            size={SIZES.h3}
             color="#666"
             style={styles.icon}
           />
@@ -122,7 +123,7 @@ export default function AuthScreen() {
         <View style={styles.inputContainer}>
           <Ionicons
             name="lock-closed-outline"
-            size={20}
+            size={SIZES.h3}
             color="#666"
             style={styles.icon}
           />
@@ -141,7 +142,7 @@ export default function AuthScreen() {
           <View style={styles.inputContainer}>
             <Ionicons
               name="checkmark-circle-outline"
-              size={20}
+              size={SIZES.h3}
               color="#666"
               style={styles.icon}
             />
@@ -199,27 +200,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 20,
+    padding: SIZES.padding,
     justifyContent: "center",
   },
-  header: { alignItems: "center", marginBottom: 40 },
-  title: { fontSize: 26, fontWeight: "bold", color: "#333", marginTop: 10 },
-  subtitle: { fontSize: 15, color: "#888", marginTop: 5 },
+  header: { alignItems: "center", marginBottom: SIZES.padding * 1.5 },
+  title: {
+    fontSize: SIZES.h2,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: SIZES.base,
+  },
+  subtitle: { fontSize: SIZES.body3, color: "#888", marginTop: SIZES.base / 2 },
   form: { width: "100%" },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    marginBottom: 20,
-    paddingBottom: 10,
+    marginBottom: SIZES.padding,
+    paddingBottom: SIZES.base,
   },
-  icon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 16, color: "#333", height: 40 }, // 높이 명시
-  buttonContainer: { marginTop: 10 },
+  icon: { marginRight: SIZES.base },
+  input: { flex: 1, fontSize: SIZES.body3, color: "#333", height: SIZES.padding * 1.7 }, // 높이 명시
+  buttonContainer: { marginTop: SIZES.base },
   button: {
-    padding: 16,
-    borderRadius: 12,
+    padding: SIZES.base * 2,
+    borderRadius: SIZES.radius,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -231,8 +237,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  mainButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  mainButtonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
 
-  switchButton: { marginTop: 20, alignItems: "center", padding: 10 },
-  switchButtonText: { color: "#666", fontSize: 14 },
+  switchButton: { marginTop: SIZES.padding, alignItems: "center", padding: SIZES.base },
+  switchButtonText: { color: "#666", fontSize: SIZES.body4 },
 });

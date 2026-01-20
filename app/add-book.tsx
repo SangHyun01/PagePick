@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SIZES } from "@/constants/theme";
 
 export default function AddBookScreen() {
   const router = useRouter();
@@ -207,7 +208,7 @@ export default function AddBookScreen() {
           style={styles.backButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={28} color="#333" />
+          <Ionicons name="chevron-back" size={SIZES.h2} color="#333" />
         </TouchableOpacity>
 
         <View style={styles.titleContainer}>
@@ -216,7 +217,7 @@ export default function AddBookScreen() {
           </Text>
         </View>
 
-        <View style={{ width: 28, paddingHorizontal: 10 }} />
+        <View style={{ width: SIZES.h2, paddingHorizontal: SIZES.base }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -229,12 +230,12 @@ export default function AddBookScreen() {
             <>
               <Image source={{ uri: coverUri }} style={styles.bookCover} />
               <View style={styles.editBadge}>
-                <Ionicons name="camera" size={16} color="white" />
+                <Ionicons name="camera" size={SIZES.body3} color="white" />
               </View>
             </>
           ) : (
             <View style={styles.placeholder}>
-              <Ionicons name="camera-outline" size={40} color="#999" />
+              <Ionicons name="camera-outline" size={SIZES.h1} color="#999" />
               <Text style={styles.placeholderText}>표지 등록</Text>
             </View>
           )}
@@ -274,9 +275,9 @@ export default function AddBookScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: 20 },
+  scrollContent: { padding: SIZES.padding },
   headerTitle: {
-    fontSize: 18,
+    fontSize: SIZES.h3,
     fontWeight: "bold",
     color: "#333",
   },
@@ -284,64 +285,77 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 40,
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+    paddingTop: SIZES.padding * 1.5,
+    paddingBottom: SIZES.base * 2,
+    paddingHorizontal: SIZES.base * 2,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
 
-  backButton: { padding: 4 },
+  backButton: { padding: SIZES.base / 2 },
 
   titleContainer: {
     flex: 1,
     alignItems: "center",
-    marginHorizontal: 10,
+    marginHorizontal: SIZES.base,
   },
 
-  coverContainer: { alignItems: "center", marginBottom: 30 },
-  coverImage: { width: 120, height: 174, borderRadius: 5 },
+  coverContainer: { alignItems: "center", marginBottom: SIZES.padding * 1.25 },
+  coverImage: {
+    width: SIZES.width * 0.3,
+    height: SIZES.width * 0.3 * 1.45,
+    borderRadius: SIZES.base * 0.6,
+  },
   emptyCover: {
-    width: 120,
-    height: 174,
+    width: SIZES.width * 0.3,
+    height: SIZES.width * 0.3 * 1.45,
     backgroundColor: "#eee",
-    borderRadius: 5,
+    borderRadius: SIZES.base * 0.6,
     justifyContent: "center",
     alignItems: "center",
   },
   emptyCoverText: { color: "#999" },
 
-  form: { gap: 20 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 5 },
+  form: { gap: SIZES.padding },
+  label: {
+    fontSize: SIZES.body3,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: SIZES.base / 2,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 15,
-    fontSize: 16,
+    borderRadius: SIZES.radius * 0.8,
+    padding: SIZES.base * 2,
+    fontSize: SIZES.body3,
     backgroundColor: "#f9f9f9",
   },
 
-  footer: { padding: 20, borderTopWidth: 1, borderTopColor: "#eee" },
+  footer: {
+    padding: SIZES.padding,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
   saveButton: {
     backgroundColor: "#007AFF",
-    padding: 18,
-    borderRadius: 15,
+    padding: SIZES.base * 2.2,
+    borderRadius: SIZES.radius,
     alignItems: "center",
   },
-  saveButtonText: { color: "white", fontSize: 18, fontWeight: "bold" },
-  imageContainer: { alignItems: "center", marginBottom: 30 },
+  saveButtonText: { color: "white", fontSize: SIZES.h3, fontWeight: "bold" },
+  imageContainer: { alignItems: "center", marginBottom: SIZES.padding * 1.25 },
   bookCover: {
-    width: 120,
-    height: 180,
-    borderRadius: 8,
+    width: SIZES.width * 0.3,
+    height: SIZES.width * 0.3 * 1.5,
+    borderRadius: SIZES.radius * 0.6,
     backgroundColor: "#eee",
   },
   placeholder: {
-    width: 120,
-    height: 180,
-    borderRadius: 8,
+    width: SIZES.width * 0.3,
+    height: SIZES.width * 0.3 * 1.5,
+    borderRadius: SIZES.radius * 0.6,
     backgroundColor: "#f0f0f0",
     justifyContent: "center",
     alignItems: "center",
@@ -349,14 +363,18 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderStyle: "dashed",
   },
-  placeholderText: { marginTop: 8, color: "#999", fontSize: 14 },
+  placeholderText: {
+    marginTop: SIZES.base,
+    color: "#999",
+    fontSize: SIZES.body4,
+  },
   editBadge: {
     position: "absolute",
-    bottom: -5,
+    bottom: -SIZES.base / 2,
     right: "30%",
     backgroundColor: "#333",
-    padding: 6,
-    borderRadius: 20,
+    padding: SIZES.base * 0.75,
+    borderRadius: SIZES.radius * 1.5,
     borderWidth: 2,
     borderColor: "#fff",
   },

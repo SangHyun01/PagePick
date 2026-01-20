@@ -22,6 +22,8 @@ import {
   View,
 } from "react-native";
 
+import { SIZES } from "@/constants/theme";
+
 interface Sentence {
   id: number;
   content: string;
@@ -270,7 +272,7 @@ export default function BookDetailScreen() {
         <View style={styles.quoteIcon}>
           <FontAwesome
             name="quote-left"
-            size={20}
+            size={SIZES.h2}
             color="#007AFF"
             style={{ opacity: 0.3 }}
           />
@@ -279,7 +281,7 @@ export default function BookDetailScreen() {
           onPress={() => handleOptionPress(item)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="ellipsis-vertical" size={20} color="#999" />
+          <Ionicons name="ellipsis-vertical" size={SIZES.h2} color="#999" />
         </TouchableOpacity>
       </View>
 
@@ -455,55 +457,63 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 40,
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+    paddingTop: SIZES.padding * 1.5,
+    paddingBottom: SIZES.base * 2,
+    paddingHorizontal: SIZES.base * 2,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
 
-  backButton: { padding: 4 },
+  backButton: { padding: SIZES.base / 2 },
 
   titleContainer: {
     flex: 1,
     alignItems: "center",
-    marginHorizontal: 10,
+    marginHorizontal: SIZES.base,
   },
 
   // 제목 텍스트
   headerTitle: {
-    fontSize: 18,
+    fontSize: SIZES.h3,
     fontWeight: "bold",
     color: "#333",
   },
 
   bookInfoSection: {
     flexDirection: "row",
-    padding: 20,
+    padding: SIZES.padding,
     backgroundColor: "#fff",
-    marginBottom: 10,
+    marginBottom: SIZES.base,
   },
   smallCover: {
-    width: 50,
-    height: 75,
-    borderRadius: 4,
-    marginRight: 15,
+    width: SIZES.largeTitle,
+    height: SIZES.largeTitle * 1.5,
+    borderRadius: SIZES.base / 2,
+    marginRight: SIZES.base * 2,
     backgroundColor: "#eee",
   },
   infoText: { justifyContent: "center", flex: 1 },
-  infoTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
-  infoAuthor: { fontSize: 14, color: "#666", marginBottom: 4 },
-  infoCount: { fontSize: 12, color: "#007AFF", fontWeight: "600" },
+  infoTitle: {
+    fontSize: SIZES.h3,
+    fontWeight: "bold",
+    marginBottom: SIZES.base / 2,
+  },
+  infoAuthor: {
+    fontSize: SIZES.body4,
+    color: "#666",
+    marginBottom: SIZES.base / 2,
+  },
+  infoCount: { fontSize: SIZES.body4, color: "#007AFF", fontWeight: "600" },
 
-  listContent: { padding: 16 },
+  listContent: { padding: SIZES.base * 2 },
 
   // 문장 카드 스타일
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    marginBottom: SIZES.base * 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -514,32 +524,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginBottom: SIZES.base,
   },
-  quoteIcon: { marginBottom: 8 },
+  quoteIcon: { marginBottom: SIZES.base },
   sentenceText: {
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: SIZES.body3,
+    lineHeight: SIZES.h2,
     color: "#333",
     fontWeight: "500",
     letterSpacing: -0.5,
   },
   pageContainer: {
     alignItems: "flex-end",
-    marginTop: 12,
+    marginTop: SIZES.base * 1.5,
   },
   pageText: {
-    fontSize: 12,
+    fontSize: SIZES.font,
     color: "#888",
     backgroundColor: "#F5F5F5",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: SIZES.base,
+    paddingVertical: SIZES.base / 2,
+    borderRadius: SIZES.base,
     overflow: "hidden",
   },
 
-  emptyContainer: { alignItems: "center", marginTop: 50 },
-  emptyText: { color: "#999", fontSize: 16 },
+  emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
+  emptyText: { color: "#999", fontSize: SIZES.body3 },
 
   modalContainer: {
     flex: 1,
@@ -550,8 +560,8 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "85%",
     backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: SIZES.radius * 1.5,
+    padding: SIZES.padding,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -559,34 +569,39 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: SIZES.h3,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: SIZES.padding,
     textAlign: "center",
   },
   label: {
-    fontSize: 14,
+    fontSize: SIZES.body4,
     fontWeight: "600",
     color: "#666",
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: SIZES.base * 0.75,
+    marginTop: SIZES.base,
   },
   input: {
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
     borderColor: "#eee",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    borderRadius: SIZES.radius,
+    padding: SIZES.base * 1.5,
+    fontSize: SIZES.body3,
   },
   textArea: { height: 100, textAlignVertical: "top" }, // 여러 줄 입력 가능
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 25,
+    marginTop: SIZES.padding,
   },
-  btn: { flex: 1, padding: 15, borderRadius: 10, alignItems: "center" },
-  btnCancel: { backgroundColor: "#f0f0f0", marginRight: 10 },
+  btn: {
+    flex: 1,
+    padding: SIZES.base * 1.8,
+    borderRadius: SIZES.radius,
+    alignItems: "center",
+  },
+  btnCancel: { backgroundColor: "#f0f0f0", marginRight: SIZES.base },
   btnSave: { backgroundColor: "#007AFF" },
   btnTextCancel: { color: "#666", fontWeight: "bold" },
   btnTextSave: { color: "white", fontWeight: "bold" },

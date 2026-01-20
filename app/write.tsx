@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SIZES } from "@/constants/theme";
 
 export default function WriteScreen() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function WriteScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color="#333" />
+          <Ionicons name="chevron-back" size={SIZES.h2} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>문장 다듬기</Text>
         <View style={{ width: 40 }} />
@@ -98,59 +99,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingTop: 50,
-    paddingHorizontal: 20,
+    paddingTop: SIZES.padding * 2,
+    paddingHorizontal: SIZES.padding,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: SIZES.base * 2,
   },
-  backButton: { fontSize: 16, color: "#007AFF" },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
+  backButton: { fontSize: SIZES.body3, color: "#007AFF" },
+  headerTitle: { fontSize: SIZES.h3, fontWeight: "bold" },
 
   pageInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    marginBottom: 20,
+    borderRadius: SIZES.radius * 0.8,
+    paddingHorizontal: SIZES.base * 2,
+    paddingVertical: SIZES.base,
+    marginBottom: SIZES.padding,
   },
   pageInputLabel: {
-    fontSize: 16,
+    fontSize: SIZES.body3,
     fontWeight: "600",
     color: "#333",
-    marginRight: 10,
+    marginRight: SIZES.base,
   },
   pageInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: SIZES.body3,
     color: "#333",
   },
 
   inputContainer: {
     flex: 1,
     backgroundColor: "#f9f9f9",
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
   },
-  textInput: { fontSize: 16, lineHeight: 24, color: "#333", flex: 1 },
+  textInput: { fontSize: SIZES.body3, lineHeight: SIZES.padding, color: "#333", flex: 1 },
 
   // 하단 버튼 스타일
   bottomButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
-    gap: 10,
+    marginBottom: SIZES.padding * 1.25,
+    gap: SIZES.base,
   },
   button: {
     flex: 1,
-    padding: 15,
-    borderRadius: 10,
+    padding: SIZES.base * 2,
+    borderRadius: SIZES.radius * 0.8,
     alignItems: "center",
   },
   primaryButton: {
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     borderColor: "#007AFF",
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: SIZES.body3,
     fontWeight: "bold",
   },
   primaryButtonText: {

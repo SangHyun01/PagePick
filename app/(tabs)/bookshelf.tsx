@@ -1,3 +1,4 @@
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -5,7 +6,6 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   FlatList,
   Image,
   StyleSheet,
@@ -14,12 +14,10 @@ import {
   View,
 } from "react-native";
 
-const { width } = Dimensions.get("window");
+const GAP = SIZES.base * 2;
+const PADDING = SIZES.padding;
 
-const GAP = 15; // 책 사이의 간격
-const PADDING = 20; // 화면 양옆의 여백
-
-const BOOK_WIDTH = (width - PADDING * 2 - GAP) / 2;
+const BOOK_WIDTH = (SIZES.width - PADDING * 2 - GAP) / 2;
 
 interface Book {
   id: string;
@@ -36,7 +34,7 @@ export default function BookshelfScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchBooks();
-    }, [])
+    }, []),
   );
 
   const fetchBooks = async () => {
@@ -83,7 +81,7 @@ export default function BookshelfScreen() {
           style: "cancel",
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -119,7 +117,7 @@ export default function BookshelfScreen() {
         />
       ) : (
         <View style={styles.bookCoverPlaceholder}>
-          <Text style={{ fontSize: 20, color: "#aaa" }}>
+          <Text style={{ fontSize: SIZES.h2, color: "#aaa" }}>
             {item.title?.substring(0, 1)}
           </Text>
         </View>
@@ -174,15 +172,15 @@ const styles = StyleSheet.create({
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
-    paddingTop: 40,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingTop: SIZES.padding * 2,
+    paddingBottom: SIZES.padding,
+    paddingHorizontal: SIZES.padding,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: SIZES.h1,
     fontWeight: "bold",
   },
   listContentContainer: {
@@ -194,17 +192,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SIZES.padding,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: SIZES.h3,
     color: "#555",
-    marginBottom: 8,
+    marginBottom: SIZES.base,
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: SIZES.body4,
     color: "#888",
-    marginBottom: 40,
+    marginBottom: SIZES.padding,
   },
   addButton: {
     width: 100,
@@ -220,29 +218,31 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "flex-start",
     gap: GAP,
-    marginBottom: 20,
+    marginBottom: SIZES.padding,
   },
   bookItem: {
-    marginTop: 20,
+    marginTop: SIZES.padding,
     width: BOOK_WIDTH,
     alignItems: "center",
   },
   bookCoverPlaceholder: {
-    width: 150,
-    height: 220,
+    width: BOOK_WIDTH,
+    height: BOOK_WIDTH * 1.5,
     backgroundColor: "#e0e0e0",
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: SIZES.radius,
+    marginBottom: SIZES.base,
+    justifyContent: "center",
+    alignItems: "center",
   },
   bookTitle: {
-    fontSize: 14,
+    fontSize: SIZES.body4,
     textAlign: "center",
   },
   bookCover: {
-    width: 150,
-    height: 220,
-    borderRadius: 8,
-    marginBottom: 8,
+    width: BOOK_WIDTH,
+    height: BOOK_WIDTH * 1.5,
+    borderRadius: SIZES.radius,
+    marginBottom: SIZES.base,
     backgroundColor: "#eee", // 로딩 전 배경색
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -257,8 +257,8 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: "absolute", // 공중에 띄우기
-    bottom: 30, // 하단에서 30만큼 위로
-    right: 20, // 우측에서 20만큼 왼쪽으로
+    bottom: SIZES.padding, // 하단에서 30만큼 위로
+    right: SIZES.padding, // 우측에서 20만큼 왼쪽으로
     width: 60,
     height: 60,
     borderRadius: 30,
