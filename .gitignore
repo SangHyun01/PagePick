@@ -5,6 +5,7 @@ node_modules/
 
 .env
 .env.local
+eas.json
 
 # Expo
 .expo/

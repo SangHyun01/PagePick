@@ -42,6 +42,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3c312a5e-3cd1-4cde-a83b-92ab74e4c931"
+      }
     }
   }
 }
