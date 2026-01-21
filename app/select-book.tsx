@@ -1,3 +1,4 @@
+import SuccessModal from "@/components/SuccessModal";
 import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +15,6 @@ import {
   Alert,
   FlatList,
   Image,
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -185,24 +185,11 @@ export default function SelectBookScreen() {
         />
       )}
 
-      <Modal visible={showSuccess} transparent={true} animationType="fade">
-        <View style={styles.modalBackground}>
-          <View style={styles.lottieContainer}>
-            <LottieView
-              ref={animation}
-              autoPlay
-              loop={false}
-              style={{
-                width: 200,
-                height: 200,
-              }}
-              source={require("@/assets/animations/check.json")}
-              onAnimationFinish={handleAnimationFinish}
-            />
-            <Text style={styles.successText}>등록 완료!</Text>
-          </View>
-        </View>
-      </Modal>
+      <SuccessModal
+        visible={showSuccess}
+        onFinish={handleAnimationFinish}
+        message="등록 완료!"
+      />
     </View>
   );
 }
