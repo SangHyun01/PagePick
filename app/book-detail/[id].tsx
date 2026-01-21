@@ -1,3 +1,4 @@
+import SuccessModal from "@/components/SuccessModal";
 import { supabase } from "@/lib/supabase";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import {
@@ -41,6 +42,8 @@ export default function BookDetailScreen() {
 
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isDelete, setIsDelete] = useState(false);
 
   // 책 정보 수정
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
@@ -53,13 +56,32 @@ export default function BookDetailScreen() {
   const [editContent, setEditContent] = useState(""); // 수정할 문장 내용
   const [editPage, setEditPage] = useState(""); // 수정할 페이지 번호
 
+  const [deleteTarget, setDeleteTarget] = useState<"book" | "sentence" | null>(
+    null,
+  );
+
   useFocusEffect(
     useCallback(() => {
       if (bookId) {
         fetchSentences();
       }
-    }, [bookId])
+    }, [bookId]),
   );
+
+  const handleAnimationFinish = () => {
+    setIsSuccess(false);
+  };
+
+  const handleDeleteFinish = () => {
+    setIsDelete(false);
+
+    if (deleteTarget === "book") {
+      if (router.canDismiss()) {
+        router.dismissAll();
+      }
+      router.replace("/(tabs)/bookshelf");
+    }
+  };
 
   const fetchSentences = async () => {
     try {
@@ -127,23 +149,15 @@ export default function BookDetailScreen() {
                 .eq("id", bookId);
 
               if (error) throw error;
-
-              Alert.alert("삭제 완료", "책이 삭제되었습니다.", [
-                {
-                  text: "확인",
-                  onPress: () => {
-                    router.dismissAll();
-                    router.replace("/(tabs)/bookshelf");
-                  },
-                },
-              ]);
+              setDeleteTarget("book");
+              setIsDelete(true);
             } catch (e) {
               Alert.alert("오류", "책 삭제에 실패했습니다.");
               setLoading(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -162,8 +176,9 @@ export default function BookDetailScreen() {
 
       if (error) throw error;
 
-      Alert.alert("성공", "책 정보가 수정되었습니다.");
       setBookEditModalVisible(false);
+      setIsSuccess(true);
+
       router.setParams({ title: editTitle, author: editAuthor });
     } catch (e) {
       console.error(e);
@@ -191,7 +206,7 @@ export default function BookDetailScreen() {
           style: "cancel",
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -211,6 +226,8 @@ export default function BookDetailScreen() {
             if (error) throw error;
             // 리스트에서 바로 제거
             setSentences((prev) => prev.filter((s) => s.id !== id));
+            setDeleteTarget("sentence");
+            setIsDelete(true);
           } catch (e) {
             Alert.alert("오류", "삭제에 실패했습니다.");
           }
@@ -254,12 +271,12 @@ export default function BookDetailScreen() {
                 content: editContent,
                 page: editPage ? parseInt(editPage) : 0,
               }
-            : s
-        )
+            : s,
+        ),
       );
 
       setModalVisible(false);
-      Alert.alert("성공", "문장이 수정되었습니다.");
+      setIsSuccess(true);
     } catch (e) {
       console.error(e);
       Alert.alert("오류", "수정에 실패했습니다.");
@@ -445,6 +462,19 @@ export default function BookDetailScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <SuccessModal
+        visible={isSuccess}
+        onFinish={handleAnimationFinish}
+        message="수정 완료!"
+      />
+
+      <SuccessModal
+        visible={isDelete}
+        onFinish={handleDeleteFinish}
+        message="삭제 완료"
+        animationSource={require("@/assets/animations/delete.json")}
+      />
     </View>
   );
 }

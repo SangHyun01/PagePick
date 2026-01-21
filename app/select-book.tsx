@@ -1,15 +1,14 @@
 import SuccessModal from "@/components/SuccessModal";
 import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
-import { Ionicons } from "@expo/vector-icons";
 import {
   Stack,
   useFocusEffect,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import LottieView from "lottie-react-native";
-import { useCallback, useRef, useState } from "react";
+
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -31,7 +30,6 @@ interface Book {
 export default function SelectBookScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const animation = useRef<LottieView>(null);
 
   const content = Array.isArray(params.content)
     ? params.content[0]
@@ -137,11 +135,6 @@ export default function SelectBookScreen() {
           {item.author}
         </Text>
       </View>
-      <Ionicons
-        name="checkmark-circle-outline"
-        size={SIZES.h2}
-        color="#007AFF"
-      />
     </TouchableOpacity>
   );
 

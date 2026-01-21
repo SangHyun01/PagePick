@@ -1,3 +1,5 @@
+import SuccessModal from "@/components/SuccessModal";
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -13,7 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 export default function AddBookScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function AddBookScreen() {
   const [coverUri, setCoverUri] = useState("");
   const [loading, setLoading] = useState(false);
   const [isbn, setIsbn] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // 화면이 켜질 때, 넘어온 파라미터가 있으면 자동으로 채워넣기
   useEffect(() => {
@@ -39,6 +41,11 @@ export default function AddBookScreen() {
     if (params.isbn)
       setIsbn(Array.isArray(params.isbn) ? params.isbn[0] : params.isbn);
   }, [params]);
+
+  const handleAnimationFinish = () => {
+    setIsSuccess(false);
+    router.replace("/(tabs)/bookshelf");
+  };
 
   // 표지 이미지 추가 (카메라 or 갤러리)
   const handleImageAction = () => {
@@ -134,6 +141,7 @@ export default function AddBookScreen() {
           .select("id, title")
           .eq("isbn", isbn)
           .maybeSingle();
+
         if (isbnCheck) {
           Alert.alert("알림", "이미 등록된 책입니다. (ISBN)");
           setLoading(false);
@@ -177,19 +185,20 @@ export default function AddBookScreen() {
 
       if (error) throw error;
 
-      Alert.alert("완료", "책장에 책이 추가되었습니다!", [
-        {
-          text: "확인",
-          onPress: () => {
-            if (params.returnTo === "select-book") {
-              router.back();
-            } else {
-              router.dismissAll();
-              router.replace("/(tabs)/bookshelf");
-            }
-          },
-        },
-      ]);
+      setIsSuccess(true);
+      // Alert.alert("완료", "책장에 책이 추가되었습니다!", [
+      //   {
+      //     text: "확인",
+      //     onPress: () => {
+      //       if (params.returnTo === "select-book") {
+      //         router.back();
+      //       } else {
+      //         router.dismissAll();
+      //         router.replace("/(tabs)/bookshelf");
+      //       }
+      //     },
+      //   },
+      // ]);
     } catch (e: any) {
       console.error(e);
       Alert.alert("오류", e.message || "문제가 발생했습니다.");
@@ -269,6 +278,12 @@ export default function AddBookScreen() {
           <Text style={styles.saveButtonText}>책장에 꽂기</Text>
         </TouchableOpacity>
       </View>
+
+      <SuccessModal
+        visible={isSuccess}
+        onFinish={handleAnimationFinish}
+        message="추가 완료!"
+      />
     </View>
   );
 }

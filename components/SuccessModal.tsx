@@ -7,12 +7,14 @@ interface SuccessModalProps {
   visible: boolean; // 모달을 보여줄지 말지
   onFinish: () => void; // 애니메이션 끝나면 뭐 할지
   message?: string; // 밑에 띄울 메시지
+  animationSource?: any;
 }
 
 export default function SuccessModal({
   visible,
   onFinish,
   message = "완료되었습니다!",
+  animationSource = require("@/assets/animations/check.json"),
 }: SuccessModalProps) {
   const animation = useRef<LottieView>(null);
 
@@ -25,7 +27,7 @@ export default function SuccessModal({
             autoPlay
             loop={false}
             style={{ width: 200, height: 200 }}
-            source={require("@/assets/animations/check.json")}
+            source={animationSource}
             onAnimationFinish={onFinish}
           />
           <Text style={styles.successText}>{message}</Text>
