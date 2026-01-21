@@ -1,4 +1,5 @@
 // src/components/SuccessModal.tsx
+import { SIZES } from "@/constants/theme";
 import LottieView from "lottie-react-native";
 import React, { useRef } from "react";
 import { Modal, StyleSheet, Text, View } from "react-native";
@@ -26,7 +27,7 @@ export default function SuccessModal({
             ref={animation}
             autoPlay
             loop={false}
-            style={{ width: 200, height: 200 }}
+            style={styles.lottieAnimation}
             source={animationSource}
             onAnimationFinish={onFinish}
           />
@@ -45,11 +46,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   lottieContainer: {
+    width: SIZES.width * 0.7,
     backgroundColor: "white",
     borderRadius: 20,
     padding: 20,
     alignItems: "center",
     elevation: 5,
+  },
+  lottieAnimation: {
+    width: "100%",
+    aspectRatio: 1,
   },
   successText: {
     marginTop: 10,
