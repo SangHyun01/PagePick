@@ -1,3 +1,4 @@
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -6,18 +7,19 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { useCallback, useState } from "react";
+import LottieView from "lottie-react-native";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 interface Book {
   id: number;
@@ -29,6 +31,7 @@ interface Book {
 export default function SelectBookScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const animation = useRef<LottieView>(null);
 
   const content = Array.isArray(params.content)
     ? params.content[0]
@@ -37,12 +40,13 @@ export default function SelectBookScreen() {
 
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // 화면이 켜질때마다 책 목록 새로고침
   useFocusEffect(
     useCallback(() => {
       fetchBooks();
-    }, [])
+    }, []),
   );
 
   const fetchBooks = async () => {
@@ -83,6 +87,11 @@ export default function SelectBookScreen() {
     ]);
   };
 
+  const handleAnimationFinish = () => {
+    setShowSuccess(false);
+    router.replace("/(tabs)/bookshelf");
+  };
+
   const handleSelectBook = async (bookId: number, bookTitle: string) => {
     if (!content) {
       Alert.alert("오류", "저장할 문장이 없습니다.");
@@ -99,15 +108,7 @@ export default function SelectBookScreen() {
 
       if (error) throw error;
 
-      Alert.alert("저장 완료!", `"${bookTitle}에 문장을 기록했습니다.`, [
-        {
-          text: "확인",
-          onPress: () => {
-            router.dismissAll();
-            router.replace("/(tabs)/bookshelf");
-          },
-        },
-      ]);
+      setShowSuccess(true);
     } catch (e: any) {
       console.error(e);
       Alert.alert("저장 실패", e.message);
@@ -136,7 +137,11 @@ export default function SelectBookScreen() {
           {item.author}
         </Text>
       </View>
-      <Ionicons name="checkmark-circle-outline" size={SIZES.h2} color="#007AFF" />
+      <Ionicons
+        name="checkmark-circle-outline"
+        size={SIZES.h2}
+        color="#007AFF"
+      />
     </TouchableOpacity>
   );
 
@@ -179,12 +184,35 @@ export default function SelectBookScreen() {
           }
         />
       )}
+
+      <Modal visible={showSuccess} transparent={true} animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.lottieContainer}>
+            <LottieView
+              ref={animation}
+              autoPlay
+              loop={false}
+              style={{
+                width: 200,
+                height: 200,
+              }}
+              source={require("@/assets/animations/check.json")}
+              onAnimationFinish={handleAnimationFinish}
+            />
+            <Text style={styles.successText}>등록 완료!</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: SIZES.padding * 2 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: SIZES.padding * 2,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -204,7 +232,11 @@ const styles = StyleSheet.create({
     margin: SIZES.padding,
     borderRadius: SIZES.radius * 0.8,
   },
-  previewLabel: { fontSize: SIZES.font, color: "#888", marginBottom: SIZES.base / 2 },
+  previewLabel: {
+    fontSize: SIZES.font,
+    color: "#888",
+    marginBottom: SIZES.base / 2,
+  },
   previewText: { fontSize: SIZES.body4, color: "#333", fontStyle: "italic" },
 
   bookItem: {
@@ -239,6 +271,30 @@ const styles = StyleSheet.create({
   bookAuthor: { fontSize: SIZES.body4, color: "#888" },
 
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
-  emptyText: { fontSize: SIZES.body3, color: "#333", marginBottom: SIZES.base / 2 },
+  emptyText: {
+    fontSize: SIZES.body3,
+    color: "#333",
+    marginBottom: SIZES.base / 2,
+  },
   emptySubText: { fontSize: SIZES.body4, color: "#888" },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)", // 반투명 검은 배경
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottieContainer: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    elevation: 5, // 안드로이드 그림자
+  },
+  successText: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
 });
