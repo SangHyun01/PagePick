@@ -159,7 +159,7 @@ export default function CameraScreen() {
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.message}>카메라 권한이 필요합니다.</Text>
         <Button onPress={requestPermission} title="권한 허용하기" />
       </View>
@@ -244,6 +244,12 @@ export default function CameraScreen() {
 }
 
 const styles = StyleSheet.create({
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: { flex: 1, backgroundColor: "black" },
   message: {
     textAlign: "center",
