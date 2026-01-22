@@ -44,7 +44,11 @@ export default function AddBookScreen() {
 
   const handleAnimationFinish = () => {
     setIsSuccess(false);
-    router.replace("/(tabs)/bookshelf");
+    if (params.returnTo === "select-book") {
+      router.back();
+    } else {
+      router.replace("/(tabs)/bookshelf");
+    }
   };
 
   // 표지 이미지 추가 (카메라 or 갤러리)
@@ -186,19 +190,6 @@ export default function AddBookScreen() {
       if (error) throw error;
 
       setIsSuccess(true);
-      // Alert.alert("완료", "책장에 책이 추가되었습니다!", [
-      //   {
-      //     text: "확인",
-      //     onPress: () => {
-      //       if (params.returnTo === "select-book") {
-      //         router.back();
-      //       } else {
-      //         router.dismissAll();
-      //         router.replace("/(tabs)/bookshelf");
-      //       }
-      //     },
-      //   },
-      // ]);
     } catch (e: any) {
       console.error(e);
       Alert.alert("오류", e.message || "문제가 발생했습니다.");
