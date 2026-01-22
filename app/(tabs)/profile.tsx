@@ -1,11 +1,22 @@
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 export default function ProfileScreen() {
   const [userEmail, setUserEmail] = useState<string | null>("");
+
+  // 개인정보처리방침 URL
+  const privacyPolicyUrl =
+    "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
+
+  const openPrivacyPolicy = () => {
+    WebBrowser.openBrowserAsync(privacyPolicyUrl).catch((err) =>
+      Alert.alert("알림", "페이지를 여는 데 실패했습니다."),
+    );
+  };
 
   useEffect(() => {
     // 화면이 켜지면 현재 로그인한 사용자 정보 가져오기
@@ -70,6 +81,14 @@ export default function ProfileScreen() {
           style={{ marginRight: SIZES.base }}
         />
         <Text style={styles.logoutText}>로그아웃</Text>
+      </TouchableOpacity>
+
+      {/* 개인정보처리방침 링크 */}
+      <TouchableOpacity
+        style={styles.privacyButton}
+        onPress={openPrivacyPolicy}
+      >
+        <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
       </TouchableOpacity>
     </View>
   );
@@ -144,10 +163,21 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: SIZES.padding,
   },
   logoutText: {
     fontSize: SIZES.body3,
     color: "#FF3B30",
     fontWeight: "bold",
+  },
+  privacyButton: {
+    marginTop: SIZES.padding,
+    alignItems: "center",
+    padding: SIZES.base,
+  },
+  privacyButtonText: {
+    color: "#999",
+    fontSize: SIZES.body4,
+    textDecorationLine: "underline",
   },
 });

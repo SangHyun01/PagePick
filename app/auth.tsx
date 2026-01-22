@@ -1,6 +1,8 @@
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -12,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
@@ -33,6 +34,16 @@ export default function AuthScreen() {
 
   // 로그인 모드인지, 회원가입 모드인지
   const [isLoginMode, setIsLoginMode] = useState(true);
+
+  // 개인정보처리방침 URL
+  const privacyPolicyUrl =
+    "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
+
+  const openPrivacyPolicy = () => {
+    WebBrowser.openBrowserAsync(privacyPolicyUrl).catch((err) =>
+      Alert.alert("알림", "페이지를 여는 데 실패했습니다."),
+    );
+  };
 
   // 로그인
   async function signInWithEmail() {
@@ -191,6 +202,14 @@ export default function AuthScreen() {
               : "이미 계정이 있으신가요? 로그인"}
           </Text>
         </TouchableOpacity>
+
+        {/* 개인정보처리방침 링크 */}
+        <TouchableOpacity
+          style={styles.privacyButton}
+          onPress={openPrivacyPolicy}
+        >
+          <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -221,7 +240,12 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.base,
   },
   icon: { marginRight: SIZES.base },
-  input: { flex: 1, fontSize: SIZES.body3, color: "#333", height: SIZES.padding * 1.7 }, // 높이 명시
+  input: {
+    flex: 1,
+    fontSize: SIZES.body3,
+    color: "#333",
+    height: SIZES.padding * 1.7,
+  }, // 높이 명시
   buttonContainer: { marginTop: SIZES.base },
   button: {
     padding: SIZES.base * 2,
@@ -239,6 +263,20 @@ const styles = StyleSheet.create({
   },
   mainButtonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
 
-  switchButton: { marginTop: SIZES.padding, alignItems: "center", padding: SIZES.base },
+  switchButton: {
+    marginTop: SIZES.padding,
+    alignItems: "center",
+    padding: SIZES.base,
+  },
   switchButtonText: { color: "#666", fontSize: SIZES.body4 },
+  privacyButton: {
+    marginTop: SIZES.padding,
+    alignItems: "center",
+    padding: SIZES.base,
+  },
+  privacyButtonText: {
+    color: "#999",
+    fontSize: SIZES.body4,
+    textDecorationLine: "underline",
+  },
 });
