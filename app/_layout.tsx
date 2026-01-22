@@ -38,7 +38,7 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === "auth"; // auth 화면에 있는지 확인
 
     if (session && inAuthGroup) {
-      router.replace("/(tabs)/bookshelf");
+      router.replace("/(tabs)");
     } else if (!session && !inAuthGroup) {
       router.replace("/auth");
     }

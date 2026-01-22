@@ -35,6 +35,13 @@ export default function AuthScreen() {
   // 로그인 모드인지, 회원가입 모드인지
   const [isLoginMode, setIsLoginMode] = useState(true);
 
+  // 제출 가능 여부
+  const canSubmit = isLoginMode
+    ? email.trim() !== "" && password.trim() !== ""
+    : email.trim() !== "" &&
+      password.trim() !== "" &&
+      confirmPassword.trim() !== "";
+
   // 개인정보처리방침 URL
   const privacyPolicyUrl =
     "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
@@ -54,7 +61,7 @@ export default function AuthScreen() {
     });
 
     if (error) {
-      Alert.alert("로그인 실패", error.message);
+      Alert.alert("로그인 실패", "가입한 정보와 일치하지 않습니다.");
       setLoading(false);
     }
   }
@@ -172,9 +179,13 @@ export default function AuthScreen() {
         {/* 메인 버튼 (로그인 or 회원가입) */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.button, styles.mainButton]}
+            style={[
+              styles.button,
+              styles.mainButton,
+              (!canSubmit || loading) && styles.disabledButton,
+            ]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={!canSubmit || loading}
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -278,5 +289,10 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: SIZES.body4,
     textDecorationLine: "underline",
+  },
+  disabledButton: {
+    backgroundColor: "#A9D3FF", // Light blue for disabled state
+    shadowOpacity: 0,
+    elevation: 0,
   },
 });
