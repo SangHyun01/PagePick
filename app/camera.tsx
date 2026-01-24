@@ -43,6 +43,7 @@ export default function CameraScreen() {
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
+          shutterSound: false,
           quality: 0.8,
         });
 
@@ -227,7 +228,12 @@ export default function CameraScreen() {
   // 촬영 화면
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing="back"
+        animateShutter={false}
+      />
       <View style={styles.overlay}>
         <Text style={styles.guideText}>문장이 잘 보이게 찍어주세요</Text>
         <View style={styles.shutterContainer}>
