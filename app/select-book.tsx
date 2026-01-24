@@ -1,11 +1,13 @@
+import SuccessModal from "@/components/SuccessModal";
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
-import { Ionicons } from "@expo/vector-icons";
 import {
   Stack,
   useFocusEffect,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
+
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -36,12 +38,13 @@ export default function SelectBookScreen() {
 
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // 화면이 켜질때마다 책 목록 새로고침
   useFocusEffect(
     useCallback(() => {
       fetchBooks();
-    }, [])
+    }, []),
   );
 
   const fetchBooks = async () => {
@@ -82,6 +85,11 @@ export default function SelectBookScreen() {
     ]);
   };
 
+  const handleAnimationFinish = () => {
+    setShowSuccess(false);
+    router.replace("/(tabs)/bookshelf");
+  };
+
   const handleSelectBook = async (bookId: number, bookTitle: string) => {
     if (!content) {
       Alert.alert("오류", "저장할 문장이 없습니다.");
@@ -98,15 +106,7 @@ export default function SelectBookScreen() {
 
       if (error) throw error;
 
-      Alert.alert("저장 완료!", `"${bookTitle}에 문장을 기록했습니다.`, [
-        {
-          text: "확인",
-          onPress: () => {
-            router.dismissAll();
-            router.replace("/(tabs)/bookshelf");
-          },
-        },
-      ]);
+      setShowSuccess(true);
     } catch (e: any) {
       console.error(e);
       Alert.alert("저장 실패", e.message);
@@ -135,7 +135,6 @@ export default function SelectBookScreen() {
           {item.author}
         </Text>
       </View>
-      <Ionicons name="checkmark-circle-outline" size={24} color="#007AFF" />
     </TouchableOpacity>
   );
 
@@ -178,66 +177,104 @@ export default function SelectBookScreen() {
           }
         />
       )}
+
+      <SuccessModal
+        visible={showSuccess}
+        onFinish={handleAnimationFinish}
+        message="등록 완료!"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: 50 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: SIZES.padding * 2,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingHorizontal: SIZES.padding,
+    paddingBottom: SIZES.base * 2,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
-  backText: { fontSize: 16, color: "#666" },
-  addText: { fontSize: 16, color: "#007AFF", fontWeight: "bold" },
+  headerTitle: { fontSize: SIZES.h3, fontWeight: "bold" },
+  backText: { fontSize: SIZES.body3, color: "#666" },
+  addText: { fontSize: SIZES.body3, color: "#007AFF", fontWeight: "bold" },
 
   contentPreview: {
     backgroundColor: "#f9f9f9",
-    padding: 15,
-    margin: 20,
-    borderRadius: 10,
+    padding: SIZES.base * 2,
+    margin: SIZES.padding,
+    borderRadius: SIZES.radius * 0.8,
   },
-  previewLabel: { fontSize: 12, color: "#888", marginBottom: 4 },
-  previewText: { fontSize: 14, color: "#333", fontStyle: "italic" },
+  previewLabel: {
+    fontSize: SIZES.font,
+    color: "#888",
+    marginBottom: SIZES.base / 2,
+  },
+  previewText: { fontSize: SIZES.body4, color: "#333", fontStyle: "italic" },
 
   bookItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: SIZES.base * 1.5,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   bookCover: {
-    width: 50,
-    height: 75,
-    borderRadius: 4,
+    width: SIZES.largeTitle,
+    height: SIZES.largeTitle * 1.5,
+    borderRadius: SIZES.base / 2,
     backgroundColor: "#eee",
   },
   bookPlaceholder: {
-    width: 50,
-    height: 75,
-    borderRadius: 4,
+    width: SIZES.largeTitle,
+    height: SIZES.largeTitle * 1.5,
+    borderRadius: SIZES.base / 2,
     backgroundColor: "#ddd",
     justifyContent: "center",
     alignItems: "center",
   },
-  placeholderText: { fontSize: 20, fontWeight: "bold", color: "#fff" },
-  bookInfo: { flex: 1, marginLeft: 15 },
+  placeholderText: { fontSize: SIZES.h2, fontWeight: "bold", color: "#fff" },
+  bookInfo: { flex: 1, marginLeft: SIZES.base * 2 },
   bookTitle: {
-    fontSize: 16,
+    fontSize: SIZES.body3,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: SIZES.base / 2,
   },
-  bookAuthor: { fontSize: 14, color: "#888" },
+  bookAuthor: { fontSize: SIZES.body4, color: "#888" },
 
-  emptyContainer: { alignItems: "center", marginTop: 50 },
-  emptyText: { fontSize: 16, color: "#333", marginBottom: 5 },
-  emptySubText: { fontSize: 14, color: "#888" },
+  emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
+  emptyText: {
+    fontSize: SIZES.body3,
+    color: "#333",
+    marginBottom: SIZES.base / 2,
+  },
+  emptySubText: { fontSize: SIZES.body4, color: "#888" },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)", // 반투명 검은 배경
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottieContainer: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    elevation: 5, // 안드로이드 그림자
+  },
+  successText: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
 });

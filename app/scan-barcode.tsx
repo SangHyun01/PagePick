@@ -2,6 +2,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SIZES } from "@/constants/theme";
 
 export default function ScanBarcodeScreen() {
   const router = useRouter();
@@ -141,70 +142,74 @@ export default function ScanBarcodeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "black" },
-  text: { color: "white", fontSize: 18, marginBottom: 20 },
-  button: { padding: 15, backgroundColor: "#007AFF", borderRadius: 10 },
+  text: { color: "white", fontSize: SIZES.h3, marginBottom: SIZES.padding },
+  button: {
+    padding: SIZES.base * 2,
+    backgroundColor: "#007AFF",
+    borderRadius: SIZES.radius * 0.8,
+  },
   buttonText: { color: "white", fontWeight: "bold" },
 
   // 오버레이 스타일 (검은 반투명 배경 + 가운데 투명 구멍)
   overlay: { flex: 1 },
   topOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
-  middleRow: { flexDirection: "row", height: 200 }, // 스캔 영역 높이
+  middleRow: { flexDirection: "row", height: SIZES.height * 0.25 }, // 스캔 영역 높이
   sideOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
-  scanFrame: { width: 300, borderColor: "transparent", borderWidth: 1 },
+  scanFrame: { width: SIZES.width * 0.8, borderColor: "transparent", borderWidth: 1 },
   bottomOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
     alignItems: "center",
-    paddingTop: 30,
+    paddingTop: SIZES.padding * 1.25,
   },
 
   guideText: {
     color: "white",
-    fontSize: 16,
+    fontSize: SIZES.body3,
     fontWeight: "600",
-    marginBottom: 50,
+    marginBottom: SIZES.largeTitle,
   },
-  closeButton: { padding: 10 },
-  closeText: { color: "white", fontSize: 16 },
+  closeButton: { padding: SIZES.base },
+  closeText: { color: "white", fontSize: SIZES.body3 },
 
   cornerTL: {
     position: "absolute",
     top: 0,
     left: 0,
-    width: 20,
-    height: 20,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
+    width: SIZES.padding,
+    height: SIZES.padding,
+    borderTopWidth: SIZES.base / 2,
+    borderLeftWidth: SIZES.base / 2,
     borderColor: "#00E0FF",
   },
   cornerTR: {
     position: "absolute",
     top: 0,
     right: 0,
-    width: 20,
-    height: 20,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
+    width: SIZES.padding,
+    height: SIZES.padding,
+    borderTopWidth: SIZES.base / 2,
+    borderRightWidth: SIZES.base / 2,
     borderColor: "#00E0FF",
   },
   cornerBL: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: 20,
-    height: 20,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
+    width: SIZES.padding,
+    height: SIZES.padding,
+    borderBottomWidth: SIZES.base / 2,
+    borderLeftWidth: SIZES.base / 2,
     borderColor: "#00E0FF",
   },
   cornerBR: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    width: 20,
-    height: 20,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
+    width: SIZES.padding,
+    height: SIZES.padding,
+    borderBottomWidth: SIZES.base / 2,
+    borderRightWidth: SIZES.base / 2,
     borderColor: "#00E0FF",
   },
 });

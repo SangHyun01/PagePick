@@ -1,10 +1,22 @@
+import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ProfileScreen() {
   const [userEmail, setUserEmail] = useState<string | null>("");
+
+  // 개인정보처리방침 URL
+  const privacyPolicyUrl =
+    "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
+
+  const openPrivacyPolicy = () => {
+    WebBrowser.openBrowserAsync(privacyPolicyUrl).catch((err) =>
+      Alert.alert("알림", "페이지를 여는 데 실패했습니다."),
+    );
+  };
 
   useEffect(() => {
     // 화면이 켜지면 현재 로그인한 사용자 정보 가져오기
@@ -43,7 +55,7 @@ export default function ProfileScreen() {
       {/* 프로필 카드 영역 */}
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
-          <Ionicons name="person" size={40} color="#fff" />
+          <Ionicons name="person" size={SIZES.h1} color="#fff" />
         </View>
         <Text style={styles.emailText}>{userEmail}</Text>
       </View>
@@ -52,11 +64,11 @@ export default function ProfileScreen() {
       <View style={styles.menuContainer}>
         <View style={styles.menuItem}>
           <Text style={styles.menuText}>내 독서 통계 (준비중)</Text>
-          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <Ionicons name="chevron-forward" size={SIZES.h3} color="#ccc" />
         </View>
         <View style={styles.menuItem}>
           <Text style={styles.menuText}>앱 설정 (준비중)</Text>
-          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <Ionicons name="chevron-forward" size={SIZES.h3} color="#ccc" />
         </View>
       </View>
 
@@ -64,11 +76,19 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons
           name="log-out-outline"
-          size={20}
+          size={SIZES.h3}
           color="#FF3B30"
-          style={{ marginRight: 8 }}
+          style={{ marginRight: SIZES.base }}
         />
         <Text style={styles.logoutText}>로그아웃</Text>
+      </TouchableOpacity>
+
+      {/* 개인정보처리방침 링크 */}
+      <TouchableOpacity
+        style={styles.privacyButton}
+        onPress={openPrivacyPolicy}
+      >
+        <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
       </TouchableOpacity>
     </View>
   );
@@ -78,17 +98,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",
-    padding: 20,
-    paddingTop: 60,
+    padding: SIZES.padding,
+    paddingTop: SIZES.padding * 2.5,
   },
 
   // 프로필 카드
   profileCard: {
     backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 30,
+    borderRadius: SIZES.radius * 1.5,
+    padding: SIZES.padding * 1.25,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: SIZES.padding,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -96,42 +116,42 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: SIZES.padding * 3.3,
+    height: SIZES.padding * 3.3,
+    borderRadius: SIZES.padding * 1.65,
     backgroundColor: "#007AFF",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: SIZES.base * 2,
   },
   emailText: {
-    fontSize: 18,
+    fontSize: SIZES.h3,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: SIZES.base / 2,
   },
   roleText: {
-    fontSize: 14,
+    fontSize: SIZES.body4,
     color: "#888",
   },
 
   // 메뉴 리스트
   menuContainer: {
     backgroundColor: "#fff",
-    borderRadius: 15,
-    marginBottom: 20,
+    borderRadius: SIZES.radius,
+    marginBottom: SIZES.padding,
     overflow: "hidden",
   },
   menuItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 18,
+    padding: SIZES.base * 2.2,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   menuText: {
-    fontSize: 16,
+    fontSize: SIZES.body3,
     color: "#333",
   },
 
@@ -139,14 +159,25 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    padding: 18,
-    borderRadius: 15,
+    padding: SIZES.base * 2.2,
+    borderRadius: SIZES.radius,
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: SIZES.padding,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: SIZES.body3,
     color: "#FF3B30",
     fontWeight: "bold",
+  },
+  privacyButton: {
+    marginTop: SIZES.padding,
+    alignItems: "center",
+    padding: SIZES.base,
+  },
+  privacyButtonText: {
+    color: "#999",
+    fontSize: SIZES.body4,
+    textDecorationLine: "underline",
   },
 });

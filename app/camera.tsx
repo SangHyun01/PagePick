@@ -1,3 +1,4 @@
+import { SIZES } from "@/constants/theme";
 import TextRecognition, {
   TextRecognitionScript,
 } from "@react-native-ml-kit/text-recognition";
@@ -48,7 +49,7 @@ export default function CameraScreen() {
         const manipResult = await manipulateAsync(
           photo.uri,
           [{ resize: { width: 900 } }], // 너비 900으로 줄이기
-          { format: SaveFormat.JPEG }
+          { format: SaveFormat.JPEG },
         );
 
         // 결과 저장
@@ -62,7 +63,7 @@ export default function CameraScreen() {
         console.log("글자 읽는 중...");
         const result = await TextRecognition.recognize(
           manipResult.uri,
-          TextRecognitionScript.KOREAN
+          TextRecognitionScript.KOREAN,
         );
 
         // 블록을 줄 단위로 쪼개서 저장
@@ -132,13 +133,13 @@ export default function CameraScreen() {
     // 축소 비율 계산
     const scaleX = viewSize.width / imageSize.width;
     const scaleY = viewSize.height / imageSize.height;
-    const scale = Math.min(scaleX, scaleY);
+
+    const scale = Math.max(scaleX, scaleY);
 
     // 실제로 화면에 그려진 이미지 크기 계산
     const displayedWidth = imageSize.width * scale;
     const displayedHeight = imageSize.height * scale;
 
-    // 검은 여백 계산
     const offsetX = (viewSize.width - displayedWidth) / 2;
     const offsetY = (viewSize.height - displayedHeight) / 2;
 
@@ -158,7 +159,7 @@ export default function CameraScreen() {
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.message}>카메라 권한이 필요합니다.</Text>
         <Button onPress={requestPermission} title="권한 허용하기" />
       </View>
@@ -173,7 +174,7 @@ export default function CameraScreen() {
           <Image
             source={{ uri: capturedImage }}
             style={styles.previewImage}
-            resizeMode="contain"
+            resizeMode="cover"
             onLayout={(event: LayoutChangeEvent) => {
               const { width, height } = event.nativeEvent.layout;
               setViewSize({ width, height });
@@ -199,7 +200,6 @@ export default function CameraScreen() {
                   backgroundColor: isSelected
                     ? "rgba(255, 255, 0, 0.4)"
                     : "transparent",
-                  // 테두리는 없거나 아주 옅게
                   borderColor: isSelected ? "#E6B800" : "transparent",
                   borderWidth: 1,
                   borderRadius: 4,
@@ -244,11 +244,17 @@ export default function CameraScreen() {
 }
 
 const styles = StyleSheet.create({
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: { flex: 1, backgroundColor: "black" },
   message: {
     textAlign: "center",
-    paddingBottom: 10,
-    fontSize: 16,
+    paddingBottom: SIZES.base,
+    fontSize: SIZES.body3,
     color: "white",
   },
   camera: { flex: 1 },
@@ -259,37 +265,37 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 150,
+    height: SIZES.height * 0.2,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   guideText: {
     color: "white",
-    marginBottom: 20,
-    fontSize: 14,
+    marginBottom: SIZES.padding,
+    fontSize: SIZES.body4,
     fontWeight: "600",
   },
-  shutterContainer: { marginBottom: 30 },
+  shutterContainer: { marginBottom: SIZES.padding * 1.25 },
   shutterButtonOuter: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 4,
+    width: SIZES.padding * 3,
+    height: SIZES.padding * 3,
+    borderRadius: SIZES.padding * 1.5,
+    borderWidth: SIZES.base / 2,
     borderColor: "white",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
   },
   shutterButtonInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: SIZES.padding * 2.2,
+    height: SIZES.padding * 2.2,
+    borderRadius: SIZES.padding * 1.1,
     backgroundColor: "white",
   },
   bottomBar: {
     position: "absolute",
-    bottom: 30,
+    bottom: SIZES.padding * 1.25,
     left: 0,
     right: 0,
     flexDirection: "row",
@@ -297,18 +303,18 @@ const styles = StyleSheet.create({
     zIndex: 20, // 버튼이 형광펜보다 위에 있게
   },
   cancelButton: {
-    padding: 15,
+    padding: SIZES.base * 2,
     backgroundColor: "#555",
-    borderRadius: 10,
-    width: 120,
+    borderRadius: SIZES.radius * 0.8,
+    width: SIZES.width * 0.35,
     alignItems: "center",
   },
   saveButton: {
-    padding: 15,
+    padding: SIZES.base * 2,
     backgroundColor: "#007AFF",
-    borderRadius: 10,
-    width: 120,
+    borderRadius: SIZES.radius * 0.8,
+    width: SIZES.width * 0.35,
     alignItems: "center",
   },
-  buttonText: { color: "white", fontWeight: "bold" },
+  buttonText: { color: "white", fontWeight: "bold", fontSize: SIZES.body3 },
 });
