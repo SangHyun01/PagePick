@@ -50,6 +50,47 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "정말 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // 현재 세션 가져오기
+              const {
+                data: { session },
+              } = await supabase.auth.getSession();
+              if (!session) return;
+
+              // 탈퇴 함수 호출
+              const { error } = await supabase.functions.invoke(
+                "delete-account",
+                {
+                  headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                  },
+                },
+              );
+
+              if (error) throw error;
+
+              await supabase.auth.signOut();
+              Alert.alert("완료", "회원 탈퇴가 완료되었습니다.");
+            } catch (e: any) {
+              Alert.alert("오류", "탈퇴 처리 중 문제가 발생했습니다.");
+              console.error(e);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* 프로필 카드 영역 */}
@@ -89,6 +130,14 @@ export default function ProfileScreen() {
         onPress={openPrivacyPolicy}
       >
         <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
+      </TouchableOpacity>
+
+      {/* 회원탈퇴 버튼 */}
+      <TouchableOpacity
+        style={styles.deleteAccountButton}
+        onPress={handleDeleteAccount}
+      >
+        <Text style={styles.deleteAccountText}>회원탈퇴</Text>
       </TouchableOpacity>
     </View>
   );
@@ -170,12 +219,23 @@ const styles = StyleSheet.create({
     color: "#FF3B30",
     fontWeight: "bold",
   },
+
   privacyButton: {
     marginTop: SIZES.padding,
     alignItems: "center",
     padding: SIZES.base,
   },
   privacyButtonText: {
+    color: "#999",
+    fontSize: SIZES.body4,
+    textDecorationLine: "underline",
+  },
+  deleteAccountButton: {
+    marginTop: SIZES.base,
+    alignItems: "center",
+    padding: SIZES.base,
+  },
+  deleteAccountText: {
     color: "#999",
     fontSize: SIZES.body4,
     textDecorationLine: "underline",
