@@ -1,6 +1,7 @@
-import SuccessModal from "@/components/SuccessModal";
-import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import SuccessModal from "@/src/components/SuccessModal";
+import { SIZES } from "@/src/constants/theme";
+import { supabase } from "@/src/lib/supabase";
+import { Book } from "@/src/types/book";
 import {
   Stack,
   useFocusEffect,
@@ -19,13 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-interface Book {
-  id: number;
-  title: string;
-  cover_url: string;
-  author: string;
-}
 
 export default function SelectBookScreen() {
   const router = useRouter();

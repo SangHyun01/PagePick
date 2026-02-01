@@ -1,5 +1,6 @@
-import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import { SIZES } from "@/src/constants/theme";
+import { supabase } from "@/src/lib/supabase";
+import { Book } from "@/src/types/book";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -18,13 +19,6 @@ const GAP = SIZES.base * 2;
 const PADDING = SIZES.padding;
 
 const BOOK_WIDTH = (SIZES.width - PADDING * 2 - GAP) / 2;
-
-interface Book {
-  id: string;
-  title: string;
-  cover_url: string;
-  author?: string;
-}
 
 export default function BookshelfScreen() {
   const router = useRouter();
@@ -146,7 +140,7 @@ export default function BookshelfScreen() {
         <FlatList
           data={books}
           renderItem={renderBookItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={styles.listContentContainer}
           columnWrapperStyle={styles.row} // 좌우 정렬 보정

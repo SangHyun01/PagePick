@@ -1,8 +1,8 @@
+import { SIZES } from "@/src/constants/theme";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 export default function ScanBarcodeScreen() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function ScanBarcodeScreen() {
     if (!isbn.startsWith("978") && !isbn.startsWith("979")) {
       Alert.alert(
         "알림",
-        `ISBN 바코드가 아닌 것 같습니다.\n(스캔된 번호: ${isbn})\n978로 시작하는 바코드를 찍어주세요.`
+        `ISBN 바코드가 아닌 것 같습니다.\n(스캔된 번호: ${isbn})\n978로 시작하는 바코드를 찍어주세요.`,
       );
       setScanned(false);
       return;
@@ -42,14 +42,14 @@ export default function ScanBarcodeScreen() {
     try {
       const response = await fetch(
         `https://openapi.naver.com/v1/search/book.json?query=${encodeURIComponent(
-          isbn
+          isbn,
         )}&display=1`,
         {
           headers: {
             "X-Naver-Client-Id": CLIENT_ID || "",
             "X-Naver-Client-Secret": CLIENT_SECRET || "",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -77,7 +77,7 @@ export default function ScanBarcodeScreen() {
           [
             { text: "다시 스캔", onPress: () => setScanned(false) },
             { text: "직접 입력", onPress: () => router.replace("/add-book") },
-          ]
+          ],
         );
       }
     } catch (error) {
@@ -155,7 +155,11 @@ const styles = StyleSheet.create({
   topOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
   middleRow: { flexDirection: "row", height: SIZES.height * 0.25 }, // 스캔 영역 높이
   sideOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
-  scanFrame: { width: SIZES.width * 0.8, borderColor: "transparent", borderWidth: 1 },
+  scanFrame: {
+    width: SIZES.width * 0.8,
+    borderColor: "transparent",
+    borderWidth: 1,
+  },
   bottomOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",

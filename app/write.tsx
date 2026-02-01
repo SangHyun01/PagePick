@@ -1,5 +1,5 @@
-import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import { SIZES } from "@/src/constants/theme";
+import { supabase } from "@/src/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";

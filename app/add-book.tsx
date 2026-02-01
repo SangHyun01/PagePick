@@ -1,6 +1,6 @@
-import SuccessModal from "@/components/SuccessModal";
-import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import SuccessModal from "@/src/components/SuccessModal";
+import { SIZES } from "@/src/constants/theme";
+import { supabase } from "@/src/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
