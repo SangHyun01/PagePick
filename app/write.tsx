@@ -1,7 +1,10 @@
+import { SIZES } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   StyleSheet,
   Text,
@@ -9,13 +12,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SIZES } from "@/constants/theme";
 
 export default function WriteScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [content, setContent] = useState<string>("");
   const [page, setPage] = useState<string>(""); // 페이지 번호 상태 추가
+  const [isFixing, setIsFixing] = useState(false); // AI 로딩 상태
 
   useEffect(() => {
     if (params.text) {
@@ -25,6 +28,33 @@ export default function WriteScreen() {
       setContent(incomingText);
     }
   }, [params.text]);
+
+  // ai 교정 함수
+  const handleAiFix = async () => {
+    if (!content.trim()) {
+      Alert.alert("알림", "교정할 문장이 없습니다.");
+      return;
+    }
+
+    setIsFixing(true);
+    try {
+      // supabase edge function 호툴
+      const { data, error } = await supabase.functions.invoke("ai-fix-text", {
+        body: { text: content },
+      });
+
+      if (error) throw error;
+
+      if (data?.fixedText) {
+        setContent(data.fixedText); // 수정된 걸로 교체
+        Alert.alert("완료", "문장의 맞춤법과 띄어쓰기가 교정되었어요!");
+      }
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setIsFixing(false);
+    }
+  };
 
   const navigateToNext = (pathname: "/select-book" | "/add-book") => {
     if (!page || !content) {
@@ -45,7 +75,7 @@ export default function WriteScreen() {
           <Ionicons name="chevron-back" size={SIZES.h2} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>문장 다듬기</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: SIZES.padding }} />
       </View>
 
       {/* 페이지 입력 필드 추가 */}
@@ -59,6 +89,28 @@ export default function WriteScreen() {
           keyboardType="number-pad"
           placeholderTextColor="#687076"
         />
+      </View>
+
+      <View style={{ alignItems: "flex-end", marginBottom: SIZES.base }}>
+        <TouchableOpacity
+          onPress={handleAiFix}
+          disabled={isFixing || !content}
+          style={styles.aiButton}
+        >
+          {isFixing ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Ionicons
+                name="sparkles"
+                size={SIZES.h3}
+                color="#fff"
+                style={{ marginRight: SIZES.base }}
+              />
+              <Text style={styles.aiButtonText}>AI 맞춤법 교정</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
@@ -82,14 +134,6 @@ export default function WriteScreen() {
             책 선택
           </Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
-          onPress={() => navigateToNext("/add-book")}
-        >
-          <Text style={[styles.buttonText, styles.primaryButtonText]}>
-            새 책 추가
-          </Text>
-        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -132,6 +176,21 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
+  aiButton: {
+    flexDirection: "row",
+    backgroundColor: "#4d76ff",
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 2,
+    borderRadius: SIZES.radius,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  aiButtonText: {
+    color: "#fff",
+    fontSize: SIZES.body4,
+    fontWeight: "600",
+  },
+
   inputContainer: {
     flex: 1,
     backgroundColor: "#f9f9f9",
@@ -139,7 +198,12 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
     marginBottom: SIZES.padding,
   },
-  textInput: { fontSize: SIZES.body3, lineHeight: SIZES.padding, color: "#333", flex: 1 },
+  textInput: {
+    fontSize: SIZES.body3,
+    lineHeight: SIZES.padding,
+    color: "#333",
+    flex: 1,
+  },
 
   // 하단 버튼 스타일
   bottomButtonContainer: {
