@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { Sentence } from "../types/sentence";
 
-// 책 문장 가져오기
+// 첵 문장 불러오기
 export const getSentencesByBookId = async (
   bookId: number,
 ): Promise<Sentence[]> => {
@@ -13,6 +13,37 @@ export const getSentencesByBookId = async (
 
   if (error) throw error;
   return data || [];
+};
+
+// 랜덤 문장 불러오기
+export const getRandomSentence = async () => {
+  const { data, error } = await supabase.from("sentences").select(`
+      content,
+      page,
+      books (
+        title,
+        author
+      )
+    `);
+
+  if (error) throw error;
+
+  if (data && data.length > 0) {
+    const randomIndex = Math.floor(Math.random() * data.length);
+    const randomItem = data[randomIndex] as any;
+    return {
+      content: randomItem.content,
+      source: Array.isArray(randomItem.books)
+        ? randomItem.books[0]?.title
+        : randomItem.books?.title || "알 수 없는 책",
+      author: Array.isArray(randomItem.books)
+        ? randomItem.books[0]?.author
+        : randomItem.books?.author,
+      page: randomItem.page,
+    };
+  }
+
+  return null; // Return null if no sentences are found
 };
 
 // 문장 추가
