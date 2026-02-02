@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { Sentence } from "../types/sentence";
 
-// 문장 호출
+// 책 문장 가져오기
 export const getSentencesByBookId = async (
   bookId: number,
 ): Promise<Sentence[]> => {
@@ -13,6 +13,16 @@ export const getSentencesByBookId = async (
 
   if (error) throw error;
   return data || [];
+};
+
+// 문장 추가
+export const addSentence = async (sentence: {
+  content: string;
+  page: number | null;
+  book_id: number;
+}) => {
+  const { error } = await supabase.from("sentences").insert([sentence]);
+  if (error) throw error;
 };
 
 // 문장 수정
