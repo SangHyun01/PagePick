@@ -2,9 +2,9 @@
   "expo": {
     "name": "PagePick",
     "slug": "PagePick",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/pagepick-logo.png",
+    "icon": "./src/assets/images/pagepick-logo.png",
     "scheme": "pagepick",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,11 +19,12 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/pagepick-logo.png"
+        "foregroundImage": "./src/assets/images/pagepick-logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.sanghyun01.PagePick",
+      "versionCode": 5,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -32,14 +33,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./src/assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/pagepick-splash.png",
+          "image": "./src/assets/images/pagepick-splash.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#F3EFFF",
