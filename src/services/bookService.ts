@@ -1,6 +1,41 @@
 import { supabase } from "../lib/supabase";
 import { Book } from "../types/book";
 
+// 네이버 책 검색 API
+export const searchBookByIsbn = async (isbn: string) => {
+  const CLIENT_ID = process.env.EXPO_PUBLIC_NAVER_CLIENT_ID;
+  const CLIENT_SECRET = process.env.EXPO_PUBLIC_NAVER_CLIENT_SECRET;
+
+  if (!isbn.startsWith("978") && !isbn.startsWith("979")) {
+    throw new Error(`ISBN 바코드가 아닌 것 같습니다.\n(스캔된 번호: ${isbn})`);
+  }
+
+  try {
+    const response = await fetch(
+      `https://openapi.naver.com/v1/search/book.json?query=${encodeURIComponent(
+        isbn,
+      )}&display=1`,
+      {
+        headers: {
+          "X-Naver-Client-Id": CLIENT_ID || "",
+          "X-Naver-Client-Secret": CLIENT_SECRET || "",
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (data.items && data.items.length > 0) {
+      return data.items[0];
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Naver API Error:", error);
+    throw new Error("네트워크 에러가 발생했습니다.");
+  }
+};
+
 // 이미지 업로드
 const uploadImage = async (uri: string): Promise<string> => {
   try {
