@@ -1,5 +1,5 @@
-import SuccessModal from "@/src/components/SuccessModal";
-import { supabase } from "@/src/lib/supabase";
+import SuccessModal from "@/components/SuccessModal";
+import { supabase } from "@/lib/supabase";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import {
   router,
@@ -23,14 +23,8 @@ import {
   View,
 } from "react-native";
 
-import { SIZES } from "@/src/constants/theme";
-
-interface Sentence {
-  id: number;
-  content: string;
-  page: number;
-  create_at: string;
-}
+import { SIZES } from "@/constants/theme";
+import { Sentence } from "@/types/sentence";
 
 export default function BookDetailScreen() {
   // 책장에서 넘겨준 책 정보

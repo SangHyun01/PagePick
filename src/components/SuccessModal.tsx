@@ -1,8 +1,8 @@
 // src/components/SuccessModal.tsx
-import { SIZES } from "@/src/constants/theme";
 import LottieView from "lottie-react-native";
 import React, { useRef } from "react";
 import { Modal, StyleSheet, Text, View } from "react-native";
+import { SIZES } from "../constants/theme";
 
 interface SuccessModalProps {
   visible: boolean; // 모달을 보여줄지 말지

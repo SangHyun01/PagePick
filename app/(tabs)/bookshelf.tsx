@@ -1,6 +1,6 @@
-import { SIZES } from "@/src/constants/theme";
-import { Book } from "@/src/types/book";
-import { useBookshelfViewModel } from "@/src/view-models/useBookshelfViewModel";
+import { SIZES } from "@/constants/theme";
+import { Book } from "@/types/book";
+import { useBookshelfViewModel } from "@/view-models/useBookshelfViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 

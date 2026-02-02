@@ -1,4 +1,4 @@
-import { SIZES } from "@/src/constants/theme";
+import { SIZES } from "@/constants/theme";
 import TextRecognition, {
   TextRecognitionScript,
 } from "@react-native-ml-kit/text-recognition";

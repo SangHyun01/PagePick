@@ -1,4 +1,4 @@
-import { SIZES } from "@/src/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
