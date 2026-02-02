@@ -1,17 +1,10 @@
 import SuccessModal from "@/components/SuccessModal";
 import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
-import {
-  Stack,
-  useFocusEffect,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
-
-import { useCallback, useState } from "react";
+import { Book } from "@/types/book";
+import { useSelectBookViewModel } from "@/view-models/useSelectBookViewModel";
+import { Stack } from "expo-router";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -20,103 +13,22 @@ import {
   View,
 } from "react-native";
 
-interface Book {
-  id: number;
-  title: string;
-  cover_url: string;
-  author: string;
-}
-
 export default function SelectBookScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
-
-  const content = Array.isArray(params.content)
-    ? params.content[0]
-    : params.content;
-  const page = Array.isArray(params.page) ? params.page[0] : params.page;
-
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  // 화면이 켜질때마다 책 목록 새로고침
-  useFocusEffect(
-    useCallback(() => {
-      fetchBooks();
-    }, []),
-  );
-
-  const fetchBooks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("books")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      if (data) setBooks(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddNewBook = () => {
-    Alert.alert("새 책 추가", "어떤 방법으로 추가하시겠어요?", [
-      {
-        text: "바코드 스캔",
-        onPress: () =>
-          router.push({
-            pathname: "/scan-barcode",
-            params: { returnTo: "select-book" },
-          }),
-      },
-      {
-        text: "직접 입력",
-        onPress: () =>
-          router.push({
-            pathname: "/add-book",
-            params: { returnTo: "select-book" },
-          }),
-      },
-      { text: "취소", style: "cancel" },
-    ]);
-  };
-
-  const handleAnimationFinish = () => {
-    setShowSuccess(false);
-    router.replace("/(tabs)/bookshelf");
-  };
-
-  const handleSelectBook = async (bookId: number, bookTitle: string) => {
-    if (!content) {
-      Alert.alert("오류", "저장할 문장이 없습니다.");
-      return;
-    }
-    try {
-      const { error } = await supabase.from("sentences").insert([
-        {
-          content: content,
-          page: page ? parseInt(page) : null,
-          book_id: bookId,
-        },
-      ]);
-
-      if (error) throw error;
-
-      setShowSuccess(true);
-    } catch (e: any) {
-      console.error(e);
-      Alert.alert("저장 실패", e.message);
-    }
-  };
+  const {
+    router,
+    content,
+    books,
+    loading,
+    showSuccess,
+    handleAddNewBook,
+    handleAnimationFinish,
+    handleSelectBook,
+  } = useSelectBookViewModel();
 
   const renderBookItem = ({ item }: { item: Book }) => (
     <TouchableOpacity
       style={styles.bookItem}
-      onPress={() => handleSelectBook(item.id, item.title)}
+      onPress={() => handleSelectBook(item.id)}
     >
       {item.cover_url ? (
         <Image source={{ uri: item.cover_url }} style={styles.bookCover} />
@@ -146,7 +58,6 @@ export default function SelectBookScreen() {
           <Text style={styles.backText}>취소</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>어떤 책인가요?</Text>
-
         <TouchableOpacity onPress={handleAddNewBook}>
           <Text style={styles.addText}>+ 새 책</Text>
         </TouchableOpacity>
@@ -260,7 +171,7 @@ const styles = StyleSheet.create({
 
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)", // 반투명 검은 배경
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -269,7 +180,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: "center",
-    elevation: 5, // 안드로이드 그림자
+    elevation: 5,
   },
   successText: {
     marginTop: 10,

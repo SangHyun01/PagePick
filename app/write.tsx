@@ -1,11 +1,8 @@
 import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import { useWriteViewModel } from "@/view-models/useWriteViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -14,59 +11,16 @@ import {
 } from "react-native";
 
 export default function WriteScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const [content, setContent] = useState<string>("");
-  const [page, setPage] = useState<string>(""); // 페이지 번호 상태 추가
-  const [isFixing, setIsFixing] = useState(false); // AI 로딩 상태
-
-  useEffect(() => {
-    if (params.text) {
-      const incomingText = Array.isArray(params.text)
-        ? params.text[0]
-        : params.text;
-      setContent(incomingText);
-    }
-  }, [params.text]);
-
-  // ai 교정 함수
-  const handleAiFix = async () => {
-    if (!content.trim()) {
-      Alert.alert("알림", "교정할 문장이 없습니다.");
-      return;
-    }
-
-    setIsFixing(true);
-    try {
-      // supabase edge function 호툴
-      const { data, error } = await supabase.functions.invoke("ai-fix-text", {
-        body: { text: content },
-      });
-
-      if (error) throw error;
-
-      if (data?.fixedText) {
-        setContent(data.fixedText); // 수정된 걸로 교체
-        Alert.alert("완료", "문장의 맞춤법과 띄어쓰기가 교정되었어요!");
-      }
-    } catch (e: any) {
-      console.error(e);
-    } finally {
-      setIsFixing(false);
-    }
-  };
-
-  const navigateToNext = (pathname: "/select-book" | "/add-book") => {
-    if (!page || !content) {
-      Alert.alert("알림", "페이지와 문장을 모두 입력해주세요.");
-      return;
-    }
-    // 다음 화면으로 문장과 페이지 정보 전달
-    router.push({
-      pathname: pathname as any,
-      params: { content, page },
-    });
-  };
+  const {
+    content,
+    setContent,
+    page,
+    setPage,
+    isFixing,
+    handleAiFix,
+    navigateToNext,
+    router,
+  } = useWriteViewModel();
 
   return (
     <View style={styles.container}>
@@ -78,7 +32,6 @@ export default function WriteScreen() {
         <View style={{ width: SIZES.padding }} />
       </View>
 
-      {/* 페이지 입력 필드 추가 */}
       <View style={styles.pageInputContainer}>
         <Text style={styles.pageInputLabel}>페이지</Text>
         <TextInput
@@ -124,7 +77,6 @@ export default function WriteScreen() {
         />
       </View>
 
-      {/* 하단 버튼 영역 */}
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
@@ -205,7 +157,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // 하단 버튼 스타일
   bottomButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",

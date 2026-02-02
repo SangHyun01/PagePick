@@ -1,12 +1,11 @@
 import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
+import { useAuthViewModel } from "@/view-models/useAuthViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import React, { useState } from "react";
+import { Stack } from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   AppState,
   StyleSheet,
   Text,
@@ -24,84 +23,20 @@ AppState.addEventListener("change", (state) => {
 });
 
 export default function AuthScreen() {
-  const router = useRouter();
-
-  // 상태 변수들
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // 로그인 모드인지, 회원가입 모드인지
-  const [isLoginMode, setIsLoginMode] = useState(true);
-
-  // 제출 가능 여부
-  const canSubmit = isLoginMode
-    ? email.trim() !== "" && password.trim() !== ""
-    : email.trim() !== "" &&
-      password.trim() !== "" &&
-      confirmPassword.trim() !== "";
-
-  // 개인정보처리방침 URL
-  const privacyPolicyUrl =
-    "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
-
-  const openPrivacyPolicy = () => {
-    WebBrowser.openBrowserAsync(privacyPolicyUrl).catch((err) =>
-      Alert.alert("알림", "페이지를 여는 데 실패했습니다."),
-    );
-  };
-
-  // 로그인
-  async function signInWithEmail() {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password,
-    });
-
-    if (error) {
-      Alert.alert("로그인 실패", "가입한 정보와 일치하지 않습니다.");
-      setLoading(false);
-    }
-  }
-
-  // 회원가입
-  async function signUpWithEmail() {
-    if (password !== confirmPassword) {
-      Alert.alert("알림", "비밀번호가 일치하지 않습니다.\n다시 확인해주세요.");
-      return;
-    }
-    if (password.length < 6) {
-      Alert.alert("알림", "비밀번호는 6자리 이상이어야 합니다.");
-      return;
-    }
-
-    setLoading(true);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-    });
-
-    if (error) {
-      Alert.alert("회원가입 실패", error.message);
-      setLoading(false);
-    } else {
-      Alert.alert("환영합니다!", "회원가입이 완료되었습니다.");
-    }
-  }
-
-  // 버튼 눌렀을 때 실행할 함수 분기
-  const handleSubmit = () => {
-    if (isLoginMode) {
-      signInWithEmail();
-    } else {
-      signUpWithEmail();
-    }
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    loading,
+    isLoginMode,
+    canSubmit,
+    openPrivacyPolicy,
+    toggleMode,
+    handleSubmit,
+  } = useAuthViewModel();
 
   return (
     <View style={styles.container}>
@@ -118,7 +53,6 @@ export default function AuthScreen() {
       </View>
 
       <View style={styles.form}>
-        {/* 이메일 입력 */}
         <View style={styles.inputContainer}>
           <Ionicons
             name="mail-outline"
@@ -137,7 +71,6 @@ export default function AuthScreen() {
           />
         </View>
 
-        {/* 비밀번호 입력 */}
         <View style={styles.inputContainer}>
           <Ionicons
             name="lock-closed-outline"
@@ -176,16 +109,15 @@ export default function AuthScreen() {
           </View>
         )}
 
-        {/* 메인 버튼 (로그인 or 회원가입) */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[
               styles.button,
               styles.mainButton,
-              (!canSubmit || loading) && styles.disabledButton,
+              !canSubmit && styles.disabledButton,
             ]}
             onPress={handleSubmit}
-            disabled={!canSubmit || loading}
+            disabled={!canSubmit}
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -197,16 +129,7 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 모드 전환 버튼 (텍스트) */}
-        <TouchableOpacity
-          style={styles.switchButton}
-          onPress={() => {
-            // 모드 바꿀 때 입력한 것들 초기화
-            setIsLoginMode(!isLoginMode);
-            setPassword("");
-            setConfirmPassword("");
-          }}
-        >
+        <TouchableOpacity style={styles.switchButton} onPress={toggleMode}>
           <Text style={styles.switchButtonText}>
             {isLoginMode
               ? "계정이 없으신가요? 회원가입"
@@ -214,7 +137,6 @@ export default function AuthScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* 개인정보처리방침 링크 */}
         <TouchableOpacity
           style={styles.privacyButton}
           onPress={openPrivacyPolicy}
@@ -256,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body3,
     color: "#333",
     height: SIZES.padding * 1.7,
-  }, // 높이 명시
+  },
   buttonContainer: { marginTop: SIZES.base },
   button: {
     padding: SIZES.base * 2,
@@ -273,7 +195,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   mainButtonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
-
   switchButton: {
     marginTop: SIZES.padding,
     alignItems: "center",
@@ -291,7 +212,7 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   disabledButton: {
-    backgroundColor: "#A9D3FF", // Light blue for disabled state
+    backgroundColor: "#A9D3FF",
     shadowOpacity: 0,
     elevation: 0,
   },

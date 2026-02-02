@@ -1,8 +1,9 @@
 import { SIZES } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
+import { Book } from "@/types/book";
+import { useBookshelfViewModel } from "@/view-models/useBookshelfViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
+
 import {
   ActivityIndicator,
   Alert,
@@ -19,45 +20,10 @@ const PADDING = SIZES.padding;
 
 const BOOK_WIDTH = (SIZES.width - PADDING * 2 - GAP) / 2;
 
-interface Book {
-  id: string;
-  title: string;
-  cover_url: string;
-  author?: string;
-}
-
 export default function BookshelfScreen() {
   const router = useRouter();
-  const [books, setBooks] = useState<Book[]>([]); // 초기에는 책이 없는 상태
-  const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchBooks();
-    }, []),
-  );
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("books")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setBooks(data);
-      }
-    } catch (e) {
-      console.error("불러오기 실패", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { books, isLoading } = useBookshelfViewModel();
 
   const handleAddBook = () => {
     Alert.alert(
@@ -138,7 +104,7 @@ export default function BookshelfScreen() {
         <Text style={styles.headerTitle}>책장</Text>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -146,7 +112,7 @@ export default function BookshelfScreen() {
         <FlatList
           data={books}
           renderItem={renderBookItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={styles.listContentContainer}
           columnWrapperStyle={styles.row} // 좌우 정렬 보정
