@@ -1,6 +1,7 @@
+import AlbumList from "@/components/AlbumList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import { SIZES, Colors } from "@/constants/theme"; // Colors import 추가
+import { Colors, SIZES } from "@/constants/theme"; // Colors import 추가
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,7 +9,6 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -19,13 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// 3열 그리드의 아이템 너비를 동적으로 계산
-const NUM_COLUMNS = 3;
-const ITEM_SPACING = 2; // 아이템 간 간격
-const totalSpacing = (NUM_COLUMNS - 1) * ITEM_SPACING;
-const contentWidth = SIZES.width - SIZES.padding * 2 - totalSpacing;
-const itemWidth = contentWidth / NUM_COLUMNS;
 
 export default function BookDetailScreen() {
   const params = useLocalSearchParams();
@@ -146,52 +139,14 @@ export default function BookDetailScreen() {
           <ActivityIndicator size="large" color={Colors.light.tint} />
         </View>
       ) : (
-        <View style={{ flex: 1 }}>
+        <View style={styles.content}>
           {activeTab === "sentence" ? (
             <SentenceList
               sentences={sentences}
               onOptionPress={handleSentenceOptions}
             />
           ) : (
-            /* 앨범 탭 */
-            <View style={{ flex: 1 }}>
-              <FlatList
-                data={photos}
-                keyExtractor={(item) =>
-                  item.id ? item.id.toString() : Math.random().toString()
-                }
-                numColumns={NUM_COLUMNS}
-                contentContainerStyle={{ paddingHorizontal: SIZES.padding }}
-                columnWrapperStyle={{ justifyContent: "space-between" }}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.imageContainer}
-                    activeOpacity={0.9}
-                    // 나중에 사진 크게 보기 기능 넣을 때 여기 onPress 추가
-                  >
-                    <Image
-                      source={{ uri: item.photo_url }}
-                      style={styles.albumImage}
-                    />
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={
-                  <View style={[styles.center, { marginTop: 50 }]}>
-                    <Text style={styles.emptyListText}>
-                      등록된 사진이 없습니다.
-                    </Text>
-                  </View>
-                }
-              />
-              <View style={styles.uploadButtonContainer}>
-                <TouchableOpacity
-                  style={styles.uploadButton}
-                  onPress={pickAndUpload}
-                >
-                  <Text style={styles.uploadButtonText}>사진 추가하기</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <AlbumList photos={photos} onAddPress={pickAndUpload} />
           )}
         </View>
       )}
@@ -307,6 +262,9 @@ export default function BookDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  content: {
+    flex: 1,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -483,36 +441,5 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Colors.light.tint,
     fontWeight: "bold",
-  },
-  imageContainer: {
-    width: itemWidth,
-    aspectRatio: 1,
-    marginBottom: ITEM_SPACING,
-  },
-  albumImage: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#f0f0f0",
-    borderRadius: SIZES.base,
-  },
-  uploadButtonContainer: {
-    padding: SIZES.padding,
-    backgroundColor: Colors.light.background,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  uploadButton: {
-    backgroundColor: Colors.light.tint,
-    padding: SIZES.padding / 1.5,
-    borderRadius: SIZES.radius,
-    alignItems: "center",
-  },
-  uploadButtonText: {
-    color: Colors.light.background,
-    fontSize: SIZES.h3,
-    fontWeight: "bold",
-  },
-  emptyListText: {
-    color: Colors.light.icon,
   },
 });

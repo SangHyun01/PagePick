@@ -1,5 +1,5 @@
-import { SIZES } from "@/constants/theme";
-import { Sentence } from "@/types/sentence"; // 타입 경로 확인
+import { SIZES, Colors } from "@/constants/theme";
+import { Sentence } from "@/types/sentence";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -12,7 +12,7 @@ import {
 
 interface SentenceListProps {
   sentences: Sentence[];
-  onOptionPress: (item: Sentence) => void; // 옵션 버튼 눌렀을 때 실행할 함수
+  onOptionPress: (item: Sentence) => void;
 }
 
 export default function SentenceList({
@@ -26,15 +26,15 @@ export default function SentenceList({
           <FontAwesome
             name="quote-left"
             size={SIZES.h2}
-            color="#007AFF"
+            color={Colors.light.tint}
             style={{ opacity: 0.3 }}
           />
         </View>
         <TouchableOpacity
-          onPress={() => onOptionPress(item)} // 부모에게 "이거 눌렸어!" 알림
+          onPress={() => onOptionPress(item)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="ellipsis-vertical" size={SIZES.h2} color="#999" />
+          <Ionicons name="ellipsis-vertical" size={SIZES.h2} color={Colors.light.icon} />
         </TouchableOpacity>
       </View>
 
@@ -61,11 +61,13 @@ export default function SentenceList({
   );
 }
 
-// 스타일도 관련 있는 것만 가져옴
 const styles = StyleSheet.create({
-  listContent: { padding: SIZES.base * 2 },
+  listContent: {
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base * 2,
+  },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
     marginBottom: SIZES.base * 2,
@@ -85,7 +87,7 @@ const styles = StyleSheet.create({
   sentenceText: {
     fontSize: SIZES.body3,
     lineHeight: SIZES.h2,
-    color: "#333",
+    color: Colors.light.text,
     fontWeight: "500",
     letterSpacing: -0.5,
   },
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
   },
   pageText: {
     fontSize: SIZES.font,
-    color: "#888",
+    color: Colors.light.icon,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: SIZES.base,
     paddingVertical: SIZES.base / 2,
@@ -103,5 +105,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
-  emptyText: { color: "#999", fontSize: SIZES.body3 },
+  emptyText: { color: Colors.light.icon, fontSize: SIZES.body3 },
 });
