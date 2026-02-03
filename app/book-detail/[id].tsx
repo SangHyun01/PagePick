@@ -96,7 +96,15 @@ export default function BookDetailScreen() {
         <View style={styles.infoText}>
           <Text style={styles.infoTitle}>{bookTitle}</Text>
           <Text style={styles.infoAuthor}>{bookAuthor}</Text>
-          <Text style={styles.infoCount}>수집한 문장 {sentences.length}개</Text>
+          <View style={styles.infoCountContainer}>
+            <Text style={styles.infoCount}>
+              수집한 문장 {sentences.length}개
+            </Text>
+            <Text style={styles.infoCountDivider}>|</Text>
+            <Text style={styles.infoCount}>
+              업로드한 사진 {photos.length}개
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -321,10 +329,19 @@ const styles = StyleSheet.create({
     color: Colors.light.icon,
     marginBottom: SIZES.base / 2,
   },
+  infoCountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   infoCount: {
     fontSize: SIZES.body4,
     color: Colors.light.tint,
     fontWeight: "600",
+  },
+  infoCountDivider: {
+    fontSize: SIZES.body4,
+    color: Colors.light.icon,
+    marginHorizontal: SIZES.base,
   },
   listContent: { padding: SIZES.base * 2 },
   card: {
