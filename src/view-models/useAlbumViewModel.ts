@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 
 export const useAlbumViewModel = (bookId: number) => {
   const [photos, setPhotos] = useState<any[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 사진 로딩
   const loadPhotos = useCallback(async () => {
@@ -29,7 +29,7 @@ export const useAlbumViewModel = (bookId: number) => {
     });
 
     if (!result.canceled) {
-      setUploading(true);
+      setIsLoading(true);
       try {
         // 여러 장을 한 번에 업로드
         await Promise.all(
@@ -39,10 +39,10 @@ export const useAlbumViewModel = (bookId: number) => {
       } catch (e) {
         console.error(e);
       } finally {
-        setUploading(false);
+        setIsLoading(false);
       }
     }
   };
 
-  return { photos, uploading, loadPhotos, pickAndUpload };
+  return { photos, isLoading, loadPhotos, pickAndUpload };
 };

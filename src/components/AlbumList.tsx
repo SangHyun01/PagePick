@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import LoadingModal from "./LoadingModal";
 
 const NUM_COLUMNS = 3;
 const ITEM_SPACING = 2;
@@ -23,16 +24,19 @@ interface Photo {
 interface AlbumListProps {
   photos: Photo[];
   onAddPress: () => void;
+  isLoading: boolean;
   // onPhotoPress: (photo: Photo) => void;
 }
 
 const AlbumList: React.FC<AlbumListProps> = ({
   photos,
   onAddPress,
+  isLoading,
   // onPhotoPress,
 }) => {
   return (
     <View style={styles.container}>
+      <LoadingModal visible={isLoading} message="사진 추가 중" />
       <FlatList
         data={photos}
         keyExtractor={(item) =>
