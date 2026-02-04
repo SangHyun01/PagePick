@@ -1,4 +1,5 @@
 import { fetchPhotos, uploadPhoto } from "@/services/photoService";
+import { Action, manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -35,16 +36,24 @@ export const useAlbumViewModel = ({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
       allowsMultipleSelection: true,
-      quality: 0.8,
+      quality: 1,
     });
 
     if (!result.canceled) {
       setIsLoading(true);
       try {
+        const uploadPromises = result.assets.map(async (asset) => {
+          const actions: Action[] = [{ resize: { width: 1080 } }];
+
+          const manipulatedImage = await manipulateAsync(asset.uri, actions, {
+            compress: 0.7,
+            format: SaveFormat.JPEG,
+          });
+
+          return uploadPhoto(bookId, manipulatedImage.uri);
+        });
         // 여러 장을 한 번에 업로드
-        await Promise.all(
-          result.assets.map((asset) => uploadPhoto(bookId, asset.uri)),
-        );
+        await Promise.all(uploadPromises);
         await loadPhotos(); // 새로고침
       } catch (e) {
         console.error(e);
