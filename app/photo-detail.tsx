@@ -1,3 +1,4 @@
+import { SIZES } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view";
 import { Stack, router, useLocalSearchParams } from "expo-router";
@@ -96,26 +97,26 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? 20 : 15,
+    paddingHorizontal: SIZES.base * 2.5,
+    paddingTop: Platform.OS === "android" ? SIZES.base * 2.5 : SIZES.base * 2,
     alignItems: "flex-start",
     backgroundColor: "white",
-    paddingBottom: 10,
+    paddingBottom: SIZES.base,
   },
-  closeButton: { marginLeft: -5 },
+  closeButton: { marginLeft: -SIZES.base / 2 },
 
   title: {
-    marginTop: 20,
-    marginLeft: 8,
+    marginTop: SIZES.base * 2.5,
+    marginLeft: SIZES.base,
     color: "#333",
-    fontSize: 13,
+    fontSize: SIZES.font * 0.9,
     fontWeight: "bold",
   },
   author: {
-    marginLeft: 8,
+    marginLeft: SIZES.base,
     color: "#666",
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: SIZES.font * 0.8,
+    marginTop: SIZES.base / 4,
   },
 
   imageArea: {
