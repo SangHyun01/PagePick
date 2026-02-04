@@ -25,14 +25,14 @@ interface AlbumListProps {
   photos: Photo[];
   onAddPress: () => void;
   isLoading: boolean;
-  // onPhotoPress: (photo: Photo) => void;
+  onPhotoPress: (photo: Photo) => void;
 }
 
 const AlbumList: React.FC<AlbumListProps> = ({
   photos,
   onAddPress,
   isLoading,
-  // onPhotoPress,
+  onPhotoPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -48,7 +48,7 @@ const AlbumList: React.FC<AlbumListProps> = ({
           <TouchableOpacity
             style={styles.imageContainer}
             activeOpacity={0.9}
-            // onPress={() => onPhotoPress(item)}
+            onPress={() => onPhotoPress(item)}
           >
             <Image source={{ uri: item.photo_url }} style={styles.albumImage} />
           </TouchableOpacity>

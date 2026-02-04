@@ -1,9 +1,19 @@
 import { fetchPhotos, uploadPhoto } from "@/services/photoService";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 
-export const useAlbumViewModel = (bookId: number) => {
+interface AlbumViewModelProps {
+  bookId: number;
+  bookTitle: string;
+  bookAuthor: string;
+}
+
+export const useAlbumViewModel = ({
+  bookId,
+  bookTitle,
+  bookAuthor,
+}: AlbumViewModelProps) => {
   const [photos, setPhotos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,7 +33,7 @@ export const useAlbumViewModel = (bookId: number) => {
   // 사진 추가
   const pickAndUpload = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: "images",
       allowsMultipleSelection: true,
       quality: 0.8,
     });
@@ -44,5 +54,16 @@ export const useAlbumViewModel = (bookId: number) => {
     }
   };
 
-  return { photos, isLoading, loadPhotos, pickAndUpload };
+  const handlePhotoPress = (photo: any) => {
+    router.push({
+      pathname: "/photo-detail",
+      params: {
+        photo_url: photo.photo_url,
+        bookTitle,
+        bookAuthor,
+      },
+    });
+  };
+
+  return { photos, isLoading, loadPhotos, pickAndUpload, handlePhotoPress };
 };

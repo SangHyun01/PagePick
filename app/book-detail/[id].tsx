@@ -25,9 +25,6 @@ export default function BookDetailScreen() {
   const bookId = Number(params.id);
   const coverUrl = params.cover_url as string;
   const [activeTab, setActiveTab] = useState<"sentence" | "album">("sentence");
-  const { photos, pickAndUpload, isLoading } = useAlbumViewModel(
-    Number(bookId),
-  );
 
   const {
     sentences,
@@ -59,6 +56,13 @@ export default function BookDetailScreen() {
     initialTitle: params.title as string,
     initialAuthor: params.author as string,
   });
+
+  const { photos, pickAndUpload, isLoading, handlePhotoPress } =
+    useAlbumViewModel({
+      bookId: Number(bookId),
+      bookTitle,
+      bookAuthor,
+    });
 
   return (
     <View style={styles.container}>
@@ -160,6 +164,7 @@ export default function BookDetailScreen() {
               photos={photos}
               onAddPress={pickAndUpload}
               isLoading={isLoading}
+              onPhotoPress={handlePhotoPress}
             />
           )}
         </View>
