@@ -1,4 +1,5 @@
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
+import { usePhotoDetailViewModel } from "@/view-models/usePhotoDetailViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view";
 import { Stack, router, useLocalSearchParams } from "expo-router";
@@ -7,12 +8,15 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Modal,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
@@ -25,6 +29,9 @@ export default function PhotoDetailScreen() {
   const bookAuthor = params.bookAuthor as string;
 
   const [imageHeight, setImageHeight] = useState(0);
+
+  const { isMenuVisible, animatedStyle, openMenu, closeMenu } =
+    usePhotoDetailViewModel();
 
   useEffect(() => {
     if (photoUrl) {
@@ -52,13 +59,24 @@ export default function PhotoDetailScreen() {
           >
             <Ionicons name="chevron-back" size={30} color="black" />
           </TouchableOpacity>
-          <View>
-            <Text style={styles.title} numberOfLines={1}>
-              {bookTitle}
-            </Text>
-            <Text style={styles.author} numberOfLines={1}>
-              {bookAuthor}
-            </Text>
+
+          <View style={styles.infoRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.title} numberOfLines={1}>
+                {bookTitle}
+              </Text>
+              <Text style={styles.author} numberOfLines={1}>
+                {bookAuthor}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={openMenu}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              style={styles.optionButton}
+            >
+              <Ionicons name="ellipsis-vertical" size={20} color="black" />
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -87,6 +105,39 @@ export default function PhotoDetailScreen() {
           </View>
         )}
       </View>
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={isMenuVisible}
+        onRequestClose={closeMenu}
+      >
+        <TouchableWithoutFeedback onPress={closeMenu}>
+          <View style={styles.modalOverlay}>
+            <Animated.View style={[styles.menuContainer, animatedStyle]}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <Ionicons name="trash-outline" size={22} color={"red"} />
+                <Text style={[styles.menuText, { color: "red" }]}>삭제</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <Ionicons
+                  name="download-outline"
+                  size={22}
+                  color={Colors.light.text}
+                />
+                <Text style={styles.menuText}>다운로드</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={Colors.light.text}
+                />
+                <Text style={styles.menuText}>공유</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -104,7 +155,16 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.base,
   },
   closeButton: { marginLeft: -SIZES.base / 2 },
-
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: SIZES.base,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  optionButton: { marginTop: SIZES.base * 2 },
   title: {
     marginTop: SIZES.base * 2.5,
     marginLeft: SIZES.base,
@@ -134,5 +194,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  menuContainer: {
+    backgroundColor: "white",
+    borderTopLeftRadius: SIZES.radius * 2,
+    borderTopRightRadius: SIZES.radius * 2,
+    padding: SIZES.padding,
+    paddingBottom: SIZES.padding * 2,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: SIZES.padding / 1.5,
+  },
+  menuText: {
+    fontSize: SIZES.h3,
+    marginLeft: SIZES.padding,
+    color: Colors.light.text,
+  },
+  cancelItem: {
+    marginTop: SIZES.base,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    justifyContent: "center",
   },
 });
