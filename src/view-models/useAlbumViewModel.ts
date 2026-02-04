@@ -67,6 +67,7 @@ export const useAlbumViewModel = ({
     router.push({
       pathname: "/photo-detail",
       params: {
+        id: photo.id,
         photo_url: photo.photo_url,
         bookTitle,
         bookAuthor,

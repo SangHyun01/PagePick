@@ -30,8 +30,15 @@ export default function PhotoDetailScreen() {
 
   const [imageHeight, setImageHeight] = useState(0);
 
-  const { isMenuVisible, animatedStyle, openMenu, closeMenu } =
-    usePhotoDetailViewModel();
+  const {
+    isMenuVisible,
+    animatedStyle,
+    openMenu,
+    closeMenu,
+    handleDelete,
+    handleDownload,
+    handleShare,
+  } = usePhotoDetailViewModel({ photoUrl });
 
   useEffect(() => {
     if (photoUrl) {
@@ -114,11 +121,14 @@ export default function PhotoDetailScreen() {
         <TouchableWithoutFeedback onPress={closeMenu}>
           <View style={styles.modalOverlay}>
             <Animated.View style={[styles.menuContainer, animatedStyle]}>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <Ionicons name="trash-outline" size={22} color={"red"} />
                 <Text style={[styles.menuText, { color: "red" }]}>삭제</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleDownload}
+              >
                 <Ionicons
                   name="download-outline"
                   size={22}
@@ -126,7 +136,7 @@ export default function PhotoDetailScreen() {
                 />
                 <Text style={styles.menuText}>다운로드</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleShare}>
                 <Ionicons
                   name="share-outline"
                   size={22}

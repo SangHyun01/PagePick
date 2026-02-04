@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { File } from "expo-file-system";
 
 // 사진 목록 가져오기
 export const fetchPhotos = async (bookId: number) => {
@@ -13,29 +14,55 @@ export const fetchPhotos = async (bookId: number) => {
 
 // 사진 업로드
 export const uploadPhoto = async (bookId: number, uri: string) => {
-  // 파일 이름 생성
-  const fileName = `${bookId}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+  const file = new File(uri);
 
-  const response = await fetch(uri);
-  const arrayBuffer = await response.arrayBuffer();
+  const arrayBuffer = await file.arrayBuffer();
 
-  const { error } = await supabase.storage
+  const filePath = `${bookId}/${new Date().getTime()}.jpg`;
+  const contentType = "image/jpeg";
+
+  const { data, error } = await supabase.storage
     .from("book_photos")
-    .upload(fileName, arrayBuffer, {
-      contentType: "image/jpeg",
-      upsert: false,
-    });
-  if (error) throw error;
+    .upload(filePath, arrayBuffer, { contentType });
 
-  // 업로드된 URL 가져오기
-  const { data: publicData } = supabase.storage
+  if (error) {
+    throw error;
+  }
+
+  const { data: publicURLData } = supabase.storage
     .from("book_photos")
-    .getPublicUrl(fileName);
+    .getPublicUrl(data.path);
 
-  // DB에 정보 저장
+  await supabase
+    .from("album_photos")
+    .insert({ book_id: bookId, photo_url: publicURLData.publicUrl });
+};
+
+// 사진 삭제
+export const deletePhoto = async (photoUrl: string) => {
+  const bucketName = "book_photos";
+  // URL에서 파일 경로만 추출
+  const filePath = photoUrl.split(`${bucketName}/`).pop();
+
+  if (!filePath) {
+    throw new Error("파일 경로를 찾을 수 없습니다.");
+  }
+
+  // 스토리지에서 파일 삭제
+  const { error: storageError } = await supabase.storage
+    .from(bucketName)
+    .remove([decodeURIComponent(filePath)]);
+
+  if (storageError) {
+    console.error("스토리지 삭제 실패:", storageError);
+    throw storageError;
+  }
+
+  // DB에서 레코드 삭제
   const { error: dbError } = await supabase
     .from("album_photos")
-    .insert({ book_id: bookId, photo_url: publicData.publicUrl });
+    .delete()
+    .eq("photo_url", photoUrl);
 
   if (dbError) throw dbError;
 };
