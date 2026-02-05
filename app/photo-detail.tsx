@@ -122,10 +122,6 @@ export default function PhotoDetailScreen() {
         <TouchableWithoutFeedback onPress={closeMenu}>
           <View style={styles.modalOverlay}>
             <Animated.View style={[styles.menuContainer, animatedStyle]}>
-              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={22} color={"red"} />
-                <Text style={[styles.menuText, { color: "red" }]}>삭제</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleDownload}
@@ -144,6 +140,10 @@ export default function PhotoDetailScreen() {
                   color={Colors.light.text}
                 />
                 <Text style={styles.menuText}>공유</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+                <Ionicons name="trash-outline" size={22} color={"red"} />
+                <Text style={[styles.menuText, { color: "red" }]}>삭제</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>

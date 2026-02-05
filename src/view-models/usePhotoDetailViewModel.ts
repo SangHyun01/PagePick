@@ -2,6 +2,7 @@ import { deletePhoto } from "@/services/photoService";
 import * as FileSystem from "expo-file-system/legacy";
 import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { useState } from "react";
 import { Alert } from "react-native";
 
@@ -89,9 +90,32 @@ export const usePhotoDetailViewModel = ({
   };
 
   // 사진 공유
-  const handleShare = () => {
-    console.log("Share");
-    closeMenu();
+  const handleShare = async () => {
+    try {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert("알림", "이 기기에서는 공유 기능을 사용할 수 없습니다.");
+        return;
+      }
+
+      // 임시 캐시 폴더에 파일 다운로드
+      const fileName = photoUrl.split("/").pop() || `share_${Date.now()}.jpg`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      const { uri } = await FileSystem.downloadAsync(photoUrl, fileUri);
+
+      // 공유 창 띄우기
+      await Sharing.shareAsync(uri, {
+        mimeType: "image/jpeg",
+        dialogTitle: "사진 공유하기",
+        UTI: "public.jpeg",
+      });
+    } catch (error) {
+      console.error("공유 실패:", error);
+      Alert.alert("실패", "공유하는 중 오류가 발생했습니다.");
+    } finally {
+      closeMenu();
+    }
   };
 
   return {
