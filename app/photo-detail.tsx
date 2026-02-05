@@ -112,6 +112,7 @@ export default function PhotoDetailScreen() {
           </View>
         )}
       </View>
+
       <Modal
         animationType="none"
         transparent={true}
