@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: "center",
-    marginTop: 50,
+    marginTop: SIZES.largeTitle,
   },
   imageContainer: {
     width: itemWidth,
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     color: Colors.light.icon,
+    fontSize: SIZES.body4,
   },
 });
 

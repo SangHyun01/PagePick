@@ -109,5 +109,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
-  emptyText: { color: Colors.light.icon, fontSize: SIZES.body3 },
+  emptyText: { color: Colors.light.icon, fontSize: SIZES.body4 },
 });
