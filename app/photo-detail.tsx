@@ -180,13 +180,13 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base * 2.5,
     marginLeft: SIZES.base,
     color: "#333",
-    fontSize: SIZES.font * 0.9,
+    fontSize: SIZES.h4 * 0.9,
     fontWeight: "bold",
   },
   author: {
     marginLeft: SIZES.base,
     color: "#666",
-    fontSize: SIZES.font * 0.8,
+    fontSize: SIZES.h3 * 0.8,
     marginTop: SIZES.base / 4,
   },
 

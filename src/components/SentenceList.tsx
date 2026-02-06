@@ -1,4 +1,4 @@
-import { SIZES, Colors } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
 import { Sentence } from "@/types/sentence";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -34,7 +34,11 @@ export default function SentenceList({
           onPress={() => onOptionPress(item)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="ellipsis-vertical" size={SIZES.h2} color={Colors.light.icon} />
+          <Ionicons
+            name="ellipsis-vertical"
+            size={SIZES.h2}
+            color={Colors.light.icon}
+          />
         </TouchableOpacity>
       </View>
 
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base * 1.5,
   },
   pageText: {
-    fontSize: SIZES.font,
+    fontSize: SIZES.h4,
     color: Colors.light.icon,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: SIZES.base,
