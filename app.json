@@ -26,10 +26,20 @@
       "package": "com.sanghyun01.PagePick",
       "versionCode": 6,
       "launchMode": "singleTask",
+
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
+      ],
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "data": {
+            "mimeType": "image/*"
+          },
+          "category": ["DEFAULT"]
+        }
       ]
     },
     "web": {
@@ -69,6 +79,22 @@
           "photosPermission": "사진을 저장하기 위해 앨범 접근 권한이 필요합니다.",
           "savePhotosPermission": "사진을 저장하기 위해 앨범 접근 권한이 필요합니다.",
           "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "android": {
+            "intentFilters": [
+              {
+                "action": "android.intent.action.SEND",
+                "category": ["android.intent.category.DEFAULT"],
+                "data": {
+                  "mimeType": "image/*"
+                }
+              }
+            ]
+          }
         }
       ]
     ],

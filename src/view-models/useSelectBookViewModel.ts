@@ -16,6 +16,18 @@ export const useSelectBookViewModel = () => {
     Array.isArray(params.page) ? params.page[0] : params.page
   ) as string;
 
+  // 공유 기능용 파라미터 받기
+  const sharedImageUri = (
+    Array.isArray(params.sharedImageUri)
+      ? params.sharedImageUri[0]
+      : params.sharedImageUri
+  ) as string;
+
+  const isShareMode =
+    (Array.isArray(params.isShareMode)
+      ? params.isShareMode[0]
+      : params.isShareMode) === "true";
+
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -67,6 +79,17 @@ export const useSelectBookViewModel = () => {
   };
 
   const handleSelectBook = async (bookId: number) => {
+    if (isShareMode && sharedImageUri) {
+      router.replace({
+        pathname: `/book-detail/[id]`,
+        params: {
+          id: bookId,
+          newPhotoUri: sharedImageUri,
+        },
+      });
+      return;
+    }
+
     if (!content) {
       Alert.alert("오류", "저장할 문장이 없습니다.");
       return;

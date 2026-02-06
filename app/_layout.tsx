@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { useShareIntent } from "expo-share-intent";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
@@ -8,9 +9,9 @@ export default function RootLayout() {
   const [initialized, setInitialized] = useState(false);
   const segments = useSegments();
   const router = useRouter();
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
   useEffect(() => {
-    // 앱 켜자마자 로그인 상태 확인
     const checkSession = async () => {
       const {
         data: { session },
@@ -21,30 +22,58 @@ export default function RootLayout() {
 
     checkSession();
 
-    // 로그인/로그아웃 상태가 변하면 감지
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setInitialized(true);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized) return; // 로딩 중이면 대기
 
-    // 로그인 여부에 따라 화면 이동
-    const inAuthGroup = segments[0] === "auth"; // auth 화면에 있는지 확인
+    const inAuthGroup = segments[0] === "auth";
 
-    if (session && inAuthGroup) {
-      router.replace("/(tabs)");
-    } else if (!session && !inAuthGroup) {
-      router.replace("/auth");
+    // 로그인이 안 되어 있으면 로그인 화면으로
+    if (!session) {
+      if (!inAuthGroup) {
+        router.replace("/auth");
+      }
+      return;
     }
-  }, [session, initialized, segments]);
 
-  // 로그인 체크 중일 때 로딩 표시
+    // 로그인 됨 + 공유된 파일이 있음 책 선택 화면으로
+    if (
+      hasShareIntent &&
+      (shareIntent.type === "media" || shareIntent.type === "file") &&
+      shareIntent.files
+    ) {
+      const sharedFile = shareIntent.files?.[0];
+
+      if (sharedFile) {
+        router.replace({
+          pathname: "/select-book",
+          params: {
+            sharedImageUri: sharedFile.path,
+            isShareMode: "true",
+          },
+        });
+
+        resetShareIntent();
+        return;
+      }
+    }
+
+    // 로그인 됨 + 공유 없음 + 현재 로그인 화면임 -> 홈으로
+    if (inAuthGroup) {
+      router.replace("/(tabs)");
+    }
+  }, [session, initialized, segments, hasShareIntent, shareIntent]);
+
+  // 로딩 화면
   if (!initialized) {
     return (
       <View style={styles.container}>

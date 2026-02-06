@@ -6,9 +6,10 @@ import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -25,6 +26,7 @@ export default function BookDetailScreen() {
   const bookId = Number(params.id);
   const coverUrl = params.cover_url as string;
   const [activeTab, setActiveTab] = useState<"sentence" | "album">("sentence");
+  const { newPhotoUri } = useLocalSearchParams();
 
   const {
     sentences,
@@ -57,12 +59,35 @@ export default function BookDetailScreen() {
     initialAuthor: params.author as string,
   });
 
-  const { photos, pickAndUpload, isLoading, handlePhotoPress } =
-    useAlbumViewModel({
-      bookId: Number(bookId),
-      bookTitle,
-      bookAuthor,
-    });
+  const {
+    photos,
+    pickAndUpload,
+    isLoading,
+    handlePhotoPress,
+    uploadSharedPhoto,
+  } = useAlbumViewModel({
+    bookId: Number(bookId),
+    bookTitle,
+    bookAuthor,
+  });
+
+  useEffect(() => {
+    if (newPhotoUri) {
+      Alert.alert(
+        "사진 저장",
+        "선택하신 책에 공유된 사진을 저장하시겠습니까?",
+        [
+          { text: "취소", style: "cancel" },
+          {
+            text: "저장",
+            onPress: async () => {
+              await uploadSharedPhoto(newPhotoUri as string);
+            },
+          },
+        ],
+      );
+    }
+  }, [newPhotoUri]);
 
   return (
     <View style={styles.container}>

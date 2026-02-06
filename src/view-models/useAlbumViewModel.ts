@@ -3,6 +3,7 @@ import { Action, manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import { Alert } from "react-native";
 
 interface AlbumViewModelProps {
   bookId: number;
@@ -63,6 +64,33 @@ export const useAlbumViewModel = ({
     }
   };
 
+  const uploadSharedPhoto = async (uri: string) => {
+    if (!uri) return;
+
+    setIsLoading(true);
+    try {
+      const actions: Action[] = [{ resize: { width: 1080 } }];
+      const manipulatedImage = await manipulateAsync(uri, actions, {
+        compress: 0.7,
+        format: SaveFormat.JPEG,
+      });
+
+      await uploadPhoto(bookId, manipulatedImage.uri);
+
+      await loadPhotos();
+
+      Alert.alert("저장 완료", "사진이 성공적으로 저장되었습니다.", [
+        {
+          text: "확인",
+        },
+      ]);
+    } catch (e) {
+      console.error("공유 사진 업로드 실패:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handlePhotoPress = (photo: any) => {
     router.push({
       pathname: "/photo-detail",
@@ -75,5 +103,12 @@ export const useAlbumViewModel = ({
     });
   };
 
-  return { photos, isLoading, loadPhotos, pickAndUpload, handlePhotoPress };
+  return {
+    photos,
+    isLoading,
+    loadPhotos,
+    pickAndUpload,
+    handlePhotoPress,
+    uploadSharedPhoto,
+  };
 };
