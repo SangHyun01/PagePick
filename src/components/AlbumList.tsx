@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import LoadingModal from "./LoadingModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import LoadingModal from "./LoadingModal";
 
 const NUM_COLUMNS = 3;
 const ITEM_SPACING = 2;
@@ -18,7 +18,7 @@ const contentWidth = SIZES.width - totalSpacing;
 const itemWidth = contentWidth / NUM_COLUMNS;
 
 interface Photo {
-  id: number;
+  id: number | string;
   photo_url: string;
 }
 
@@ -36,25 +36,54 @@ const AlbumList: React.FC<AlbumListProps> = ({
   onPhotoPress,
 }) => {
   const insets = useSafeAreaInsets();
+
+  const formatData = (data: Photo[], numColumns: number) => {
+    const dataCopy = [...data];
+    const numberOfFullRows = Math.floor(dataCopy.length / numColumns);
+    let numberOfElementsLastRow =
+      dataCopy.length - numberOfFullRows * numColumns;
+    while (
+      numberOfElementsLastRow !== numColumns &&
+      numberOfElementsLastRow !== 0
+    ) {
+      dataCopy.push({
+        id: `blank-${numberOfElementsLastRow}`,
+        photo_url: "",
+      });
+      numberOfElementsLastRow++;
+    }
+    return dataCopy;
+  };
+
+  const formattedPhotos = formatData(photos, NUM_COLUMNS);
+
   return (
     <View style={styles.container}>
       <LoadingModal visible={isLoading} message="사진 추가 중" />
       <FlatList
-        data={photos}
+        data={formattedPhotos}
         keyExtractor={(item) =>
           item.id ? item.id.toString() : Math.random().toString()
         }
         numColumns={NUM_COLUMNS}
         columnWrapperStyle={{ justifyContent: "space-between" }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.imageContainer}
-            activeOpacity={0.9}
-            onPress={() => onPhotoPress(item)}
-          >
-            <Image source={{ uri: item.photo_url }} style={styles.albumImage} />
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          if (!item.photo_url) {
+            return <View style={styles.imageContainer} />;
+          }
+          return (
+            <TouchableOpacity
+              style={styles.imageContainer}
+              activeOpacity={0.9}
+              onPress={() => onPhotoPress(item)}
+            >
+              <Image
+                source={{ uri: item.photo_url }}
+                style={styles.albumImage}
+              />
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyListText}>등록된 사진이 없습니다.</Text>
