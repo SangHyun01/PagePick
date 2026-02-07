@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -90,22 +91,27 @@ export default function PhotoDetailScreen() {
 
       <View style={styles.imageArea}>
         {imageHeight > 0 ? (
-          <ReactNativeZoomableView
-            maxZoom={3}
-            minZoom={1}
-            zoomStep={0.5}
-            initialZoom={1}
-            bindToBorders={true}
-            contentWidth={screenWidth}
-            contentHeight={imageHeight}
-            style={styles.zoomContainer}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
           >
-            <Image
-              source={{ uri: photoUrl }}
-              style={{ width: screenWidth, height: imageHeight }}
-              resizeMode="contain"
-            />
-          </ReactNativeZoomableView>
+            <ReactNativeZoomableView
+              maxZoom={3}
+              minZoom={1}
+              zoomStep={0.5}
+              initialZoom={1}
+              bindToBorders={true}
+              contentWidth={screenWidth}
+              contentHeight={imageHeight}
+              style={styles.zoomContainer}
+            >
+              <Image
+                source={{ uri: photoUrl }}
+                style={{ width: screenWidth, height: imageHeight }}
+                resizeMode="contain"
+              />
+            </ReactNativeZoomableView>
+          </ScrollView>
         ) : (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -163,7 +169,6 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? SIZES.base * 2.5 : SIZES.base * 2,
     alignItems: "flex-start",
     backgroundColor: "white",
-    paddingBottom: SIZES.base,
   },
   closeButton: { marginLeft: -SIZES.base / 2 },
   infoRow: {
@@ -194,6 +199,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     justifyContent: "flex-start",
+    marginTop: -SIZES.base * 2,
   },
 
   zoomContainer: {

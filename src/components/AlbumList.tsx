@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import LoadingModal from "./LoadingModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const NUM_COLUMNS = 3;
 const ITEM_SPACING = 2;
@@ -34,6 +35,7 @@ const AlbumList: React.FC<AlbumListProps> = ({
   isLoading,
   onPhotoPress,
 }) => {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
       <LoadingModal visible={isLoading} message="사진 추가 중" />
@@ -59,7 +61,12 @@ const AlbumList: React.FC<AlbumListProps> = ({
           </View>
         }
       />
-      <View style={styles.uploadButtonContainer}>
+      <View
+        style={[
+          styles.uploadButtonContainer,
+          { paddingBottom: insets.bottom + SIZES.padding },
+        ]}
+      >
         <TouchableOpacity style={styles.uploadButton} onPress={onAddPress}>
           <Text style={styles.uploadButtonText}>사진 추가하기</Text>
         </TouchableOpacity>
