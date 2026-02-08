@@ -61,6 +61,14 @@ export default function BookDetailScreen() {
     newReview,
     setNewRating,
     setNewReview,
+    // 리뷰 수정/조회 모달
+    isReviewEditModalVisible,
+    setReviewEditModalVisible,
+    editingRating,
+    setEditingRating,
+    editingReview,
+    setEditingReview,
+    // 핸들러
     handleAnimationFinish,
     handleDeleteFinish,
     handleBookOptions,
@@ -70,6 +78,9 @@ export default function BookDetailScreen() {
     handleUpdateStatus,
     handleSubmitReview,
     handleCancelReview,
+    openReviewEditModal,
+    handleUpdateReview,
+    handleDeleteReview,
   } = useBookDetailViewModel({
     bookId,
   });
@@ -154,6 +165,25 @@ export default function BookDetailScreen() {
           </View>
         </View>
       </View>
+
+      {book.status === "finished" && book.rating && (
+        <TouchableOpacity
+          style={styles.ratingContainer}
+          onPress={openReviewEditModal}
+        >
+          <Text style={styles.ratingLabel}>나의 평점</Text>
+          <View style={styles.starContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Ionicons
+                key={star}
+                name={star <= book.rating! ? "star" : "star-outline"}
+                size={24}
+                color={Colors.light.tint}
+              />
+            ))}
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* 상태 선택 UI */}
       <View style={styles.statusSelectorContainer}>
@@ -377,6 +407,63 @@ export default function BookDetailScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* 리뷰 수정/조회 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isReviewEditModalVisible}
+        onRequestClose={() => setReviewEditModalVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>리뷰 수정</Text>
+            <Text style={styles.label}>별점</Text>
+            <View style={styles.starContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setEditingRating(star)}
+                >
+                  <Ionicons
+                    name={star <= editingRating ? "star" : "star-outline"}
+                    size={32}
+                    color={Colors.light.tint}
+                    style={{ marginHorizontal: 5 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.label}>리뷰</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={editingReview}
+              onChangeText={setEditingReview}
+              multiline
+              textAlignVertical="top"
+              placeholder="리뷰를 남겨주세요 (선택)"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnDelete]}
+                onPress={handleDeleteReview}
+              >
+                <Text style={styles.btnTextDelete}>삭제</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={handleUpdateReview}
+              >
+                <Text style={styles.btnTextSave}>수정</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {successType === "review" ? (
         <CongratsModal visible={isSuccess} onFinish={handleAnimationFinish} />
       ) : (
@@ -579,5 +666,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: SIZES.base,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base * 1.5,
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  ratingLabel: {
+    fontSize: SIZES.body3,
+    fontWeight: "bold",
+    color: Colors.light.text,
+  },
+  btnDelete: {
+    backgroundColor: "#ff4d4f",
+    marginRight: SIZES.base,
+  },
+  btnTextDelete: {
+    color: "white",
+    fontWeight: "bold",
   },
 });

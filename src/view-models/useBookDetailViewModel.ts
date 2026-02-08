@@ -40,6 +40,11 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
   const [newRating, setNewRating] = useState(0);
   const [newReview, setNewReview] = useState("");
 
+  // 리뷰 수정/조회 모달
+  const [isReviewEditModalVisible, setReviewEditModalVisible] = useState(false);
+  const [editingRating, setEditingRating] = useState(0);
+  const [editingReview, setEditingReview] = useState("");
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -186,6 +191,59 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     }
   };
 
+  const openReviewEditModal = () => {
+    if (book?.rating && book.review) {
+      setEditingRating(book.rating);
+      setEditingReview(book.review);
+    }
+    setReviewEditModalVisible(true);
+  };
+
+  const handleUpdateReview = async () => {
+    if (editingRating === 0) {
+      Alert.alert("알림", "별점을 선택해주세요.");
+      return;
+    }
+    try {
+      const updates = {
+        rating: editingRating,
+        review: editingReview,
+      };
+      await bookService.updateBookDetails(bookId, updates);
+      setBook((prev) => (prev ? { ...prev, ...updates } : null));
+      setReviewEditModalVisible(false);
+      setSuccessType("default");
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Failed to update review:", error);
+      Alert.alert("오류", "리뷰 수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    Alert.alert("리뷰 삭제", "정말 리뷰를 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const updates = {
+              rating: null,
+              review: null,
+            };
+            await bookService.updateBookDetails(bookId, updates);
+            setBook((prev) => (prev ? { ...prev, ...updates } : null));
+            setReviewEditModalVisible(false);
+          } catch (error) {
+            console.error("Failed to delete review:", error);
+            Alert.alert("오류", "리뷰 삭제에 실패했습니다.");
+          }
+        },
+      },
+    ]);
+  };
+
   // 문장 관련 이벤트
   const handleSentenceOptions = (sentence: Sentence) => {
     Alert.alert(
@@ -284,6 +342,14 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     setNewRating,
     setNewReview,
 
+    // 리뷰 수정/조회 모달
+    isReviewEditModalVisible,
+    setReviewEditModalVisible,
+    editingRating,
+    setEditingRating,
+    editingReview,
+    setEditingReview,
+
     // 핸들러
     handleAnimationFinish,
     handleDeleteFinish,
@@ -294,5 +360,8 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     updateSentence,
     handleSubmitReview,
     handleCancelReview,
+    openReviewEditModal,
+    handleUpdateReview,
+    handleDeleteReview,
   };
 };
