@@ -1,6 +1,7 @@
 import AlbumList from "@/components/AlbumList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
+import CongratsModal from "@/components/CongratsModal";
 import { Colors, SIZES } from "@/constants/theme";
 import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
@@ -42,6 +43,7 @@ export default function BookDetailScreen() {
     loading,
     isSuccess,
     isDelete,
+    successType,
     bookEditModalVisible,
     editTitle,
     editAuthor,
@@ -375,11 +377,15 @@ export default function BookDetailScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      <SuccessModal
-        visible={isSuccess}
-        onFinish={handleAnimationFinish}
-        message="수정 완료!"
-      />
+      {successType === "review" ? (
+        <CongratsModal visible={isSuccess} onFinish={handleAnimationFinish} />
+      ) : (
+        <SuccessModal
+          visible={isSuccess}
+          onFinish={handleAnimationFinish}
+          message="수정 완료!"
+        />
+      )}
       <SuccessModal
         visible={isDelete}
         onFinish={handleDeleteFinish}

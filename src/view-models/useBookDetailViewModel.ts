@@ -19,6 +19,9 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
   const [deleteTarget, setDeleteTarget] = useState<"book" | "sentence" | null>(
     null,
   );
+  const [successType, setSuccessType] = useState<"default" | "review">(
+    "default",
+  );
 
   // 책 정보 수정 모달
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
@@ -67,7 +70,10 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     }, [bookId]),
   );
 
-  const handleAnimationFinish = () => setIsSuccess(false);
+  const handleAnimationFinish = () => {
+    setIsSuccess(false);
+    setSuccessType("default");
+  };
 
   const handleDeleteFinish = () => {
     setIsDelete(false);
@@ -122,6 +128,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       setBook((prev) => (prev ? { ...prev, title: editTitle, author: editAuthor } : null));
       router.setParams({ title: editTitle, author: editAuthor });
       setBookEditModalVisible(false);
+      setSuccessType("default");
       setIsSuccess(true);
     } catch (e) {
       console.error(e);
@@ -160,6 +167,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       setReviewModalVisible(false);
       setNewRating(0);
       setNewReview("");
+      setSuccessType("review");
       setIsSuccess(true);
     } catch (error) {
       console.error("Failed to submit review:", error);
@@ -236,6 +244,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
         ),
       );
       setSentenceEditModalVisible(false);
+      setSuccessType("default");
       setIsSuccess(true);
     } catch (e) {
       console.error(e);
@@ -250,6 +259,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     loading,
     isSuccess,
     isDelete,
+    successType,
 
     // 책 정보 수정 모달
     bookEditModalVisible,
