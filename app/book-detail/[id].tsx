@@ -37,13 +37,11 @@ export default function BookDetailScreen() {
   const { newPhotoUri } = useLocalSearchParams();
 
   const {
+    book,
     sentences,
     loading,
     isSuccess,
     isDelete,
-    bookTitle,
-    bookAuthor,
-    bookStatus,
     bookEditModalVisible,
     editTitle,
     editAuthor,
@@ -56,6 +54,11 @@ export default function BookDetailScreen() {
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
+    isReviewModalVisible,
+    newRating,
+    newReview,
+    setNewRating,
+    setNewReview,
     handleAnimationFinish,
     handleDeleteFinish,
     handleBookOptions,
@@ -63,21 +66,18 @@ export default function BookDetailScreen() {
     handleSentenceOptions,
     updateSentence,
     handleUpdateStatus,
+    handleSubmitReview,
+    handleCancelReview,
   } = useBookDetailViewModel({
     bookId,
   });
 
-  const {
-    photos,
-    pickAndUpload,
-    isLoading,
-    handlePhotoPress,
-    uploadSharedPhoto,
-  } = useAlbumViewModel({
-    bookId: Number(bookId),
-    bookTitle: bookTitle || (params.title as string), // 로드 전 임시 제목
-    bookAuthor: bookAuthor || (params.author as string), // 로드 전 임시 저자
-  });
+  const { photos, pickAndUpload, isLoading, handlePhotoPress, uploadSharedPhoto } =
+    useAlbumViewModel({
+      bookId: Number(bookId),
+      bookTitle: book?.title || (params.title as string),
+      bookAuthor: book?.author || (params.author as string),
+    });
 
   useEffect(() => {
     if (newPhotoUri) {
@@ -96,6 +96,14 @@ export default function BookDetailScreen() {
       );
     }
   }, [newPhotoUri]);
+
+  if (loading || !book) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.light.tint} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -131,8 +139,8 @@ export default function BookDetailScreen() {
           <Image source={{ uri: coverUrl }} style={styles.smallCover} />
         )}
         <View style={styles.infoText}>
-          <Text style={styles.infoTitle}>{bookTitle}</Text>
-          <Text style={styles.infoAuthor}>{bookAuthor}</Text>
+          <Text style={styles.infoTitle}>{book.title}</Text>
+          <Text style={styles.infoAuthor}>{book.author}</Text>
           <View style={styles.infoCountContainer}>
             <Text style={styles.infoCount}>
               수집한 문장 {sentences.length}개
@@ -152,14 +160,14 @@ export default function BookDetailScreen() {
             key={option}
             style={[
               styles.statusButton,
-              bookStatus === option && styles.activeStatusButton,
+              book.status === option && styles.activeStatusButton,
             ]}
             onPress={() => handleUpdateStatus(option)}
           >
             <Text
               style={[
                 styles.statusButtonText,
-                bookStatus === option && styles.activeStatusButtonText,
+                book.status === option && styles.activeStatusButtonText,
               ]}
             >
               {STATUS_MAP[option]}
@@ -204,27 +212,21 @@ export default function BookDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.light.tint} />
-        </View>
-      ) : (
-        <View style={styles.content}>
-          {activeTab === "sentence" ? (
-            <SentenceList
-              sentences={sentences}
-              onOptionPress={handleSentenceOptions}
-            />
-          ) : (
-            <AlbumList
-              photos={photos}
-              onAddPress={pickAndUpload}
-              isLoading={isLoading}
-              onPhotoPress={handlePhotoPress}
-            />
-          )}
-        </View>
-      )}
+      <View style={styles.content}>
+        {activeTab === "sentence" ? (
+          <SentenceList
+            sentences={sentences}
+            onOptionPress={handleSentenceOptions}
+          />
+        ) : (
+          <AlbumList
+            photos={photos}
+            onAddPress={pickAndUpload}
+            isLoading={isLoading}
+            onPhotoPress={handlePhotoPress}
+          />
+        )}
+      </View>
 
       {/* 책 정보 수정 모달 */}
       <Modal
@@ -235,7 +237,7 @@ export default function BookDetailScreen() {
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
@@ -279,7 +281,7 @@ export default function BookDetailScreen() {
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
@@ -311,6 +313,60 @@ export default function BookDetailScreen() {
               <TouchableOpacity
                 style={[styles.btn, styles.btnSave]}
                 onPress={updateSentence}
+              >
+                <Text style={styles.btnTextSave}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* 리뷰 작성 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isReviewModalVisible}
+        onRequestClose={handleCancelReview}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>리뷰 작성</Text>
+            <Text style={styles.label}>별점</Text>
+            <View style={styles.starContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setNewRating(star)}>
+                  <Ionicons
+                    name={star <= newRating ? "star" : "star-outline"}
+                    size={32}
+                    color={Colors.light.tint}
+                    style={{ marginHorizontal: 5 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.label}>리뷰</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={newReview}
+              onChangeText={setNewReview}
+              multiline
+              textAlignVertical="top"
+              placeholder="리뷰를 남겨주세요 (선택)"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={handleCancelReview}
+              >
+                <Text style={styles.btnTextCancel}>건너뛰기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={handleSubmitReview}
               >
                 <Text style={styles.btnTextSave}>저장</Text>
               </TouchableOpacity>
@@ -454,6 +510,7 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   label: {
+    alignSelf: "flex-start",
     fontSize: SIZES.body4,
     fontWeight: "600",
     color: Colors.light.icon,
@@ -461,6 +518,7 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base,
   },
   input: {
+    width: "100%",
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
     borderColor: "#f0f0f0",
@@ -474,6 +532,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: SIZES.padding,
+    width: "100%",
   },
   btn: {
     flex: 1,
@@ -509,5 +568,10 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Colors.light.tint,
     fontWeight: "bold",
+  },
+  starContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: SIZES.base,
   },
 });

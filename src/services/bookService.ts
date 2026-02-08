@@ -113,10 +113,10 @@ export const addBook = async (book: {
   if (error) throw error;
 };
 
-// 책 수정
-export const updateBook = async (
+// 책 상세 정보 업데이트 (제목, 저자, 상태, 리뷰 등)
+export const updateBookDetails = async (
   id: number,
-  updates: { title: string; author: string },
+  updates: Partial<Book>,
 ) => {
   const { error } = await supabase.from("books").update(updates).eq("id", id);
   if (error) throw error;

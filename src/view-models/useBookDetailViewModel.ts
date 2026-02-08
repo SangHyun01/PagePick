@@ -1,6 +1,6 @@
 import * as bookService from "@/services/bookService";
 import * as sentenceService from "@/services/sentenceService";
-import { BookStatus } from "@/types/book";
+import { Book, BookStatus } from "@/types/book";
 import { Sentence } from "@/types/sentence";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -11,6 +11,7 @@ export interface BookDetailViewModelProps {
 }
 
 export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => {
+  const [book, setBook] = useState<Book | null>(null);
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -19,20 +20,22 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     null,
   );
 
-  // 책 상태
-  const [bookTitle, setBookTitle] = useState("");
-  const [bookAuthor, setBookAuthor] = useState("");
-  const [bookStatus, setBookStatus] = useState<BookStatus>("reading");
+  // 책 정보 수정 모달
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editAuthor, setEditAuthor] = useState("");
 
-  // 문장 상태
+  // 문장 수정 모달
   const [sentenceEditModalVisible, setSentenceEditModalVisible] =
     useState(false);
   const [editingSentence, setEditingSentence] = useState<Sentence | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editPage, setEditPage] = useState("");
+
+  // 리뷰 작성 모달
+  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
+  const [newRating, setNewRating] = useState(0);
+  const [newReview, setNewReview] = useState("");
 
   const fetchData = async () => {
     try {
@@ -43,9 +46,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       ]);
 
       if (bookData) {
-        setBookTitle(bookData.title);
-        setBookAuthor(bookData.author || "");
-        setBookStatus(bookData.status || "reading");
+        setBook(bookData);
         setEditTitle(bookData.title);
         setEditAuthor(bookData.author || "");
       }
@@ -79,14 +80,10 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
   // 책 관련 이벤트
   const handleBookOptions = () => {
     Alert.alert("책 관리", "이 책을 어떻게 하시겠어요?", [
-      { text: "책 정보 수정", onPress: openBookEditModal },
+      { text: "책 정보 수정", onPress: () => setBookEditModalVisible(true) },
       { text: "책 삭제하기", style: "destructive", onPress: confirmDeleteBook },
       { text: "취소", style: "cancel" },
     ]);
-  };
-
-  const openBookEditModal = () => {
-    setBookEditModalVisible(true);
   };
 
   const confirmDeleteBook = () => {
@@ -118,15 +115,12 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       return;
     }
     try {
-      await bookService.updateBook(bookId, {
+      await bookService.updateBookDetails(bookId, {
         title: editTitle,
         author: editAuthor,
       });
-
-      setBookTitle(editTitle);
-      setBookAuthor(editAuthor);
+      setBook((prev) => (prev ? { ...prev, title: editTitle, author: editAuthor } : null));
       router.setParams({ title: editTitle, author: editAuthor });
-
       setBookEditModalVisible(false);
       setIsSuccess(true);
     } catch (e) {
@@ -136,9 +130,48 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
   };
 
   const handleUpdateStatus = async (status: BookStatus) => {
+    if (status === "finished" && !book?.review) {
+      setReviewModalVisible(true);
+    } else {
+      try {
+        await bookService.updateBookDetails(bookId, { status });
+        setBook((prev) => (prev ? { ...prev, status } : null));
+      } catch (error) {
+        console.error("Failed to update book status:", error);
+        Alert.alert("오류", "책 상태 변경에 실패했습니다.");
+      }
+    }
+  };
+
+  // 리뷰 관련 이벤트
+  const handleSubmitReview = async () => {
+    if (newRating === 0) {
+      Alert.alert("알림", "별점을 선택해주세요.");
+      return;
+    }
     try {
-      await bookService.updateBookStatus(bookId, status);
-      setBookStatus(status);
+      const updates = {
+        status: "finished" as BookStatus,
+        rating: newRating,
+        review: newReview,
+      };
+      await bookService.updateBookDetails(bookId, updates);
+      setBook((prev) => (prev ? { ...prev, ...updates } : null));
+      setReviewModalVisible(false);
+      setNewRating(0);
+      setNewReview("");
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      Alert.alert("오류", "리뷰 등록에 실패했습니다.");
+    }
+  };
+
+  const handleCancelReview = async () => {
+    setReviewModalVisible(false);
+    try {
+      await bookService.updateBookDetails(bookId, { status: "finished" });
+      setBook((prev) => (prev ? { ...prev, status: "finished" } : null));
     } catch (error) {
       console.error("Failed to update book status:", error);
       Alert.alert("오류", "책 상태 변경에 실패했습니다.");
@@ -195,7 +228,6 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
         content: editContent,
         page: updatedPage,
       });
-
       setSentences((prev) =>
         prev.map((s) =>
           s.id === editingSentence.id
@@ -213,15 +245,13 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
 
   return {
     // 상태
+    book,
     sentences,
     loading,
     isSuccess,
     isDelete,
-    bookTitle,
-    bookAuthor,
-    bookStatus,
 
-    // 책 모달
+    // 책 정보 수정 모달
     bookEditModalVisible,
     editTitle,
     editAuthor,
@@ -229,13 +259,20 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     setEditAuthor,
     setBookEditModalVisible,
 
-    // 문장 모달
+    // 문장 수정 모달
     sentenceEditModalVisible,
     editContent,
     editPage,
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
+
+    // 리뷰 작성 모달
+    isReviewModalVisible,
+    newRating,
+    newReview,
+    setNewRating,
+    setNewReview,
 
     // 핸들러
     handleAnimationFinish,
@@ -245,5 +282,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     handleUpdateStatus,
     handleSentenceOptions,
     updateSentence,
+    handleSubmitReview,
+    handleCancelReview,
   };
 };

@@ -6,4 +6,6 @@ export interface Book {
   cover_url: string;
   author?: string;
   status: BookStatus;
+  rating?: number;
+  review?: string;
 }
