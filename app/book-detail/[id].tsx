@@ -1,12 +1,15 @@
+import AlbumList from "@/components/AlbumList";
+import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import { SIZES } from "@/constants/theme";
-import { Sentence } from "@/types/sentence";
+import { Colors, SIZES } from "@/constants/theme"; // Colors import 추가
+import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -22,6 +25,8 @@ export default function BookDetailScreen() {
   const params = useLocalSearchParams();
   const bookId = Number(params.id);
   const coverUrl = params.cover_url as string;
+  const [activeTab, setActiveTab] = useState<"sentence" | "album">("sentence");
+  const { newPhotoUri } = useLocalSearchParams();
 
   const {
     sentences,
@@ -54,32 +59,35 @@ export default function BookDetailScreen() {
     initialAuthor: params.author as string,
   });
 
-  const renderSentenceItem = ({ item }: { item: Sentence }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.quoteIcon}>
-          <FontAwesome
-            name="quote-left"
-            size={SIZES.h2}
-            color="#007AFF"
-            style={{ opacity: 0.3 }}
-          />
-        </View>
-        <TouchableOpacity
-          onPress={() => handleSentenceOptions(item)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="ellipsis-vertical" size={SIZES.h2} color="#999" />
-        </TouchableOpacity>
-      </View>
+  const {
+    photos,
+    pickAndUpload,
+    isLoading,
+    handlePhotoPress,
+    uploadSharedPhoto,
+  } = useAlbumViewModel({
+    bookId: Number(bookId),
+    bookTitle,
+    bookAuthor,
+  });
 
-      <Text style={styles.sentenceText}>{item.content}</Text>
-
-      <View style={styles.pageContainer}>
-        <Text style={styles.pageText}>p.{item.page}</Text>
-      </View>
-    </View>
-  );
+  useEffect(() => {
+    if (newPhotoUri) {
+      Alert.alert(
+        "사진 저장",
+        "선택하신 책에 공유된 사진을 저장하시겠습니까?",
+        [
+          { text: "취소", style: "cancel" },
+          {
+            text: "저장",
+            onPress: async () => {
+              await uploadSharedPhoto(newPhotoUri as string);
+            },
+          },
+        ],
+      );
+    }
+  }, [newPhotoUri]);
 
   return (
     <View style={styles.container}>
@@ -91,15 +99,22 @@ export default function BookDetailScreen() {
           style={styles.backButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={28} color="#333" />
+          <Ionicons name="chevron-back" size={28} color={Colors.light.text} />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             아카이브
           </Text>
         </View>
-        <TouchableOpacity onPress={handleBookOptions} style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color="#333" />
+        <TouchableOpacity
+          onPress={handleBookOptions}
+          style={styles.settingsButton}
+        >
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color={Colors.light.text}
+          />
         </TouchableOpacity>
       </View>
 
@@ -110,26 +125,74 @@ export default function BookDetailScreen() {
         <View style={styles.infoText}>
           <Text style={styles.infoTitle}>{bookTitle}</Text>
           <Text style={styles.infoAuthor}>{bookAuthor}</Text>
-          <Text style={styles.infoCount}>수집한 문장 {sentences.length}개</Text>
+          <View style={styles.infoCountContainer}>
+            <Text style={styles.infoCount}>
+              수집한 문장 {sentences.length}개
+            </Text>
+            <Text style={styles.infoCountDivider}>|</Text>
+            <Text style={styles.infoCount}>
+              업로드한 사진 {photos.length}개
+            </Text>
+          </View>
         </View>
+      </View>
+
+      {/* 탭 버튼 (문장 / 앨범) */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "sentence" && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab("sentence")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "sentence" && styles.activeTabText,
+            ]}
+          >
+            문장
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "album" && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab("album")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "album" && styles.activeTabText,
+            ]}
+          >
+            앨범
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={Colors.light.tint} />
         </View>
       ) : (
-        <FlatList
-          data={sentences}
-          renderItem={renderSentenceItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>아직 저장된 문장이 없습니다.</Text>
-            </View>
-          }
-        />
+        <View style={styles.content}>
+          {activeTab === "sentence" ? (
+            <SentenceList
+              sentences={sentences}
+              onOptionPress={handleSentenceOptions}
+            />
+          ) : (
+            <AlbumList
+              photos={photos}
+              onAddPress={pickAndUpload}
+              isLoading={isLoading}
+              onPhotoPress={handlePhotoPress}
+            />
+          )}
+        </View>
       )}
 
       {/* 책 정보 수정 모달 */}
@@ -241,8 +304,11 @@ export default function BookDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F2F2F7" },
+  container: { flex: 1, backgroundColor: Colors.light.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  content: {
+    flex: 1,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -250,9 +316,9 @@ const styles = StyleSheet.create({
     paddingTop: SIZES.padding * 1.5,
     paddingBottom: SIZES.base * 2,
     paddingHorizontal: SIZES.base * 2,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#f0f0f0",
   },
   backButton: { padding: SIZES.base / 2 },
   titleContainer: {
@@ -263,7 +329,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
-    color: "#333",
+    color: Colors.light.text,
   },
   settingsButton: {
     padding: 5,
@@ -271,7 +337,7 @@ const styles = StyleSheet.create({
   bookInfoSection: {
     flexDirection: "row",
     padding: SIZES.padding,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     marginBottom: SIZES.base,
   },
   smallCover: {
@@ -279,61 +345,34 @@ const styles = StyleSheet.create({
     height: SIZES.largeTitle * 1.5,
     borderRadius: SIZES.base / 2,
     marginRight: SIZES.base * 2,
-    backgroundColor: "#eee",
+    backgroundColor: "#f0f0f0",
   },
   infoText: { justifyContent: "center", flex: 1 },
   infoTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
     marginBottom: SIZES.base / 2,
+    color: Colors.light.text,
   },
   infoAuthor: {
     fontSize: SIZES.body4,
-    color: "#666",
+    color: Colors.light.icon,
     marginBottom: SIZES.base / 2,
   },
-  infoCount: { fontSize: SIZES.body4, color: "#007AFF", fontWeight: "600" },
-  listContent: { padding: SIZES.base * 2 },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    marginBottom: SIZES.base * 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  cardHeader: {
+  infoCountContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: SIZES.base,
+    alignItems: "center",
   },
-  quoteIcon: { marginBottom: SIZES.base },
-  sentenceText: {
-    fontSize: SIZES.body3,
-    lineHeight: SIZES.h2,
-    color: "#333",
-    fontWeight: "500",
-    letterSpacing: -0.5,
+  infoCount: {
+    fontSize: SIZES.body4,
+    color: Colors.light.tint,
+    fontWeight: "600",
   },
-  pageContainer: {
-    alignItems: "flex-end",
-    marginTop: SIZES.base * 1.5,
+  infoCountDivider: {
+    fontSize: SIZES.body4,
+    color: Colors.light.icon,
+    marginHorizontal: SIZES.base,
   },
-  pageText: {
-    fontSize: SIZES.font,
-    color: "#888",
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: SIZES.base,
-    paddingVertical: SIZES.base / 2,
-    borderRadius: SIZES.base,
-    overflow: "hidden",
-  },
-  emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
-  emptyText: { color: "#999", fontSize: SIZES.body3 },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -342,7 +381,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "85%",
-    backgroundColor: "white",
+    backgroundColor: Colors.light.background,
     borderRadius: SIZES.radius * 1.5,
     padding: SIZES.padding,
     shadowColor: "#000",
@@ -356,21 +395,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: SIZES.padding,
     textAlign: "center",
+    color: Colors.light.text,
   },
   label: {
     fontSize: SIZES.body4,
     fontWeight: "600",
-    color: "#666",
+    color: Colors.light.icon,
     marginBottom: SIZES.base * 0.75,
     marginTop: SIZES.base,
   },
   input: {
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: "#f0f0f0",
     borderRadius: SIZES.radius,
     padding: SIZES.base * 1.5,
     fontSize: SIZES.body3,
+    color: Colors.light.text,
   },
   textArea: { height: 100, textAlignVertical: "top" },
   modalButtons: {
@@ -385,7 +426,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnCancel: { backgroundColor: "#f0f0f0", marginRight: SIZES.base },
-  btnSave: { backgroundColor: "#007AFF" },
-  btnTextCancel: { color: "#666", fontWeight: "bold" },
-  btnTextSave: { color: "white", fontWeight: "bold" },
+  btnSave: { backgroundColor: Colors.light.tint },
+  btnTextCancel: { color: Colors.light.icon, fontWeight: "bold" },
+  btnTextSave: { color: Colors.light.background, fontWeight: "bold" },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: SIZES.base * 1.8,
+    alignItems: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+  },
+  activeTabButton: {
+    borderBottomColor: Colors.light.tint,
+  },
+  tabText: {
+    fontSize: SIZES.body3,
+    color: Colors.light.icon,
+    fontWeight: "600",
+  },
+  activeTabText: {
+    color: Colors.light.tint,
+    fontWeight: "bold",
+  },
 });

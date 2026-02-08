@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius * 0.8,
   },
   previewLabel: {
-    fontSize: SIZES.font,
+    fontSize: SIZES.h4,
     color: "#888",
     marginBottom: SIZES.base / 2,
   },

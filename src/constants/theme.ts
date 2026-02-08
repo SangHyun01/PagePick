@@ -1,5 +1,5 @@
+import { fontScale, scale } from "@/utils/responsive";
 import { Dimensions, Platform } from "react-native";
-
 const { width, height } = Dimensions.get("window");
 
 const tintColorLight = "#0a7ea4";
@@ -7,23 +7,20 @@ const tintColorDark = "#fff";
 
 export const SIZES = {
   // 전역 사이즈
-  base: 8,
-  font: 14,
-  radius: 12,
-  padding: 24,
+  base: scale(8),
+  radius: scale(12),
+  padding: scale(24),
 
-  // 폰트 크기
-  largeTitle: 50,
-  h1: 30,
-  h2: 22,
-  h3: 16,
-  h4: 14,
-  body1: 30,
-  body2: 22,
-  body3: 16,
-  body4: 14,
+  largeTitle: fontScale(40),
+  h1: fontScale(26),
+  h2: fontScale(20),
+  h3: fontScale(16),
+  h4: fontScale(14),
+  body1: fontScale(26),
+  body2: fontScale(20),
+  body3: fontScale(16),
+  body4: fontScale(14),
 
-  // dimension
   width,
   height,
 };
