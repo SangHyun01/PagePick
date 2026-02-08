@@ -145,3 +145,18 @@ export const updateBookStatus = async (id: number, status: string) => {
     .eq("id", id);
   if (error) throw error;
 };
+
+// 책 ID로 책 정보 가져오기
+export const getBookById = async (id: number): Promise<Book | null> => {
+  const { data, error } = await supabase
+    .from("books")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching book by id:", error);
+    throw error;
+  }
+  return data;
+};

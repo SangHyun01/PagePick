@@ -65,9 +65,6 @@ export default function BookDetailScreen() {
     handleUpdateStatus,
   } = useBookDetailViewModel({
     bookId,
-    initialTitle: params.title as string,
-    initialAuthor: params.author as string,
-    initialStatus: (params.status as BookStatus) || "reading",
   });
 
   const {
@@ -78,8 +75,8 @@ export default function BookDetailScreen() {
     uploadSharedPhoto,
   } = useAlbumViewModel({
     bookId: Number(bookId),
-    bookTitle,
-    bookAuthor,
+    bookTitle: bookTitle || (params.title as string), // 로드 전 임시 제목
+    bookAuthor: bookAuthor || (params.author as string), // 로드 전 임시 저자
   });
 
   useEffect(() => {

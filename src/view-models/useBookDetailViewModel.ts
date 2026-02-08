@@ -8,17 +8,9 @@ import { Alert } from "react-native";
 
 export interface BookDetailViewModelProps {
   bookId: number;
-  initialTitle: string;
-  initialAuthor: string;
-  initialStatus: BookStatus;
 }
 
-export const useBookDetailViewModel = ({
-  bookId,
-  initialTitle,
-  initialAuthor,
-  initialStatus,
-}: BookDetailViewModelProps) => {
+export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => {
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -28,14 +20,12 @@ export const useBookDetailViewModel = ({
   );
 
   // 책 상태
-  const [bookTitle, setBookTitle] = useState(initialTitle);
-  const [bookAuthor, setBookAuthor] = useState(initialAuthor);
-  const [bookStatus, setBookStatus] = useState<BookStatus>(
-    initialStatus || "reading",
-  );
+  const [bookTitle, setBookTitle] = useState("");
+  const [bookAuthor, setBookAuthor] = useState("");
+  const [bookStatus, setBookStatus] = useState<BookStatus>("reading");
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
-  const [editTitle, setEditTitle] = useState(initialTitle);
-  const [editAuthor, setEditAuthor] = useState(initialAuthor);
+  const [editTitle, setEditTitle] = useState("");
+  const [editAuthor, setEditAuthor] = useState("");
 
   // 문장 상태
   const [sentenceEditModalVisible, setSentenceEditModalVisible] =
@@ -44,14 +34,25 @@ export const useBookDetailViewModel = ({
   const [editContent, setEditContent] = useState("");
   const [editPage, setEditPage] = useState("");
 
-  const fetchSentences = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const data = await sentenceService.getSentencesByBookId(bookId);
-      setSentences(data);
+      const [bookData, sentencesData] = await Promise.all([
+        bookService.getBookById(bookId),
+        sentenceService.getSentencesByBookId(bookId),
+      ]);
+
+      if (bookData) {
+        setBookTitle(bookData.title);
+        setBookAuthor(bookData.author || "");
+        setBookStatus(bookData.status || "reading");
+        setEditTitle(bookData.title);
+        setEditAuthor(bookData.author || "");
+      }
+      setSentences(sentencesData);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "문장을 불러오는데 실패했습니다.");
+      Alert.alert("오류", "데이터를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ export const useBookDetailViewModel = ({
   useFocusEffect(
     useCallback(() => {
       if (bookId) {
-        fetchSentences();
+        fetchData();
       }
     }, [bookId]),
   );
@@ -85,8 +86,6 @@ export const useBookDetailViewModel = ({
   };
 
   const openBookEditModal = () => {
-    setEditTitle(bookTitle);
-    setEditAuthor(bookAuthor);
     setBookEditModalVisible(true);
   };
 
@@ -140,7 +139,6 @@ export const useBookDetailViewModel = ({
     try {
       await bookService.updateBookStatus(bookId, status);
       setBookStatus(status);
-      // router.setParams({ status }); // 필요하다면 param 업데이트
     } catch (error) {
       console.error("Failed to update book status:", error);
       Alert.alert("오류", "책 상태 변경에 실패했습니다.");
@@ -154,11 +152,7 @@ export const useBookDetailViewModel = ({
       "원하시는 작업을 선택하세요.",
       [
         { text: "수정하기", onPress: () => openSentenceEditModal(sentence) },
-        {
-          text: "삭제하기",
-          onPress: () => confirmDeleteSentence(sentence.id),
-          style: "destructive",
-        },
+        { text: "삭제하기", onPress: () => confirmDeleteSentence(sentence.id), style: "destructive" },
         { text: "취소", style: "cancel" },
       ],
       { cancelable: true },
