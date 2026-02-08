@@ -199,7 +199,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     justifyContent: "flex-start",
-    marginTop: -SIZES.base * 2,
   },
 
   zoomContainer: {
