@@ -136,3 +136,12 @@ export const deleteBook = async (id: number) => {
     .eq("id", id);
   if (bookError) throw bookError;
 };
+
+// 책 상태 업데이트
+export const updateBookStatus = async (id: number, status: string) => {
+  const { error } = await supabase
+    .from("books")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw error;
+};

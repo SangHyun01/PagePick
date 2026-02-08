@@ -1,7 +1,8 @@
 import AlbumList from "@/components/AlbumList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import { Colors, SIZES } from "@/constants/theme"; // Colors import 추가
+import { Colors, SIZES } from "@/constants/theme";
+import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +22,13 @@ import {
   View,
 } from "react-native";
 
+const STATUS_MAP: Record<BookStatus, string> = {
+  wish: "읽을 책",
+  reading: "읽는 중",
+  finished: "읽은 책",
+};
+const STATUS_OPTIONS = Object.keys(STATUS_MAP) as BookStatus[];
+
 export default function BookDetailScreen() {
   const params = useLocalSearchParams();
   const bookId = Number(params.id);
@@ -35,6 +43,7 @@ export default function BookDetailScreen() {
     isDelete,
     bookTitle,
     bookAuthor,
+    bookStatus,
     bookEditModalVisible,
     editTitle,
     editAuthor,
@@ -53,10 +62,12 @@ export default function BookDetailScreen() {
     updateBook,
     handleSentenceOptions,
     updateSentence,
+    handleUpdateStatus,
   } = useBookDetailViewModel({
     bookId,
     initialTitle: params.title as string,
     initialAuthor: params.author as string,
+    initialStatus: (params.status as BookStatus) || "reading",
   });
 
   const {
@@ -135,6 +146,29 @@ export default function BookDetailScreen() {
             </Text>
           </View>
         </View>
+      </View>
+
+      {/* 상태 선택 UI */}
+      <View style={styles.statusSelectorContainer}>
+        {STATUS_OPTIONS.map((option) => (
+          <TouchableOpacity
+            key={option}
+            style={[
+              styles.statusButton,
+              bookStatus === option && styles.activeStatusButton,
+            ]}
+            onPress={() => handleUpdateStatus(option)}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                bookStatus === option && styles.activeStatusButtonText,
+              ]}
+            >
+              {STATUS_MAP[option]}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* 탭 버튼 (문장 / 앨범) */}
@@ -338,12 +372,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: SIZES.padding,
     backgroundColor: Colors.light.background,
-    marginBottom: SIZES.base,
   },
   smallCover: {
-    width: SIZES.largeTitle,
-    height: SIZES.largeTitle * 1.5,
-    borderRadius: SIZES.base / 2,
+    width: 60,
+    height: 90,
+    borderRadius: SIZES.radius / 2,
     marginRight: SIZES.base * 2,
     backgroundColor: "#f0f0f0",
   },
@@ -372,6 +405,32 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body4,
     color: Colors.light.icon,
     marginHorizontal: SIZES.base,
+  },
+  statusSelectorContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.padding,
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  statusButton: {
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 2,
+    borderRadius: SIZES.radius * 2,
+    backgroundColor: "#f0f0f0",
+  },
+  activeStatusButton: {
+    backgroundColor: Colors.light.tint,
+  },
+  statusButtonText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+    fontWeight: "bold",
+  },
+  activeStatusButtonText: {
+    color: "white",
   },
   modalContainer: {
     flex: 1,

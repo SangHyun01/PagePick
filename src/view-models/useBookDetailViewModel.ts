@@ -1,5 +1,6 @@
 import * as bookService from "@/services/bookService";
 import * as sentenceService from "@/services/sentenceService";
+import { BookStatus } from "@/types/book";
 import { Sentence } from "@/types/sentence";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -9,12 +10,14 @@ export interface BookDetailViewModelProps {
   bookId: number;
   initialTitle: string;
   initialAuthor: string;
+  initialStatus: BookStatus;
 }
 
 export const useBookDetailViewModel = ({
   bookId,
   initialTitle,
   initialAuthor,
+  initialStatus,
 }: BookDetailViewModelProps) => {
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,9 @@ export const useBookDetailViewModel = ({
   // 책 상태
   const [bookTitle, setBookTitle] = useState(initialTitle);
   const [bookAuthor, setBookAuthor] = useState(initialAuthor);
+  const [bookStatus, setBookStatus] = useState<BookStatus>(
+    initialStatus || "reading",
+  );
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
   const [editTitle, setEditTitle] = useState(initialTitle);
   const [editAuthor, setEditAuthor] = useState(initialAuthor);
@@ -130,6 +136,17 @@ export const useBookDetailViewModel = ({
     }
   };
 
+  const handleUpdateStatus = async (status: BookStatus) => {
+    try {
+      await bookService.updateBookStatus(bookId, status);
+      setBookStatus(status);
+      // router.setParams({ status }); // 필요하다면 param 업데이트
+    } catch (error) {
+      console.error("Failed to update book status:", error);
+      Alert.alert("오류", "책 상태 변경에 실패했습니다.");
+    }
+  };
+
   // 문장 관련 이벤트
   const handleSentenceOptions = (sentence: Sentence) => {
     Alert.alert(
@@ -208,6 +225,7 @@ export const useBookDetailViewModel = ({
     isDelete,
     bookTitle,
     bookAuthor,
+    bookStatus,
 
     // 책 모달
     bookEditModalVisible,
@@ -230,6 +248,7 @@ export const useBookDetailViewModel = ({
     handleDeleteFinish,
     handleBookOptions,
     updateBook,
+    handleUpdateStatus,
     handleSentenceOptions,
     updateSentence,
   };
