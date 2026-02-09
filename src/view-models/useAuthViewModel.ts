@@ -1,7 +1,19 @@
+import { supabase } from "@/lib/supabase";
 import * as userService from "@/services/userService";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import * as WebBrowser from "expo-web-browser";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
+
+GoogleSignin.configure({
+  webClientId:
+    "849442775037-adlm6814fa7or5im2t9edhukj8gv38jo.apps.googleusercontent.com",
+  offlineAccess: true,
+});
 
 export const useAuthViewModel = () => {
   // 인증 상태
@@ -9,6 +21,7 @@ export const useAuthViewModel = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
 
   // 프로필 정보를 위한 상태
@@ -65,6 +78,51 @@ export const useAuthViewModel = () => {
       Alert.alert(isLoginMode ? "로그인 실패" : "회원가입 실패", errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setSocialLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+
+      const response = await GoogleSignin.signIn();
+
+      if (response.data?.idToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: response.data.idToken,
+        });
+
+        if (error) throw error;
+        console.log("User logged in:", data.user?.email);
+      } else {
+        return;
+      }
+    } catch (error: any) {
+      // 구글 SDK에서 발생한 에러인지 체크
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.SIGN_IN_CANCELLED:
+            console.log("사용자가 로그인을 취소했습니다.");
+            return;
+
+          case statusCodes.IN_PROGRESS:
+            console.log("이미 로그인 진행 중입니다.");
+            return;
+
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            Alert.alert("오류", "구글 플레이 서비스를 사용할 수 없습니다.");
+            return;
+        }
+      }
+      console.error("Google Login Error:", error);
+      Alert.alert(
+        "로그인 실패",
+        error.message || "알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setSocialLoading(false);
     }
   };
 
@@ -129,10 +187,12 @@ export const useAuthViewModel = () => {
     confirmPassword,
     setConfirmPassword,
     loading,
+    socialLoading,
     isLoginMode,
     canSubmit,
     toggleMode,
     handleSubmit,
+    signInWithGoogle,
     userEmail,
     getUserProfile,
     handleLogout,

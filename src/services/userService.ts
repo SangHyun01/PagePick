@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { AuthCredentials } from "@/types/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 // 로그인
 export const signIn = async (credentials: AuthCredentials) => {
@@ -26,6 +27,8 @@ export const getUser = async () => {
 // 로그아웃
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
+
+  await GoogleSignin.signOut();
   if (error) throw error;
 };
 

@@ -26,7 +26,6 @@
       "package": "com.sanghyun01.PagePick",
       "versionCode": 7,
       "launchMode": "singleTask",
-
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -38,7 +37,9 @@
           "data": {
             "mimeType": "image/*"
           },
-          "category": ["DEFAULT"]
+          "category": [
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -88,7 +89,9 @@
             "intentFilters": [
               {
                 "action": "android.intent.action.SEND",
-                "category": ["android.intent.category.DEFAULT"],
+                "category": [
+                  "android.intent.category.DEFAULT"
+                ],
                 "data": {
                   "mimeType": "image/*"
                 }
@@ -96,7 +99,8 @@
             ]
           }
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
