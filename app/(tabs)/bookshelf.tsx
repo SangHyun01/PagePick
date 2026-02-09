@@ -1,9 +1,9 @@
-import { SIZES } from "@/constants/theme";
-import { Book } from "@/types/book";
+import { SIZES, Colors } from "@/constants/theme";
+import { Book, BookStatus } from "@/types/book";
 import { useBookshelfViewModel } from "@/view-models/useBookshelfViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
+import { useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,52 +11,71 @@ import {
   Image,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
 const GAP = SIZES.base * 2;
 const PADDING = SIZES.padding;
-
 const BOOK_WIDTH = (SIZES.width - PADDING * 2 - GAP) / 2;
+
+const STATUS_MAP: Record<BookStatus | "all", string> = {
+  all: "전체",
+  wish: "읽을 책",
+  reading: "읽는 중",
+  finished: "읽은 책",
+};
+const STATUS_OPTIONS = Object.keys(STATUS_MAP) as (BookStatus | "all")[];
 
 export default function BookshelfScreen() {
   const router = useRouter();
-
-  const { books, isLoading } = useBookshelfViewModel();
+  const {
+    books,
+    isLoading,
+    filteredBooks,
+    searchQuery,
+    setSearchQuery,
+    selectedStatus,
+    handleStatusChange,
+  } = useBookshelfViewModel();
 
   const handleAddBook = () => {
     Alert.alert(
       "새 책 추가",
       "어떤 방법으로 추가하시겠어요?",
       [
-        {
-          text: "바코드 검색",
-          onPress: () => {
-            router.push("/scan-barcode");
-          },
-        },
-        {
-          text: "직접 추가",
-          onPress: () => {
-            router.push("/add-book");
-          },
-        },
-        {
-          text: "취소",
-          style: "cancel",
-        },
+        { text: "바코드 검색", onPress: () => router.push("/scan-barcode") },
+        { text: "직접 추가", onPress: () => router.push("/add-book") },
+        { text: "취소", style: "cancel" },
       ],
       { cancelable: true },
     );
   };
 
+  const bookCounts = useMemo(() => {
+    return books.reduce(
+      (acc, book) => {
+        acc.all += 1;
+        acc[book.status] += 1;
+        return acc;
+      },
+      { all: 0, wish: 0, reading: 0, finished: 0 },
+    );
+  }, [books]);
+
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>책장이 비어있어요.</Text>
-      <Text style={styles.emptySubText}>
-        우측 하단 버튼을 눌러 첫 책을 추가해보세요.
+      <Text style={styles.emptyText}>
+        {searchQuery
+          ? "검색 결과가 없습니다."
+          : "해당하는 책이 책장에 없어요."}
       </Text>
+      {!searchQuery && (
+        <Text style={styles.emptySubText}>
+          우측 하단 버튼을 눌러 새 책을 추가해보세요.
+        </Text>
+      )}
     </View>
   );
 
@@ -88,7 +107,6 @@ export default function BookshelfScreen() {
           </Text>
         </View>
       )}
-
       <Text style={styles.bookTitle} numberOfLines={1}>
         {item.title}
       </Text>
@@ -104,18 +122,56 @@ export default function BookshelfScreen() {
         <Text style={styles.headerTitle}>책장</Text>
       </View>
 
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search"
+          size={20}
+          color={Colors.light.icon}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="책 제목, 저자 검색"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor={Colors.light.icon}
+        />
+      </View>
+
+      <View style={styles.statusFilterContainer}>
+        {STATUS_OPTIONS.map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.statusButton,
+              selectedStatus === status && styles.activeStatusButton,
+            ]}
+            onPress={() => handleStatusChange(status)}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                selectedStatus === status && styles.activeStatusButtonText,
+              ]}
+            >
+              {`${STATUS_MAP[status]} ${bookCounts[status]}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={Colors.light.tint} />
         </View>
       ) : (
         <FlatList
-          data={books}
+          data={filteredBooks}
           renderItem={renderBookItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           contentContainerStyle={styles.listContentContainer}
-          columnWrapperStyle={styles.row} // 좌우 정렬 보정
+          columnWrapperStyle={styles.row}
           ListEmptyComponent={renderEmptyComponent}
         />
       )}
@@ -134,31 +190,72 @@ export default function BookshelfScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: SIZES.padding * 2,
     paddingBottom: SIZES.padding,
     paddingHorizontal: SIZES.padding,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    backgroundColor: Colors.light.background,
   },
   headerTitle: {
     fontSize: SIZES.h1,
     fontWeight: "bold",
+    color: Colors.light.text,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: SIZES.radius,
+    marginHorizontal: PADDING,
+    paddingHorizontal: SIZES.base * 1.5,
+    marginBottom: SIZES.base,
+  },
+  searchIcon: {
+    marginRight: SIZES.base,
+  },
+  searchInput: {
+    flex: 1,
+    height: 48,
+    fontSize: SIZES.body3,
+    color: Colors.light.text,
+  },
+  statusFilterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: SIZES.base,
+    paddingHorizontal: PADDING,
+    backgroundColor: Colors.light.background,
+    marginBottom: SIZES.base,
+  },
+  statusButton: {
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
+    borderRadius: SIZES.radius * 2,
+  },
+  activeStatusButton: {
+    backgroundColor: Colors.light.tint,
+  },
+  statusButtonText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+    fontWeight: "bold",
+  },
+  activeStatusButtonText: {
+    color: "white",
   },
   listContentContainer: {
     paddingHorizontal: PADDING,
     paddingBottom: 100,
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: SIZES.padding,
+    marginTop: SIZES.height / 5,
   },
   emptyText: {
     fontSize: SIZES.h3,
@@ -170,17 +267,6 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: SIZES.padding,
   },
-  addButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#007AFF",
-    borderStyle: "dashed",
-  },
-
   row: {
     justifyContent: "flex-start",
     gap: GAP,
@@ -203,13 +289,14 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: SIZES.body4,
     textAlign: "center",
+    color: Colors.light.text,
   },
   bookCover: {
     width: BOOK_WIDTH,
     height: BOOK_WIDTH * 1.5,
     borderRadius: SIZES.radius,
     marginBottom: SIZES.base,
-    backgroundColor: "#eee", // 로딩 전 배경색
+    backgroundColor: "#eee",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -222,13 +309,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   floatingButton: {
-    position: "absolute", // 공중에 띄우기
-    bottom: SIZES.padding, // 하단에서 30만큼 위로
-    right: SIZES.padding, // 우측에서 20만큼 왼쪽으로
+    position: "absolute",
+    bottom: SIZES.padding,
+    right: SIZES.padding,
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.light.tint,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

@@ -1,7 +1,9 @@
 import AlbumList from "@/components/AlbumList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import { Colors, SIZES } from "@/constants/theme"; // Colors import 추가
+import CongratsModal from "@/components/CongratsModal";
+import { Colors, SIZES } from "@/constants/theme";
+import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +23,13 @@ import {
   View,
 } from "react-native";
 
+const STATUS_MAP: Record<BookStatus, string> = {
+  wish: "읽을 책",
+  reading: "읽는 중",
+  finished: "읽은 책",
+};
+const STATUS_OPTIONS = Object.keys(STATUS_MAP) as BookStatus[];
+
 export default function BookDetailScreen() {
   const params = useLocalSearchParams();
   const bookId = Number(params.id);
@@ -29,12 +38,12 @@ export default function BookDetailScreen() {
   const { newPhotoUri } = useLocalSearchParams();
 
   const {
+    book,
     sentences,
     loading,
     isSuccess,
     isDelete,
-    bookTitle,
-    bookAuthor,
+    successType,
     bookEditModalVisible,
     editTitle,
     editAuthor,
@@ -47,29 +56,41 @@ export default function BookDetailScreen() {
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
+    isReviewModalVisible,
+    newRating,
+    newReview,
+    setNewRating,
+    setNewReview,
+    // 리뷰 수정/조회 모달
+    isReviewEditModalVisible,
+    setReviewEditModalVisible,
+    editingRating,
+    setEditingRating,
+    editingReview,
+    setEditingReview,
+    // 핸들러
     handleAnimationFinish,
     handleDeleteFinish,
     handleBookOptions,
     updateBook,
     handleSentenceOptions,
     updateSentence,
+    handleUpdateStatus,
+    handleSubmitReview,
+    handleCancelReview,
+    openReviewEditModal,
+    handleUpdateReview,
+    handleDeleteReview,
   } = useBookDetailViewModel({
     bookId,
-    initialTitle: params.title as string,
-    initialAuthor: params.author as string,
   });
 
-  const {
-    photos,
-    pickAndUpload,
-    isLoading,
-    handlePhotoPress,
-    uploadSharedPhoto,
-  } = useAlbumViewModel({
-    bookId: Number(bookId),
-    bookTitle,
-    bookAuthor,
-  });
+  const { photos, pickAndUpload, isLoading, handlePhotoPress, uploadSharedPhoto } =
+    useAlbumViewModel({
+      bookId: Number(bookId),
+      bookTitle: book?.title || (params.title as string),
+      bookAuthor: book?.author || (params.author as string),
+    });
 
   useEffect(() => {
     if (newPhotoUri) {
@@ -88,6 +109,14 @@ export default function BookDetailScreen() {
       );
     }
   }, [newPhotoUri]);
+
+  if (loading || !book) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.light.tint} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -123,8 +152,8 @@ export default function BookDetailScreen() {
           <Image source={{ uri: coverUrl }} style={styles.smallCover} />
         )}
         <View style={styles.infoText}>
-          <Text style={styles.infoTitle}>{bookTitle}</Text>
-          <Text style={styles.infoAuthor}>{bookAuthor}</Text>
+          <Text style={styles.infoTitle}>{book.title}</Text>
+          <Text style={styles.infoAuthor}>{book.author}</Text>
           <View style={styles.infoCountContainer}>
             <Text style={styles.infoCount}>
               수집한 문장 {sentences.length}개
@@ -135,6 +164,48 @@ export default function BookDetailScreen() {
             </Text>
           </View>
         </View>
+      </View>
+
+      {book.status === "finished" && book.rating && (
+        <TouchableOpacity
+          style={styles.ratingContainer}
+          onPress={openReviewEditModal}
+        >
+          <Text style={styles.ratingLabel}>나의 평점</Text>
+          <View style={styles.starContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Ionicons
+                key={star}
+                name={star <= book.rating! ? "star" : "star-outline"}
+                size={24}
+                color={Colors.light.tint}
+              />
+            ))}
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* 상태 선택 UI */}
+      <View style={styles.statusSelectorContainer}>
+        {STATUS_OPTIONS.map((option) => (
+          <TouchableOpacity
+            key={option}
+            style={[
+              styles.statusButton,
+              book.status === option && styles.activeStatusButton,
+            ]}
+            onPress={() => handleUpdateStatus(option)}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                book.status === option && styles.activeStatusButtonText,
+              ]}
+            >
+              {STATUS_MAP[option]}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* 탭 버튼 (문장 / 앨범) */}
@@ -173,27 +244,21 @@ export default function BookDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.light.tint} />
-        </View>
-      ) : (
-        <View style={styles.content}>
-          {activeTab === "sentence" ? (
-            <SentenceList
-              sentences={sentences}
-              onOptionPress={handleSentenceOptions}
-            />
-          ) : (
-            <AlbumList
-              photos={photos}
-              onAddPress={pickAndUpload}
-              isLoading={isLoading}
-              onPhotoPress={handlePhotoPress}
-            />
-          )}
-        </View>
-      )}
+      <View style={styles.content}>
+        {activeTab === "sentence" ? (
+          <SentenceList
+            sentences={sentences}
+            onOptionPress={handleSentenceOptions}
+          />
+        ) : (
+          <AlbumList
+            photos={photos}
+            onAddPress={pickAndUpload}
+            isLoading={isLoading}
+            onPhotoPress={handlePhotoPress}
+          />
+        )}
+      </View>
 
       {/* 책 정보 수정 모달 */}
       <Modal
@@ -204,7 +269,7 @@ export default function BookDetailScreen() {
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
@@ -248,7 +313,7 @@ export default function BookDetailScreen() {
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
@@ -288,11 +353,126 @@ export default function BookDetailScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      <SuccessModal
-        visible={isSuccess}
-        onFinish={handleAnimationFinish}
-        message="수정 완료!"
-      />
+      {/* 리뷰 작성 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isReviewModalVisible}
+        onRequestClose={handleCancelReview}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>리뷰 작성</Text>
+            <Text style={styles.label}>별점</Text>
+            <View style={styles.starContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setNewRating(star)}>
+                  <Ionicons
+                    name={star <= newRating ? "star" : "star-outline"}
+                    size={32}
+                    color={Colors.light.tint}
+                    style={{ marginHorizontal: 5 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.label}>리뷰</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={newReview}
+              onChangeText={setNewReview}
+              multiline
+              textAlignVertical="top"
+              placeholder="리뷰를 남겨주세요 (선택)"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={handleCancelReview}
+              >
+                <Text style={styles.btnTextCancel}>건너뛰기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={handleSubmitReview}
+              >
+                <Text style={styles.btnTextSave}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* 리뷰 수정/조회 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isReviewEditModalVisible}
+        onRequestClose={() => setReviewEditModalVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>리뷰 수정</Text>
+            <Text style={styles.label}>별점</Text>
+            <View style={styles.starContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setEditingRating(star)}
+                >
+                  <Ionicons
+                    name={star <= editingRating ? "star" : "star-outline"}
+                    size={32}
+                    color={Colors.light.tint}
+                    style={{ marginHorizontal: 5 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.label}>리뷰</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={editingReview}
+              onChangeText={setEditingReview}
+              multiline
+              textAlignVertical="top"
+              placeholder="리뷰를 남겨주세요 (선택)"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnDelete]}
+                onPress={handleDeleteReview}
+              >
+                <Text style={styles.btnTextDelete}>삭제</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={handleUpdateReview}
+              >
+                <Text style={styles.btnTextSave}>수정</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {successType === "review" ? (
+        <CongratsModal visible={isSuccess} onFinish={handleAnimationFinish} />
+      ) : (
+        <SuccessModal
+          visible={isSuccess}
+          onFinish={handleAnimationFinish}
+          message="수정 완료!"
+        />
+      )}
       <SuccessModal
         visible={isDelete}
         onFinish={handleDeleteFinish}
@@ -338,12 +518,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: SIZES.padding,
     backgroundColor: Colors.light.background,
-    marginBottom: SIZES.base,
   },
   smallCover: {
-    width: SIZES.largeTitle,
-    height: SIZES.largeTitle * 1.5,
-    borderRadius: SIZES.base / 2,
+    width: 60,
+    height: 90,
+    borderRadius: SIZES.radius / 2,
     marginRight: SIZES.base * 2,
     backgroundColor: "#f0f0f0",
   },
@@ -373,6 +552,32 @@ const styles = StyleSheet.create({
     color: Colors.light.icon,
     marginHorizontal: SIZES.base,
   },
+  statusSelectorContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.padding,
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  statusButton: {
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 2,
+    borderRadius: SIZES.radius * 2,
+    backgroundColor: "#f0f0f0",
+  },
+  activeStatusButton: {
+    backgroundColor: Colors.light.tint,
+  },
+  statusButtonText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+    fontWeight: "bold",
+  },
+  activeStatusButtonText: {
+    color: "white",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -398,6 +603,7 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   label: {
+    alignSelf: "flex-start",
     fontSize: SIZES.body4,
     fontWeight: "600",
     color: Colors.light.icon,
@@ -405,6 +611,7 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base,
   },
   input: {
+    width: "100%",
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
     borderColor: "#f0f0f0",
@@ -418,6 +625,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: SIZES.padding,
+    width: "100%",
   },
   btn: {
     flex: 1,
@@ -452,6 +660,34 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: Colors.light.tint,
+    fontWeight: "bold",
+  },
+  starContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: SIZES.base,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base * 1.5,
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  ratingLabel: {
+    fontSize: SIZES.body3,
+    fontWeight: "bold",
+    color: Colors.light.text,
+  },
+  btnDelete: {
+    backgroundColor: "#ff4d4f",
+    marginRight: SIZES.base,
+  },
+  btnTextDelete: {
+    color: "white",
     fontWeight: "bold",
   },
 });

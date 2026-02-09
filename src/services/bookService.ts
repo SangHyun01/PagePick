@@ -113,10 +113,10 @@ export const addBook = async (book: {
   if (error) throw error;
 };
 
-// 책 수정
-export const updateBook = async (
+// 책 상세 정보 업데이트 (제목, 저자, 상태, 리뷰 등)
+export const updateBookDetails = async (
   id: number,
-  updates: { title: string; author: string },
+  updates: Partial<Book>,
 ) => {
   const { error } = await supabase.from("books").update(updates).eq("id", id);
   if (error) throw error;
@@ -135,4 +135,28 @@ export const deleteBook = async (id: number) => {
     .delete()
     .eq("id", id);
   if (bookError) throw bookError;
+};
+
+// 책 상태 업데이트
+export const updateBookStatus = async (id: number, status: string) => {
+  const { error } = await supabase
+    .from("books")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw error;
+};
+
+// 책 ID로 책 정보 가져오기
+export const getBookById = async (id: number): Promise<Book | null> => {
+  const { data, error } = await supabase
+    .from("books")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching book by id:", error);
+    throw error;
+  }
+  return data;
 };
