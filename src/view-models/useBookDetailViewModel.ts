@@ -10,7 +10,9 @@ export interface BookDetailViewModelProps {
   bookId: number;
 }
 
-export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => {
+export const useBookDetailViewModel = ({
+  bookId,
+}: BookDetailViewModelProps) => {
   const [book, setBook] = useState<Book | null>(null);
   const [sentences, setSentences] = useState<Sentence[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +133,9 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
         title: editTitle,
         author: editAuthor,
       });
-      setBook((prev) => (prev ? { ...prev, title: editTitle, author: editAuthor } : null));
+      setBook((prev) =>
+        prev ? { ...prev, title: editTitle, author: editAuthor } : null,
+      );
       router.setParams({ title: editTitle, author: editAuthor });
       setBookEditModalVisible(false);
       setSuccessType("default");
@@ -143,7 +147,35 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
   };
 
   const handleUpdateStatus = async (status: BookStatus) => {
-    if (status === "finished" && !book?.review) {
+    // 읽고 싶은 책 -> 읽는 중 (최초 한번만)
+    if (
+      book?.status === "wish" &&
+      status === "reading" &&
+      !book.started_at
+    ) {
+      Alert.alert("알림", "오늘부터 읽으시겠습니까?", [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "확인",
+          onPress: async () => {
+            try {
+              const updates: Partial<Book> = {
+                status: "reading",
+                started_at: new Date().toISOString(),
+              };
+              await bookService.updateBookDetails(bookId, updates);
+              setBook((prev) => (prev ? { ...prev, ...updates } : null));
+            } catch (error) {
+              console.error("Failed to update book status:", error);
+              Alert.alert("오류", "책 상태 변경에 실패했습니다.");
+            }
+          },
+        },
+      ]);
+    } else if (status === "finished" && !book?.finished_at) {
       setReviewModalVisible(true);
     } else {
       try {
@@ -163,10 +195,11 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       return;
     }
     try {
-      const updates = {
-        status: "finished" as BookStatus,
+      const updates: Partial<Book> = {
+        status: "finished",
         rating: newRating,
         review: newReview,
+        finished_at: new Date().toISOString(),
       };
       await bookService.updateBookDetails(bookId, updates);
       setBook((prev) => (prev ? { ...prev, ...updates } : null));
@@ -181,16 +214,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     }
   };
 
-  const handleCancelReview = async () => {
-    setReviewModalVisible(false);
-    try {
-      await bookService.updateBookDetails(bookId, { status: "finished" });
-      setBook((prev) => (prev ? { ...prev, status: "finished" } : null));
-    } catch (error) {
-      console.error("Failed to update book status:", error);
-      Alert.alert("오류", "책 상태 변경에 실패했습니다.");
-    }
-  };
+  
 
   const openReviewEditModal = () => {
     if (book?.rating && book.review) {
@@ -252,7 +276,11 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       "원하시는 작업을 선택하세요.",
       [
         { text: "수정하기", onPress: () => openSentenceEditModal(sentence) },
-        { text: "삭제하기", onPress: () => confirmDeleteSentence(sentence.id), style: "destructive" },
+        {
+          text: "삭제하기",
+          onPress: () => confirmDeleteSentence(sentence.id),
+          style: "destructive",
+        },
         { text: "취소", style: "cancel" },
       ],
       { cancelable: true },
@@ -360,7 +388,6 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
     handleSentenceOptions,
     updateSentence,
     handleSubmitReview,
-    handleCancelReview,
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,

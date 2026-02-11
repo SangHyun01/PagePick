@@ -1,7 +1,7 @@
 import AlbumList from "@/components/AlbumList";
+import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import CongratsModal from "@/components/CongratsModal";
 import { Colors, SIZES } from "@/constants/theme";
 import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
@@ -77,7 +77,6 @@ export default function BookDetailScreen() {
     updateSentence,
     handleUpdateStatus,
     handleSubmitReview,
-    handleCancelReview,
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,
@@ -85,12 +84,17 @@ export default function BookDetailScreen() {
     bookId,
   });
 
-  const { photos, pickAndUpload, isLoading, handlePhotoPress, uploadSharedPhoto } =
-    useAlbumViewModel({
-      bookId: Number(bookId),
-      bookTitle: book?.title || (params.title as string),
-      bookAuthor: book?.author || (params.author as string),
-    });
+  const {
+    photos,
+    pickAndUpload,
+    isLoading,
+    handlePhotoPress,
+    uploadSharedPhoto,
+  } = useAlbumViewModel({
+    bookId: Number(bookId),
+    bookTitle: book?.title || (params.title as string),
+    bookAuthor: book?.author || (params.author as string),
+  });
 
   useEffect(() => {
     if (newPhotoUri) {
@@ -358,7 +362,6 @@ export default function BookDetailScreen() {
         animationType="fade"
         transparent={true}
         visible={isReviewModalVisible}
-        onRequestClose={handleCancelReview}
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
@@ -390,12 +393,6 @@ export default function BookDetailScreen() {
               placeholder="리뷰를 남겨주세요 (선택)"
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.btn, styles.btnCancel]}
-                onPress={handleCancelReview}
-              >
-                <Text style={styles.btnTextCancel}>건너뛰기</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btn, styles.btnSave]}
                 onPress={handleSubmitReview}
