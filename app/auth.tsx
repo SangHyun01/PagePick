@@ -7,6 +7,7 @@ import React from "react";
 import {
   ActivityIndicator,
   AppState,
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -36,12 +37,13 @@ export default function AuthScreen() {
     openPrivacyPolicy,
     toggleMode,
     handleSubmit,
+    signInWithGoogle,
+    socialLoading,
   } = useAuthViewModel();
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-
       <View style={styles.header}>
         <Ionicons name="library" size={SIZES.largeTitle} color="#007AFF" />
         <Text style={styles.title}>내 손안의 서재</Text>
@@ -51,7 +53,6 @@ export default function AuthScreen() {
             : "새로운 계정을 만들어보세요"}
         </Text>
       </View>
-
       <View style={styles.form}>
         <View style={styles.inputContainer}>
           <Ionicons
@@ -117,7 +118,7 @@ export default function AuthScreen() {
               !canSubmit && styles.disabledButton,
             ]}
             onPress={handleSubmit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || loading}
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -136,6 +137,37 @@ export default function AuthScreen() {
               : "이미 계정이 있으신가요? 로그인"}
           </Text>
         </TouchableOpacity>
+
+        <View style={styles.socialLoginContainer}>
+          <TouchableOpacity
+            style={[styles.socialButton, styles.googleButton]}
+            onPress={signInWithGoogle}
+            disabled={socialLoading}
+          >
+            {socialLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Image
+                  source={require("../src/assets/images/google.png")}
+                  style={styles.socialIcon}
+                />
+                <Text style={styles.socialButtonText}>Google로 로그인</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          {/* <TouchableOpacity
+            style={[styles.socialButton, styles.kakaoButton]}
+            disabled={socialLoading}
+          >
+            <Ionicons
+              name="chatbubble"
+              size={SIZES.h3}
+              style={styles.socialIcon}
+            />
+            <Text style={styles.socialButtonText}>Kakao로 로그인</Text>
+          </TouchableOpacity> */}
+        </View>
 
         <TouchableOpacity
           style={styles.privacyButton}
@@ -215,5 +247,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#A9D3FF",
     shadowOpacity: 0,
     elevation: 0,
+  },
+  socialLoginContainer: {
+    marginTop: SIZES.padding * 2,
+  },
+  socialButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: SIZES.base * 1.8,
+    borderRadius: SIZES.radius,
+    marginBottom: SIZES.base,
+  },
+  googleButton: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  kakaoButton: {
+    backgroundColor: "#FEE500",
+  },
+  socialIcon: {
+    width: SIZES.h3,
+    height: SIZES.h3,
+    marginRight: SIZES.padding,
+  },
+  socialButtonText: {
+    fontSize: SIZES.body3,
+    fontWeight: "bold",
+  },
+  googleButtonText: {
+    color: "#333",
   },
 });
