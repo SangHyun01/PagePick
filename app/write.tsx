@@ -1,4 +1,4 @@
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
 import { useWriteViewModel } from "@/view-models/useWriteViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -10,6 +10,17 @@ import {
   View,
 } from "react-native";
 
+const TAGS = [
+  "인사이트",
+  "동기부여",
+  "위로/공감",
+  "기타",
+  "유머/재미",
+  "표현력",
+  "핵심요약",
+  "충격/반전",
+];
+
 export default function WriteScreen() {
   const {
     content,
@@ -17,7 +28,9 @@ export default function WriteScreen() {
     page,
     setPage,
     isFixing,
+    selectedTags,
     handleAiFix,
+    handleTagSelect,
     navigateToNext,
     router,
   } = useWriteViewModel();
@@ -75,6 +88,31 @@ export default function WriteScreen() {
           placeholder="여기에 문장이 들어옵니다."
           textAlignVertical="top"
         />
+      </View>
+
+      <View style={styles.tagContainer}>
+        <Text style={styles.tagTitle}>태그 (선택)</Text>
+        <View style={styles.tagList}>
+          {TAGS.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tag,
+                selectedTags.includes(tag) && styles.selectedTag,
+              ]}
+              onPress={() => handleTagSelect(tag)}
+            >
+              <Text
+                style={[
+                  styles.tagText,
+                  selectedTags.includes(tag) && styles.selectedTagText,
+                ]}
+              >
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <View style={styles.bottomButtonContainer}>
@@ -155,6 +193,38 @@ const styles = StyleSheet.create({
     lineHeight: SIZES.padding,
     color: "#333",
     flex: 1,
+  },
+
+  tagContainer: {
+    marginBottom: SIZES.padding,
+  },
+  tagTitle: {
+    fontSize: SIZES.body4,
+    fontWeight: "600",
+    color: Colors.light.icon,
+    marginBottom: SIZES.base,
+  },
+  tagList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.base,
+  },
+  tag: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: SIZES.radius * 2,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
+  },
+  selectedTag: {
+    backgroundColor: Colors.light.tint,
+  },
+  tagText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+  },
+  selectedTagText: {
+    color: "white",
+    fontWeight: "bold",
   },
 
   bottomButtonContainer: {

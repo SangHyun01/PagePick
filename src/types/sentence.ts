@@ -3,4 +3,5 @@ export interface Sentence {
   content: string;
   page: number;
   create_at: string;
+  tags: string[];
 }

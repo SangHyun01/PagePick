@@ -10,6 +10,7 @@ export const useWriteViewModel = () => {
   const [content, setContent] = useState<string>("");
   const [page, setPage] = useState<string>("");
   const [isFixing, setIsFixing] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     if (params.text) {
@@ -39,6 +40,12 @@ export const useWriteViewModel = () => {
     }
   };
 
+  const handleTagSelect = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
+
   const navigateToNext = (pathname: "/select-book" | "/add-book") => {
     if (!page || !content) {
       Alert.alert("알림", "페이지와 문장을 모두 입력해주세요.");
@@ -46,7 +53,7 @@ export const useWriteViewModel = () => {
     }
     router.push({
       pathname: pathname as any,
-      params: { content, page },
+      params: { content, page, tags: JSON.stringify(selectedTags) },
     });
   };
 
@@ -56,7 +63,9 @@ export const useWriteViewModel = () => {
     page,
     setPage,
     isFixing,
+    selectedTags,
     handleAiFix,
+    handleTagSelect,
     navigateToNext,
     router,
   };

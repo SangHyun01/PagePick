@@ -43,7 +43,7 @@ export const getRandomSentence = async () => {
     };
   }
 
-  return null; // Return null if no sentences are found
+  return null;
 };
 
 // 문장 추가
@@ -51,6 +51,7 @@ export const addSentence = async (sentence: {
   content: string;
   page: number | null;
   book_id: number;
+  tags: string[];
 }) => {
   const { error } = await supabase.from("sentences").insert([sentence]);
   if (error) throw error;

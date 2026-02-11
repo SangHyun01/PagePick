@@ -15,6 +15,10 @@ export const useSelectBookViewModel = () => {
   const page = (
     Array.isArray(params.page) ? params.page[0] : params.page
   ) as string;
+  const tagsParam = (
+    Array.isArray(params.tags) ? params.tags[0] : params.tags
+  ) as string;
+  const tags = tagsParam ? JSON.parse(tagsParam) : [];
 
   // 공유 기능용 파라미터 받기
   const sharedImageUri = (
@@ -99,6 +103,7 @@ export const useSelectBookViewModel = () => {
         content: content,
         page: page ? parseInt(page) : null,
         book_id: bookId,
+        tags: tags,
       });
       setShowSuccess(true);
     } catch (e: any) {
