@@ -61,6 +61,7 @@ export default function BookDetailScreen() {
     newReview,
     setNewRating,
     setNewReview,
+    setReviewModalVisible,
     // 리뷰 수정/조회 모달
     isReviewEditModalVisible,
     setReviewEditModalVisible,
@@ -171,7 +172,7 @@ export default function BookDetailScreen() {
         </View>
       </View>
 
-      {book.rating && (
+      {book.rating ? (
         <TouchableOpacity
           style={styles.ratingContainer}
           onPress={openReviewEditModal}
@@ -188,6 +189,20 @@ export default function BookDetailScreen() {
             ))}
           </View>
         </TouchableOpacity>
+      ) : (
+        book.status === "finished" && (
+          <TouchableOpacity
+            style={styles.ratingContainer}
+            onPress={() => setReviewModalVisible(true)}
+          >
+            <Text style={styles.ratingLabel}>리뷰 작성하기</Text>
+            <Ionicons
+              name="create-outline"
+              size={24}
+              color={Colors.light.tint}
+            />
+          </TouchableOpacity>
+        )
       )}
 
       {/* 상태 선택 UI */}

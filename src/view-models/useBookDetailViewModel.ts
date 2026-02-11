@@ -199,8 +199,10 @@ export const useBookDetailViewModel = ({
         status: "finished",
         rating: newRating,
         review: newReview,
-        finished_at: new Date().toISOString(),
       };
+      if (!book?.finished_at) {
+        updates.finished_at = new Date().toISOString();
+      }
       await bookService.updateBookDetails(bookId, updates);
       setBook((prev) => (prev ? { ...prev, ...updates } : null));
       setReviewModalVisible(false);
@@ -373,6 +375,7 @@ export const useBookDetailViewModel = ({
 
     // 리뷰 작성 모달
     isReviewModalVisible,
+    setReviewModalVisible,
     newRating,
     newReview,
     setNewRating,
