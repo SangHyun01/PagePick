@@ -60,7 +60,7 @@ export const addSentence = async (sentence: {
 // 문장 수정
 export const updateSentence = async (
   id: number,
-  updates: { content: string; page: number | null },
+  updates: { content: string; page: number | null; tags: string[] },
 ) => {
   const { error } = await supabase
     .from("sentences")

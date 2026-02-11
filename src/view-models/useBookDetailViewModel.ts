@@ -36,6 +36,7 @@ export const useBookDetailViewModel = ({
   const [editingSentence, setEditingSentence] = useState<Sentence | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editPage, setEditPage] = useState("");
+  const [editingTags, setEditingTags] = useState<string[]>([]);
 
   // 리뷰 작성 모달
   const [isReviewModalVisible, setReviewModalVisible] = useState(false);
@@ -300,6 +301,7 @@ export const useBookDetailViewModel = ({
     setEditingSentence(sentence);
     setEditContent(sentence.content);
     setEditPage(sentence.page ? sentence.page.toString() : "");
+    setEditingTags(sentence.tags || []);
     setSentenceEditModalVisible(true);
   };
 
@@ -331,11 +333,17 @@ export const useBookDetailViewModel = ({
       await sentenceService.updateSentence(editingSentence.id, {
         content: editContent,
         page: updatedPage,
+        tags: editingTags,
       });
       setSentences((prev) =>
         prev.map((s) =>
           s.id === editingSentence.id
-            ? { ...s, content: editContent, page: updatedPage ?? 0 }
+            ? {
+                ...s,
+                content: editContent,
+                page: updatedPage ?? 0,
+                tags: editingTags,
+              }
             : s,
         ),
       );
@@ -346,6 +354,12 @@ export const useBookDetailViewModel = ({
       console.error(e);
       Alert.alert("오류", "수정에 실패했습니다.");
     }
+  };
+
+  const handleEditingTagSelect = (tag: string) => {
+    setEditingTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
   };
 
   return {
@@ -369,6 +383,7 @@ export const useBookDetailViewModel = ({
     sentenceEditModalVisible,
     editContent,
     editPage,
+    editingTags,
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
@@ -402,5 +417,6 @@ export const useBookDetailViewModel = ({
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,
+    handleEditingTagSelect,
   };
 };

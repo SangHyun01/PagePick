@@ -29,6 +29,16 @@ const STATUS_MAP: Record<BookStatus, string> = {
   finished: "읽은 책",
 };
 const STATUS_OPTIONS = Object.keys(STATUS_MAP) as BookStatus[];
+const TAGS = [
+  "인사이트",
+  "동기부여",
+  "위로/공감",
+  "유머/재미",
+  "표현력",
+  "핵심요약",
+  "충격/반전",
+  "기타",
+];
 
 export default function BookDetailScreen() {
   const params = useLocalSearchParams();
@@ -53,15 +63,16 @@ export default function BookDetailScreen() {
     sentenceEditModalVisible,
     editContent,
     editPage,
+    editingTags,
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
     isReviewModalVisible,
+    setReviewModalVisible,
     newRating,
     newReview,
     setNewRating,
     setNewReview,
-    setReviewModalVisible,
     // 리뷰 수정/조회 모달
     isReviewEditModalVisible,
     setReviewEditModalVisible,
@@ -82,6 +93,7 @@ export default function BookDetailScreen() {
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,
+    handleEditingTagSelect,
   } = useBookDetailViewModel({
     bookId,
   });
@@ -355,6 +367,30 @@ export default function BookDetailScreen() {
               keyboardType="number-pad"
               placeholder="페이지 번호"
             />
+            <View style={styles.tagContainerInModal}>
+              <Text style={styles.label}>태그</Text>
+              <View style={styles.tagList}>
+                {TAGS.map((tag) => (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.tag,
+                      editingTags.includes(tag) && styles.selectedTag,
+                    ]}
+                    onPress={() => handleEditingTagSelect(tag)}
+                  >
+                    <Text
+                      style={[
+                        styles.tagText,
+                        editingTags.includes(tag) && styles.selectedTagText,
+                      ]}
+                    >
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.btn, styles.btnCancel]}
@@ -706,6 +742,32 @@ const styles = StyleSheet.create({
     marginRight: SIZES.base,
   },
   btnTextDelete: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  tagContainerInModal: {
+    marginTop: SIZES.base,
+  },
+  tagList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.base,
+    marginTop: SIZES.base,
+  },
+  tag: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: SIZES.radius * 2,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
+  },
+  selectedTag: {
+    backgroundColor: Colors.light.tint,
+  },
+  tagText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+  },
+  selectedTagText: {
     color: "white",
     fontWeight: "bold",
   },
