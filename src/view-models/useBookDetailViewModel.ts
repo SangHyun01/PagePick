@@ -114,6 +114,7 @@ export const useBookDetailViewModel = ({ bookId }: BookDetailViewModelProps) => 
       await bookService.deleteBook(bookId);
       setDeleteTarget("book");
       setIsDelete(true);
+      setLoading(false);
     } catch (e) {
       Alert.alert("오류", "책 삭제에 실패했습니다.");
       setLoading(false);

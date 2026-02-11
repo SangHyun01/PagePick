@@ -2,7 +2,8 @@ import * as bookService from "@/services/bookService";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
+import { BookStatus } from "@/types/book";
 
 export const useAddBookViewModel = () => {
   const router = useRouter();
@@ -14,6 +15,10 @@ export const useAddBookViewModel = () => {
   const [isbn, setIsbn] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const [status, setStatus] = useState<BookStatus>("reading");
+  const [startedAt, setStartedAt] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     if (params.title)
@@ -35,6 +40,12 @@ export const useAddBookViewModel = () => {
     } else {
       router.replace("/(tabs)/bookshelf");
     }
+  };
+
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || startedAt;
+    setShowDatePicker(Platform.OS === "ios");
+    setStartedAt(currentDate);
   };
 
   const handleImageAction = () => {
@@ -84,12 +95,23 @@ export const useAddBookViewModel = () => {
 
     setLoading(true);
     try {
-      await bookService.addBook({
+      let bookToAdd: any = {
         title: title.trim(),
         author: author.trim(),
         cover_url: coverUri,
         isbn: isbn,
-      });
+        status: status,
+      };
+
+      if (status === "reading") {
+        bookToAdd.started_at = startedAt.toISOString();
+      } else if (status === "finished") {
+        const now = new Date().toISOString();
+        bookToAdd.started_at = now;
+        bookToAdd.finished_at = now;
+      }
+
+      await bookService.addBook(bookToAdd);
       setIsSuccess(true);
     } catch (e: any) {
       Alert.alert("오류", e.message || "책 추가에 실패했습니다.");
@@ -107,6 +129,12 @@ export const useAddBookViewModel = () => {
     loading,
     isSuccess,
     router,
+    status,
+    setStatus,
+    startedAt,
+    showDatePicker,
+    setShowDatePicker,
+    onChangeDate,
     handleAnimationFinish,
     handleImageAction,
     handleSave,

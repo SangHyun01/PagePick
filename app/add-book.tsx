@@ -1,7 +1,9 @@
 import SuccessModal from "@/components/SuccessModal";
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
+import { BookStatus } from "@/types/book";
 import { useAddBookViewModel } from "@/view-models/useAddBookViewModel";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack } from "expo-router";
 import {
   ActivityIndicator,
@@ -24,10 +26,35 @@ export default function AddBookScreen() {
     loading,
     isSuccess,
     router,
+    status,
+    setStatus,
+    startedAt,
+    showDatePicker,
+    setShowDatePicker,
+    onChangeDate,
     handleAnimationFinish,
     handleImageAction,
     handleSave,
   } = useAddBookViewModel();
+
+  const renderStatusButton = (buttonStatus: BookStatus, label: string) => {
+    const isSelected = status === buttonStatus;
+    return (
+      <TouchableOpacity
+        style={[styles.statusButton, isSelected && styles.statusButtonSelected]}
+        onPress={() => setStatus(buttonStatus)}
+      >
+        <Text
+          style={[
+            styles.statusButtonText,
+            isSelected && styles.statusButtonTextSelected,
+          ]}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -87,8 +114,43 @@ export default function AddBookScreen() {
             placeholder="저자를 입력하세요"
             placeholderTextColor="#999"
           />
+
+          <Text style={styles.label}>책 상태</Text>
+          <View style={styles.statusContainer}>
+            {renderStatusButton("wish", "읽고 싶음")}
+            {renderStatusButton("reading", "읽는 중")}
+            {renderStatusButton("finished", "다 읽음")}
+          </View>
+
+          {status === "reading" && (
+            <>
+              <Text style={styles.label}>읽기 시작한 날짜</Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.datePickerText}>
+                  {startedAt.toLocaleDateString()}
+                </Text>
+                <Ionicons
+                  name="calendar-outline"
+                  size={SIZES.h3}
+                  color={Colors.light.tint}
+                />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={startedAt}
+          mode="date"
+          display="spinner"
+          onChange={onChangeDate}
+        />
+      )}
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -115,7 +177,7 @@ export default function AddBookScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: SIZES.padding },
+  scrollContent: { padding: SIZES.padding, paddingBottom: SIZES.padding * 2 },
   headerTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
@@ -158,9 +220,10 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
     borderTopWidth: 1,
     borderTopColor: "#eee",
+    backgroundColor: "#fff",
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.light.tint,
     padding: SIZES.base * 2.2,
     borderRadius: SIZES.radius,
     alignItems: "center",
@@ -201,5 +264,42 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius * 1.5,
     borderWidth: 2,
     borderColor: "#fff",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: SIZES.base,
+  },
+  statusButton: {
+    paddingVertical: SIZES.base * 1.2,
+    paddingHorizontal: SIZES.base * 2,
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: Colors.light.tint,
+  },
+  statusButtonSelected: {
+    backgroundColor: Colors.light.tint,
+  },
+  statusButtonText: {
+    color: Colors.light.tint,
+    fontWeight: "600",
+    fontSize: SIZES.body3,
+  },
+  statusButtonTextSelected: {
+    color: "white",
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: SIZES.radius * 0.8,
+    padding: SIZES.base * 2,
+    backgroundColor: "#f9f9f9",
+  },
+  datePickerText: {
+    fontSize: SIZES.body3,
+    color: "#333",
   },
 });
