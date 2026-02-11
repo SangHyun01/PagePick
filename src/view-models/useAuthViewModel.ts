@@ -9,9 +9,10 @@ import * as WebBrowser from "expo-web-browser";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
 GoogleSignin.configure({
-  webClientId:
-    "849442775037-adlm6814fa7or5im2t9edhukj8gv38jo.apps.googleusercontent.com",
+  webClientId: GOOGLE_WEB_CLIENT_ID,
   offlineAccess: true,
 });
 
