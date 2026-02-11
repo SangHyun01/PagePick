@@ -214,7 +214,14 @@ export const useBookDetailViewModel = ({
     }
   };
 
-  
+  const handleCancelReview = () => {
+    setReviewModalVisible(false);
+    setNewRating(0);
+    setNewReview("");
+    if (book) {
+      setBook({ ...book, status: "reading" });
+    }
+  };
 
   const openReviewEditModal = () => {
     if (book?.rating && book.review) {
@@ -388,6 +395,7 @@ export const useBookDetailViewModel = ({
     handleSentenceOptions,
     updateSentence,
     handleSubmitReview,
+    handleCancelReview,
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,

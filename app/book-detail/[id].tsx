@@ -77,6 +77,7 @@ export default function BookDetailScreen() {
     updateSentence,
     handleUpdateStatus,
     handleSubmitReview,
+    handleCancelReview,
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,
@@ -393,6 +394,12 @@ export default function BookDetailScreen() {
               placeholder="리뷰를 남겨주세요 (선택)"
             />
             <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={handleCancelReview}
+              >
+                <Text style={styles.btnTextCancel}>취소</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btn, styles.btnSave]}
                 onPress={handleSubmitReview}
