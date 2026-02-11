@@ -156,7 +156,7 @@ export default function AuthScreen() {
               </>
             )}
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.socialButton, styles.kakaoButton]}
             disabled={socialLoading}
           >
@@ -166,7 +166,7 @@ export default function AuthScreen() {
               style={styles.socialIcon}
             />
             <Text style={styles.socialButtonText}>Kakao로 로그인</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <TouchableOpacity
