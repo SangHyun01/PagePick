@@ -170,7 +170,7 @@ export default function BookDetailScreen() {
         </View>
       </View>
 
-      {book.status === "finished" && book.rating && (
+      {book.rating && (
         <TouchableOpacity
           style={styles.ratingContainer}
           onPress={openReviewEditModal}
