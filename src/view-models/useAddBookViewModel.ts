@@ -1,9 +1,9 @@
 import * as bookService from "@/services/bookService";
+import { BookStatus } from "@/types/book";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
-import { BookStatus } from "@/types/book";
 
 export const useAddBookViewModel = () => {
   const router = useRouter();
@@ -58,7 +58,7 @@ export const useAddBookViewModel = () => {
 
   const pickImageFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: "images",
       allowsEditing: true,
       aspect: [2, 3],
       quality: 0.7,
