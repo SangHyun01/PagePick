@@ -37,9 +37,7 @@
           "data": {
             "mimeType": "image/*"
           },
-          "category": [
-            "DEFAULT"
-          ]
+          "category": ["DEFAULT"]
         }
       ]
     },
@@ -53,7 +51,7 @@
         "expo-splash-screen",
         {
           "image": "./src/assets/images/pagepick-splash.png",
-          "imageWidth": 200,
+          "imageWidth": 300,
           "resizeMode": "contain",
           "backgroundColor": "#F3EFFF",
           "dark": {
@@ -89,9 +87,7 @@
             "intentFilters": [
               {
                 "action": "android.intent.action.SEND",
-                "category": [
-                  "android.intent.category.DEFAULT"
-                ],
+                "category": ["android.intent.category.DEFAULT"],
                 "data": {
                   "mimeType": "image/*"
                 }
