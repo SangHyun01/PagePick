@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AddBookScreen() {
   const {
@@ -36,6 +37,7 @@ export default function AddBookScreen() {
     handleImageAction,
     handleSave,
   } = useAddBookViewModel();
+  const { bottom } = useSafeAreaInsets();
 
   const renderStatusButton = (buttonStatus: BookStatus, label: string) => {
     const isSelected = status === buttonStatus;
@@ -152,19 +154,21 @@ export default function AddBookScreen() {
         />
       )}
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.disabledButton]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>책장에 꽂기</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={[
+          styles.saveButton,
+          { bottom: bottom + SIZES.base },
+          loading && styles.disabledButton,
+        ]}
+        onPress={handleSave}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.saveButtonText}>책장에 꽂기</Text>
+        )}
+      </TouchableOpacity>
 
       <SuccessModal
         visible={isSuccess}
@@ -177,7 +181,10 @@ export default function AddBookScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: SIZES.padding, paddingBottom: SIZES.padding * 2 },
+  scrollContent: {
+    padding: SIZES.padding,
+    paddingBottom: SIZES.padding * 6,
+  },
   headerTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
@@ -216,17 +223,15 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body3,
     backgroundColor: "#f9f9f9",
   },
-  footer: {
-    padding: SIZES.padding,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
-  },
   saveButton: {
+    position: "absolute",
+    left: SIZES.padding,
+    right: SIZES.padding,
     backgroundColor: Colors.light.tint,
     padding: SIZES.base * 2.2,
     borderRadius: SIZES.radius,
     alignItems: "center",
+    zIndex: 1,
   },
   disabledButton: {
     backgroundColor: "#a0c8ff",
