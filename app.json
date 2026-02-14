@@ -36,7 +36,9 @@
           "data": {
             "mimeType": "image/*"
           },
-          "category": ["DEFAULT"]
+          "category": [
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -86,7 +88,9 @@
             "intentFilters": [
               {
                 "action": "android.intent.action.SEND",
-                "category": ["android.intent.category.DEFAULT"],
+                "category": [
+                  "android.intent.category.DEFAULT"
+                ],
                 "data": {
                   "mimeType": "image/*"
                 }
