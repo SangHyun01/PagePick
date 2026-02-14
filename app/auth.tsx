@@ -34,7 +34,8 @@ export default function AuthScreen() {
     loading,
     isLoginMode,
     canSubmit,
-    openPrivacyPolicy,
+    openUrl,
+    privacyPolicyUrl,
     toggleMode,
     handleSubmit,
     signInWithGoogle,
@@ -171,7 +172,7 @@ export default function AuthScreen() {
 
         <TouchableOpacity
           style={styles.privacyButton}
-          onPress={openPrivacyPolicy}
+          onPress={() => openUrl(privacyPolicyUrl)}
         >
           <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
         </TouchableOpacity>
