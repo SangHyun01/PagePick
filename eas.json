@@ -11,26 +11,12 @@
     "preview": {
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "@SUPABASE_URL",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "@SUPABASE_ANON_KEY",
-        "EXPO_PUBLIC_NAVER_CLIENT_ID": "@NAVER_CLIENT_ID",
-        "EXPO_PUBLIC_NAVER_CLIENT_SECRET": "@NAVER_CLIENT_SECRET",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "@GOOGLE_WEB_CLIENT_ID"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "@SUPABASE_URL",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "@SUPABASE_ANON_KEY",
-        "EXPO_PUBLIC_NAVER_CLIENT_ID": "@NAVER_CLIENT_ID",
-        "EXPO_PUBLIC_NAVER_CLIENT_SECRET": "@NAVER_CLIENT_SECRET",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "@GOOGLE_WEB_CLIENT_ID"
       }
     }
   },
