@@ -5,10 +5,11 @@ import {
   isErrorWithCode,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
+import Constans from "expo-constants";
 import { useMemo, useState } from "react";
 import { Alert, Linking } from "react-native";
 
-const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_WEB_CLIENT_ID = Constans.expoConfig?.extra?.googleWebClientId;
 
 GoogleSignin.configure({
   webClientId: GOOGLE_WEB_CLIENT_ID,
