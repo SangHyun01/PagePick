@@ -1,5 +1,4 @@
 import { ExpoConfig } from "@expo/config";
-import "dotenv/config";
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
