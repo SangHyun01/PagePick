@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAGS = [
   "인사이트",
@@ -22,6 +23,7 @@ const TAGS = [
 ];
 
 export default function WriteScreen() {
+  const insets = useSafeAreaInsets();
   const {
     content,
     setContent,
@@ -73,7 +75,7 @@ export default function WriteScreen() {
                 color="#fff"
                 style={{ marginRight: SIZES.base }}
               />
-              <Text style={styles.aiButtonText}>AI 맞춤법 교정</Text>
+              <Text style={styles.aiButtonText}>AI 다듬기</Text>
             </>
           )}
         </TouchableOpacity>
@@ -115,7 +117,12 @@ export default function WriteScreen() {
         </View>
       </View>
 
-      <View style={styles.bottomButtonContainer}>
+      <View
+        style={[
+          styles.bottomButtonContainer,
+          { marginBottom: SIZES.padding * 1.25 + insets.bottom },
+        ]}
+      >
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={() => navigateToNext("/select-book")}

@@ -90,12 +90,7 @@ const AlbumList: React.FC<AlbumListProps> = ({
           </View>
         }
       />
-      <View
-        style={[
-          styles.uploadButtonContainer,
-          { paddingBottom: insets.bottom + SIZES.padding },
-        ]}
-      >
+      <View style={[{ paddingBottom: insets.bottom + SIZES.padding }]}>
         <TouchableOpacity style={styles.uploadButton} onPress={onAddPress}>
           <Text style={styles.uploadButtonText}>사진 추가하기</Text>
         </TouchableOpacity>
@@ -134,6 +129,7 @@ const styles = StyleSheet.create({
     padding: SIZES.padding / 1.5,
     borderRadius: SIZES.radius,
     alignItems: "center",
+    marginHorizontal: SIZES.padding,
   },
   uploadButtonText: {
     color: Colors.light.background,
