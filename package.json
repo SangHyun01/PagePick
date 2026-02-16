@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "prepare": "husky",
-    "type-check": "tsx --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
