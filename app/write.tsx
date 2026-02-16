@@ -1,4 +1,4 @@
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
 import { useWriteViewModel } from "@/view-models/useWriteViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -9,15 +9,30 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const TAGS = [
+  "인사이트",
+  "동기부여",
+  "위로/공감",
+  "기타",
+  "유머/재미",
+  "표현력",
+  "핵심요약",
+  "충격/반전",
+];
 
 export default function WriteScreen() {
+  const insets = useSafeAreaInsets();
   const {
     content,
     setContent,
     page,
     setPage,
     isFixing,
+    selectedTags,
     handleAiFix,
+    handleTagSelect,
     navigateToNext,
     router,
   } = useWriteViewModel();
@@ -60,7 +75,7 @@ export default function WriteScreen() {
                 color="#fff"
                 style={{ marginRight: SIZES.base }}
               />
-              <Text style={styles.aiButtonText}>AI 맞춤법 교정</Text>
+              <Text style={styles.aiButtonText}>AI 다듬기</Text>
             </>
           )}
         </TouchableOpacity>
@@ -77,7 +92,37 @@ export default function WriteScreen() {
         />
       </View>
 
-      <View style={styles.bottomButtonContainer}>
+      <View style={styles.tagContainer}>
+        <Text style={styles.tagTitle}>태그 (선택)</Text>
+        <View style={styles.tagList}>
+          {TAGS.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tag,
+                selectedTags.includes(tag) && styles.selectedTag,
+              ]}
+              onPress={() => handleTagSelect(tag)}
+            >
+              <Text
+                style={[
+                  styles.tagText,
+                  selectedTags.includes(tag) && styles.selectedTagText,
+                ]}
+              >
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.bottomButtonContainer,
+          { marginBottom: SIZES.padding * 1.25 + insets.bottom },
+        ]}
+      >
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={() => navigateToNext("/select-book")}
@@ -155,6 +200,38 @@ const styles = StyleSheet.create({
     lineHeight: SIZES.padding,
     color: "#333",
     flex: 1,
+  },
+
+  tagContainer: {
+    marginBottom: SIZES.padding,
+  },
+  tagTitle: {
+    fontSize: SIZES.body4,
+    fontWeight: "600",
+    color: Colors.light.icon,
+    marginBottom: SIZES.base,
+  },
+  tagList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.base,
+  },
+  tag: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: SIZES.radius * 2,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
+  },
+  selectedTag: {
+    backgroundColor: Colors.light.tint,
+  },
+  tagText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+  },
+  selectedTagText: {
+    color: "white",
+    fontWeight: "bold",
   },
 
   bottomButtonContainer: {

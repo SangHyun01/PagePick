@@ -1,7 +1,7 @@
 import AlbumList from "@/components/AlbumList";
+import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import CongratsModal from "@/components/CongratsModal";
 import { Colors, SIZES } from "@/constants/theme";
 import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
@@ -29,6 +29,16 @@ const STATUS_MAP: Record<BookStatus, string> = {
   finished: "읽은 책",
 };
 const STATUS_OPTIONS = Object.keys(STATUS_MAP) as BookStatus[];
+const TAGS = [
+  "인사이트",
+  "동기부여",
+  "위로/공감",
+  "유머/재미",
+  "표현력",
+  "핵심요약",
+  "충격/반전",
+  "기타",
+];
 
 export default function BookDetailScreen() {
   const params = useLocalSearchParams();
@@ -53,10 +63,12 @@ export default function BookDetailScreen() {
     sentenceEditModalVisible,
     editContent,
     editPage,
+    editingTags,
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
     isReviewModalVisible,
+    setReviewModalVisible,
     newRating,
     newReview,
     setNewRating,
@@ -81,16 +93,22 @@ export default function BookDetailScreen() {
     openReviewEditModal,
     handleUpdateReview,
     handleDeleteReview,
+    handleEditingTagSelect,
   } = useBookDetailViewModel({
     bookId,
   });
 
-  const { photos, pickAndUpload, isLoading, handlePhotoPress, uploadSharedPhoto } =
-    useAlbumViewModel({
-      bookId: Number(bookId),
-      bookTitle: book?.title || (params.title as string),
-      bookAuthor: book?.author || (params.author as string),
-    });
+  const {
+    photos,
+    pickAndUpload,
+    isLoading,
+    handlePhotoPress,
+    uploadSharedPhoto,
+  } = useAlbumViewModel({
+    bookId: Number(bookId),
+    bookTitle: book?.title || (params.title as string),
+    bookAuthor: book?.author || (params.author as string),
+  });
 
   useEffect(() => {
     if (newPhotoUri) {
@@ -108,7 +126,7 @@ export default function BookDetailScreen() {
         ],
       );
     }
-  }, [newPhotoUri]);
+  }, [newPhotoUri, uploadSharedPhoto]);
 
   if (loading || !book) {
     return (
@@ -166,7 +184,7 @@ export default function BookDetailScreen() {
         </View>
       </View>
 
-      {book.status === "finished" && book.rating && (
+      {book.rating ? (
         <TouchableOpacity
           style={styles.ratingContainer}
           onPress={openReviewEditModal}
@@ -183,6 +201,20 @@ export default function BookDetailScreen() {
             ))}
           </View>
         </TouchableOpacity>
+      ) : (
+        book.status === "finished" && (
+          <TouchableOpacity
+            style={styles.ratingContainer}
+            onPress={() => setReviewModalVisible(true)}
+          >
+            <Text style={styles.ratingLabel}>리뷰 작성하기</Text>
+            <Ionicons
+              name="create-outline"
+              size={24}
+              color={Colors.light.tint}
+            />
+          </TouchableOpacity>
+        )
       )}
 
       {/* 상태 선택 UI */}
@@ -335,6 +367,30 @@ export default function BookDetailScreen() {
               keyboardType="number-pad"
               placeholder="페이지 번호"
             />
+            <View style={styles.tagContainerInModal}>
+              <Text style={styles.label}>태그</Text>
+              <View style={styles.tagList}>
+                {TAGS.map((tag) => (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.tag,
+                      editingTags.includes(tag) && styles.selectedTag,
+                    ]}
+                    onPress={() => handleEditingTagSelect(tag)}
+                  >
+                    <Text
+                      style={[
+                        styles.tagText,
+                        editingTags.includes(tag) && styles.selectedTagText,
+                      ]}
+                    >
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.btn, styles.btnCancel]}
@@ -358,7 +414,6 @@ export default function BookDetailScreen() {
         animationType="fade"
         transparent={true}
         visible={isReviewModalVisible}
-        onRequestClose={handleCancelReview}
         statusBarTranslucent={true}
       >
         <KeyboardAvoidingView
@@ -394,7 +449,7 @@ export default function BookDetailScreen() {
                 style={[styles.btn, styles.btnCancel]}
                 onPress={handleCancelReview}
               >
-                <Text style={styles.btnTextCancel}>건너뛰기</Text>
+                <Text style={styles.btnTextCancel}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btn, styles.btnSave]}
@@ -687,6 +742,32 @@ const styles = StyleSheet.create({
     marginRight: SIZES.base,
   },
   btnTextDelete: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  tagContainerInModal: {
+    marginTop: SIZES.base,
+  },
+  tagList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.base,
+    marginTop: SIZES.base,
+  },
+  tag: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: SIZES.radius * 2,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
+  },
+  selectedTag: {
+    backgroundColor: Colors.light.tint,
+  },
+  tagText: {
+    fontSize: SIZES.body4,
+    color: Colors.light.text,
+  },
+  selectedTagText: {
     color: "white",
     fontWeight: "bold",
   },

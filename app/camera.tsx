@@ -9,8 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CameraScreen() {
+  const insets = useSafeAreaInsets();
   const {
     permission,
     requestPermission,
@@ -74,7 +76,12 @@ export default function CameraScreen() {
             );
           })}
         </View>
-        <View style={styles.bottomBar}>
+        <View
+          style={[
+            styles.bottomBar,
+            { bottom: SIZES.padding * 1.25 + insets.bottom },
+          ]}
+        >
           <TouchableOpacity onPress={resetCamera} style={styles.cancelButton}>
             <Text style={styles.buttonText}>다시 찍기</Text>
           </TouchableOpacity>
@@ -96,7 +103,7 @@ export default function CameraScreen() {
         facing="back"
         animateShutter={false}
       />
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, { paddingBottom: insets.bottom }]}>
         <Text style={styles.guideText}>문장이 잘 보이게 찍어주세요</Text>
         <View style={styles.shutterContainer}>
           <TouchableOpacity

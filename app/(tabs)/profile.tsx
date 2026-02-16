@@ -1,66 +1,138 @@
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
 import { useAuthViewModel } from "@/view-models/useAuthViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+interface MenuItemProps {
+  label: string;
+  onPress: () => void;
+  isDestructive?: boolean;
+  isLast?: boolean;
+}
+
+const MenuItem = ({
+  label,
+  onPress,
+  isDestructive = false,
+  isLast = false,
+}: MenuItemProps) => (
+  <TouchableOpacity
+    style={[styles.menuItem, isLast && styles.lastMenuItem]}
+    onPress={onPress}
+  >
+    <Text style={[styles.menuText, isDestructive && styles.destructiveText]}>
+      {label}
+    </Text>
+    <Ionicons
+      name="chevron-forward"
+      size={SIZES.h4}
+      color={isDestructive ? Colors.light.icon : "#ccc"}
+    />
+  </TouchableOpacity>
+);
+
+interface InfoItemProps {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}
+
+const InfoItem = ({ label, value, isLast = false }: InfoItemProps) => (
+  <View style={[styles.menuItem, isLast && styles.lastMenuItem]}>
+    <Text style={styles.menuText}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
+interface SectionHeaderProps {
+  title: string;
+}
+
+const SectionHeader = ({ title }: SectionHeaderProps) => (
+  <Text style={styles.sectionHeader}>{title}</Text>
+);
 
 export default function ProfileScreen() {
   const {
     userEmail,
     getUserProfile,
-    openPrivacyPolicy,
     handleLogout,
     handleDeleteAccount,
+    openUrl,
+    contactDeveloper,
+    instagramUrl,
+    instagramDeepLink,
+    announcementsUrl,
+    termsOfServiceUrl,
+    privacyPolicyUrl,
+    appVersion,
   } = useAuthViewModel();
 
   useEffect(() => {
     getUserProfile();
-  }, []);
+  }, [getUserProfile]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.profileCard}>
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person" size={SIZES.h1} color="#fff" />
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        {/* 프로필 정보 */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person" size={SIZES.h1} color="#fff" />
+          </View>
+          <Text style={styles.emailText}>{userEmail || "로딩 중..."}</Text>
         </View>
-        <Text style={styles.emailText}>{userEmail || "로딩 중..."}</Text>
-      </View>
 
-      <View style={styles.menuContainer}>
-        <View style={styles.menuItem}>
-          <Text style={styles.menuText}>내 독서 통계 (준비중)</Text>
-          <Ionicons name="chevron-forward" size={SIZES.h3} color="#ccc" />
+        {/* 커뮤니티 & 문의 */}
+        <SectionHeader title="커뮤니티 & 문의" />
+        <View style={styles.menuContainer}>
+          <MenuItem
+            label="PagePick 인스타그램"
+            onPress={() => openUrl(instagramDeepLink, instagramUrl)}
+          />
+          <MenuItem label="개발자에게 문의하기" onPress={contactDeveloper} />
+          <MenuItem
+            label="공지사항"
+            onPress={() => openUrl(announcementsUrl)}
+            isLast
+          />
         </View>
-        <View style={styles.menuItem}>
-          <Text style={styles.menuText}>앱 설정 (준비중)</Text>
-          <Ionicons name="chevron-forward" size={SIZES.h3} color="#ccc" />
+
+        {/* 앱정보 */}
+        <SectionHeader title="앱정보" />
+        <View style={styles.menuContainer}>
+          <MenuItem
+            label="서비스 이용약관"
+            onPress={() => openUrl(termsOfServiceUrl)}
+          />
+          <MenuItem
+            label="개인정보 처리방침"
+            onPress={() => openUrl(privacyPolicyUrl)}
+          />
+          <InfoItem label="앱 버전" value={appVersion} isLast />
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons
-          name="log-out-outline"
-          size={SIZES.h3}
-          color="#FF3B30"
-          style={{ marginRight: SIZES.base }}
-        />
-        <Text style={styles.logoutText}>로그아웃</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.privacyButton}
-        onPress={openPrivacyPolicy}
-      >
-        <Text style={styles.privacyButtonText}>개인정보처리방침</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.deleteAccountButton}
-        onPress={handleDeleteAccount}
-      >
-        <Text style={styles.deleteAccountText}>회원탈퇴</Text>
-      </TouchableOpacity>
-    </View>
+        {/* 계정 관리 */}
+        <SectionHeader title="계정 관리" />
+        <View style={styles.menuContainer}>
+          <MenuItem label="로그아웃" onPress={handleLogout} />
+          <MenuItem
+            label="회원 탈퇴"
+            onPress={handleDeleteAccount}
+            isDestructive
+            isLast
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -68,86 +140,61 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",
-    padding: SIZES.padding,
-    paddingTop: SIZES.padding * 2.5,
   },
   profileCard: {
-    backgroundColor: "#fff",
-    borderRadius: SIZES.radius * 1.5,
-    padding: SIZES.padding * 1.25,
+    padding: SIZES.padding,
+    paddingBottom: SIZES.base * 2,
     alignItems: "center",
-    marginBottom: SIZES.padding,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: "#F2F2F7",
   },
   avatarContainer: {
-    width: SIZES.padding * 3.3,
-    height: SIZES.padding * 3.3,
-    borderRadius: SIZES.padding * 1.65,
-    backgroundColor: "#007AFF",
+    width: SIZES.padding * 3,
+    height: SIZES.padding * 3,
+    borderRadius: SIZES.padding * 1.5,
+    backgroundColor: Colors.light.tint,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: SIZES.base * 2,
+    marginBottom: SIZES.base * 1.5,
   },
   emailText: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: SIZES.base / 2,
+    color: Colors.light.text,
+  },
+  sectionHeader: {
+    fontSize: SIZES.body4,
+    color: Colors.light.icon,
+    paddingHorizontal: SIZES.padding,
+    paddingTop: SIZES.padding,
+    paddingBottom: SIZES.base,
   },
   menuContainer: {
     backgroundColor: "#fff",
+    marginHorizontal: SIZES.padding,
     borderRadius: SIZES.radius,
-    marginBottom: SIZES.padding,
     overflow: "hidden",
   },
   menuItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: SIZES.base * 2.2,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    padding: SIZES.base * 2,
+    marginLeft: SIZES.base * 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e0e0e0",
+  },
+  lastMenuItem: {
+    borderBottomWidth: 0,
   },
   menuText: {
     fontSize: SIZES.body3,
-    color: "#333",
+    color: Colors.light.text,
   },
-  logoutButton: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: SIZES.base * 2.2,
-    borderRadius: SIZES.radius,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: SIZES.padding,
-  },
-  logoutText: {
+  infoValue: {
     fontSize: SIZES.body3,
+    color: Colors.light.icon,
+  },
+  destructiveText: {
     color: "#FF3B30",
-    fontWeight: "bold",
-  },
-  privacyButton: {
-    marginTop: SIZES.padding,
-    alignItems: "center",
-    padding: SIZES.base,
-  },
-  privacyButtonText: {
-    color: "#999",
-    fontSize: SIZES.body4,
-    textDecorationLine: "underline",
-  },
-  deleteAccountButton: {
-    marginTop: SIZES.base,
-    alignItems: "center",
-    padding: SIZES.base,
-  },
-  deleteAccountText: {
-    color: "#999",
-    fontSize: SIZES.body4,
-    textDecorationLine: "underline",
   },
 });

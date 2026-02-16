@@ -73,12 +73,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
 };
 
 // 책 추가
-export const addBook = async (book: {
-  title: string;
-  author: string;
-  cover_url: string;
-  isbn: string;
-}) => {
+export const addBook = async (book: Partial<Book>) => {
   if (book.isbn && book.isbn.length > 0) {
     const { data: isbnCheck } = await supabase
       .from("books")
@@ -86,7 +81,7 @@ export const addBook = async (book: {
       .eq("isbn", book.isbn)
       .maybeSingle();
     if (isbnCheck) throw new Error("이미 등록된 책입니다. (ISBN)");
-  } else {
+  } else if (book.title && book.author) {
     const { data: titleCheck } = await supabase
       .from("books")
       .select("id")
@@ -101,14 +96,20 @@ export const addBook = async (book: {
     finalCoverUrl = await uploadImage(book.cover_url);
   }
 
-  const { error } = await supabase.from("books").insert([
-    {
-      title: book.title,
-      author: book.author,
-      cover_url: finalCoverUrl,
-      isbn: book.isbn,
-    },
-  ]);
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+  if (sessionError || !sessionData.session) {
+    throw new Error("User not authenticated.");
+  }
+  const user_id = sessionData.session.user.id;
+
+  const bookToInsert = {
+    ...book,
+    cover_url: finalCoverUrl,
+    user_id: user_id,
+  };
+
+  const { error } = await supabase.from("books").insert([bookToInsert]);
 
   if (error) throw error;
 };

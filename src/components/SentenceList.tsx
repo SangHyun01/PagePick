@@ -1,5 +1,6 @@
 import { Colors, SIZES } from "@/constants/theme";
 import { Sentence } from "@/types/sentence";
+import { fontScale } from "@/utils/responsive";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -43,6 +44,16 @@ export default function SentenceList({
       </View>
 
       <Text style={styles.sentenceText}>{item.content}</Text>
+
+      {item.tags && item.tags.length > 0 && (
+        <View style={styles.tagList}>
+          {item.tags.map((tag) => (
+            <View key={tag} style={styles.tag}>
+              <Text style={styles.tagText}>{tag}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={styles.pageContainer}>
         <Text style={styles.pageText}>p.{item.page}</Text>
@@ -94,6 +105,7 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     fontWeight: "500",
     letterSpacing: -0.5,
+    marginBottom: SIZES.base * 1.5,
   },
   pageContainer: {
     alignItems: "flex-end",
@@ -110,4 +122,23 @@ const styles = StyleSheet.create({
   },
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
   emptyText: { color: Colors.light.icon, fontSize: SIZES.body4 },
+  tagList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.base,
+    marginTop: SIZES.base,
+  },
+  tag: {
+    backgroundColor: "white",
+    borderColor: Colors.light.tint,
+    borderWidth: 1,
+    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.base / 2,
+    paddingHorizontal: SIZES.base,
+  },
+  tagText: {
+    fontSize: fontScale(10),
+    color: Colors.light.tint,
+    fontWeight: "600",
+  },
 });

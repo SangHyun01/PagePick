@@ -1,3 +1,4 @@
-import { AuthCredentials as SupabaseAuthCredentials } from "@supabase/supabase-js";
-
-export type AuthCredentials = SupabaseAuthCredentials;
+export interface AuthCredentials {
+  email: string;
+  password: string;
+}

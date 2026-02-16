@@ -5,11 +5,11 @@ import {
   isErrorWithCode,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import * as WebBrowser from "expo-web-browser";
+import Constans from "expo-constants";
 import { useMemo, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 
-const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_WEB_CLIENT_ID = Constans.expoConfig?.extra?.googleWebClientId;
 
 GoogleSignin.configure({
   webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -40,13 +40,37 @@ export const useAuthViewModel = () => {
     );
   }, [email, password, confirmPassword, isLoginMode, loading]);
 
-  // 개인정보처리방침
   const privacyPolicyUrl =
     "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
+  const instagramUrl = "https://www.instagram.com/pagepick.official/";
+  const instagramDeepLink = "instagram://_u/pagepick.official";
+  const developerEmail = "simon010809@gmail.com";
+  const announcementsUrl =
+    "https://www.notion.so/PagePick-3040ea7070308053a72cdeea98896833?source=copy_link";
+  const termsOfServiceUrl =
+    "https://www.notion.so/PagePick-3040ea70703080718bdee52005e2ef1d?source=copy_link";
+  const appVersion = "1.0.0";
 
-  const openPrivacyPolicy = () => {
-    WebBrowser.openBrowserAsync(privacyPolicyUrl).catch(() =>
-      Alert.alert("알림", "페이지를 여는 데 실패했습니다."),
+  const openUrl = async (url: string, fallbackUrl?: string) => {
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else if (fallbackUrl) {
+        await Linking.openURL(fallbackUrl);
+      } else {
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      console.log("에러 발생:", error);
+      Alert.alert("알림", "페이지를 여는 데 실패했습니다.");
+    }
+  };
+
+  const contactDeveloper = () => {
+    const mailtoUrl = `mailto:${developerEmail}`;
+    Linking.openURL(mailtoUrl).catch(() =>
+      Alert.alert("알림", "메일 앱을 열 수 없습니다."),
     );
   };
 
@@ -150,6 +174,7 @@ export const useAuthViewModel = () => {
           try {
             await userService.signOut();
           } catch (e) {
+            console.log("에러 발생: ", e);
             Alert.alert("오류", "로그아웃에 실패했습니다.");
           }
         },
@@ -198,6 +223,13 @@ export const useAuthViewModel = () => {
     getUserProfile,
     handleLogout,
     handleDeleteAccount,
-    openPrivacyPolicy,
+    openUrl,
+    contactDeveloper,
+    instagramUrl,
+    instagramDeepLink,
+    announcementsUrl,
+    termsOfServiceUrl,
+    privacyPolicyUrl,
+    appVersion,
   };
 };
