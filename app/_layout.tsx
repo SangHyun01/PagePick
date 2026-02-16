@@ -71,7 +71,15 @@ export default function RootLayout() {
     if (inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [session, initialized, segments, hasShareIntent, shareIntent]);
+  }, [
+    session,
+    initialized,
+    segments,
+    hasShareIntent,
+    shareIntent,
+    resetShareIntent,
+    router,
+  ]);
 
   // 로딩 화면
   if (!initialized) {

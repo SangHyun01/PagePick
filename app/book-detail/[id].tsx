@@ -126,7 +126,7 @@ export default function BookDetailScreen() {
         ],
       );
     }
-  }, [newPhotoUri]);
+  }, [newPhotoUri, uploadSharedPhoto]);
 
   if (loading || !book) {
     return (

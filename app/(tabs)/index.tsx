@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   sourceContainer: { alignItems: "center", marginBottom: SIZES.padding },
   quoteAuthor: { fontSize: SIZES.body4, color: "#555", fontWeight: "600" },
-  pageText: { fontSize: SIZES.font, color: "#999", marginTop: SIZES.base / 4 },
+  pageText: { fontSize: SIZES.body4, color: "#999", marginTop: SIZES.base / 4 },
   decoLine: {
     width: SIZES.padding * 1.5,
     height: SIZES.base / 2,
@@ -174,6 +174,6 @@ const styles = StyleSheet.create({
   },
   mainButtonDesc: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: SIZES.font - 1,
+    fontSize: SIZES.body4 - 1,
   },
 });

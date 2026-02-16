@@ -1,13 +1,13 @@
-import { SIZES, Colors } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
 import { useAuthViewModel } from "@/view-models/useAuthViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -78,7 +78,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     getUserProfile();
-  }, []);
+  }, [getUserProfile]);
 
   return (
     <SafeAreaView style={styles.container}>

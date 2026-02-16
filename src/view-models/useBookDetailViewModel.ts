@@ -48,7 +48,7 @@ export const useBookDetailViewModel = ({
   const [editingRating, setEditingRating] = useState(0);
   const [editingReview, setEditingReview] = useState("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [bookData, sentencesData] = await Promise.all([
@@ -68,14 +68,14 @@ export const useBookDetailViewModel = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookId, setLoading, setBook, setEditTitle, setEditAuthor, setSentences]);
 
   useFocusEffect(
     useCallback(() => {
       if (bookId) {
         fetchData();
       }
-    }, [bookId]),
+    }, [bookId, fetchData]),
   );
 
   const handleAnimationFinish = () => {
@@ -119,6 +119,7 @@ export const useBookDetailViewModel = ({
       setIsDelete(true);
       setLoading(false);
     } catch (e) {
+      console.error(e);
       Alert.alert("오류", "책 삭제에 실패했습니다.");
       setLoading(false);
     }
@@ -149,11 +150,7 @@ export const useBookDetailViewModel = ({
 
   const handleUpdateStatus = async (status: BookStatus) => {
     // 읽고 싶은 책 -> 읽는 중 (최초 한번만)
-    if (
-      book?.status === "wish" &&
-      status === "reading" &&
-      !book.started_at
-    ) {
+    if (book?.status === "wish" && status === "reading" && !book.started_at) {
       Alert.alert("알림", "오늘부터 읽으시겠습니까?", [
         {
           text: "취소",
@@ -319,6 +316,7 @@ export const useBookDetailViewModel = ({
       setDeleteTarget("sentence");
       setIsDelete(true);
     } catch (e) {
+      console.error(e);
       Alert.alert("오류", "삭제에 실패했습니다.");
     }
   };

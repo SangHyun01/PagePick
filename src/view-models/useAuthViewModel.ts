@@ -62,6 +62,7 @@ export const useAuthViewModel = () => {
         await Linking.openURL(url);
       }
     } catch (error) {
+      console.log("에러 발생:", error);
       Alert.alert("알림", "페이지를 여는 데 실패했습니다.");
     }
   };
@@ -173,6 +174,7 @@ export const useAuthViewModel = () => {
           try {
             await userService.signOut();
           } catch (e) {
+            console.log("에러 발생: ", e);
             Alert.alert("오류", "로그아웃에 실패했습니다.");
           }
         },
