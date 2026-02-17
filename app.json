@@ -36,9 +36,7 @@
           "data": {
             "mimeType": "image/*"
           },
-          "category": [
-            "DEFAULT"
-          ]
+          "category": ["DEFAULT"]
         }
       ]
     },
@@ -63,7 +61,6 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "책 페이지 사진을 불러와 텍스트를 추출하기 위해 앨범 접근 권한이 필요합니다.",
           "cameraPermission": "책 페이지를 촬영하여 텍스트를 추출하기 위해 카메라 접근 권한이 필요합니다."
         }
       ],
@@ -76,9 +73,7 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "사진을 저장하기 위해 앨범 접근 권한이 필요합니다.",
-          "savePhotosPermission": "사진을 저장하기 위해 앨범 접근 권한이 필요합니다.",
-          "isAccessMediaLocationEnabled": true
+          "isAccessMediaLocationEnabled": false
         }
       ],
       [
@@ -88,9 +83,7 @@
             "intentFilters": [
               {
                 "action": "android.intent.action.SEND",
-                "category": [
-                  "android.intent.category.DEFAULT"
-                ],
+                "category": ["android.intent.category.DEFAULT"],
                 "data": {
                   "mimeType": "image/*"
                 }
