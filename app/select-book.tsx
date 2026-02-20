@@ -15,7 +15,6 @@ import {
 
 export default function SelectBookScreen() {
   const {
-    router,
     content,
     books,
     loading,
