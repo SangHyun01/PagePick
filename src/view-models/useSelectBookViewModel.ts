@@ -1,12 +1,19 @@
 import * as bookService from "@/services/bookService";
 import * as sentenceService from "@/services/sentenceService";
 import { Book } from "@/types/book";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { StackActions } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, BackHandler } from "react-native";
 
 export const useSelectBookViewModel = () => {
   const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams();
 
   const content = (
@@ -36,10 +43,29 @@ export const useSelectBookViewModel = () => {
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const handleCancel = useCallback(() => {
+    router.replace("/(tabs)");
+  }, [router]);
+
   useFocusEffect(
     useCallback(() => {
       fetchBooks();
-    }, []),
+
+      const onBackPress = () => {
+        if (isShareMode) {
+          handleCancel();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [isShareMode, handleCancel]),
   );
 
   const fetchBooks = async () => {
@@ -79,16 +105,18 @@ export const useSelectBookViewModel = () => {
 
   const handleAnimationFinish = () => {
     setShowSuccess(false);
+    navigation.dispatch(StackActions.popToTop());
     router.replace("/(tabs)/bookshelf");
   };
 
   const handleSelectBook = async (bookId: number) => {
     if (isShareMode && sharedImageUri) {
-      router.replace({
+      router.push({
         pathname: `/book-detail/[id]`,
         params: {
           id: bookId,
           newPhotoUri: sharedImageUri,
+          cover_url: books.find((b) => b.id === bookId)?.cover_url || "",
         },
       });
       return;
@@ -122,5 +150,6 @@ export const useSelectBookViewModel = () => {
     handleAddNewBook,
     handleAnimationFinish,
     handleSelectBook,
+    handleCancel,
   };
 };

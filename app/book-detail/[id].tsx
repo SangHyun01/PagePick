@@ -112,6 +112,7 @@ export default function BookDetailScreen() {
 
   useEffect(() => {
     if (newPhotoUri) {
+      router.setParams({ newPhotoUri: "" });
       Alert.alert(
         "사진 저장",
         "선택하신 책에 공유된 사진을 저장하시겠습니까?",
