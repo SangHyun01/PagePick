@@ -15,7 +15,6 @@ import {
 
 export default function SelectBookScreen() {
   const {
-    router,
     content,
     books,
     loading,
@@ -23,6 +22,7 @@ export default function SelectBookScreen() {
     handleAddNewBook,
     handleAnimationFinish,
     handleSelectBook,
+    handleCancel,
   } = useSelectBookViewModel();
 
   const renderBookItem = ({ item }: { item: Book }) => (
@@ -54,7 +54,7 @@ export default function SelectBookScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleCancel}>
           <Text style={styles.backText}>취소</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>어떤 책인가요?</Text>
