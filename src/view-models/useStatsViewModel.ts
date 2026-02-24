@@ -2,14 +2,16 @@ import { getAllUserSentences } from "@/services/sentenceService";
 import { Sentence } from "@/types/sentence";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 
 export const useStatsViewModel = () => {
   const [markedDates, setMarkedDates] = useState<any>({});
-  const [sentencesData, setSentencesData] = useState<Record<string, number>>(
-    {},
-  );
   const [isLoading, setIsLoading] = useState(true);
+  const [allSentences, setAllSentences] = useState<Sentence[]>([]);
+  const [isSheetVisible, setSheetVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDateSentences, setSelectedDateSentences] = useState<
+    Sentence[]
+  >([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -17,6 +19,7 @@ export const useStatsViewModel = () => {
         try {
           setIsLoading(true);
           const sentences: Sentence[] = await getAllUserSentences();
+          setAllSentences(sentences);
 
           const countsByDate = sentences.reduce(
             (acc, sentence) => {
@@ -26,8 +29,6 @@ export const useStatsViewModel = () => {
             },
             {} as Record<string, number>,
           );
-
-          setSentencesData(countsByDate);
 
           const marks: any = {};
           Object.keys(countsByDate).forEach((date) => {
@@ -73,20 +74,29 @@ export const useStatsViewModel = () => {
   );
 
   const onDayPress = (day: any) => {
-    const count = sentencesData[day.dateString] || 0;
-    if (count > 0) {
-      Alert.alert(
-        "기록 확인",
-        `${day.dateString}에\n${count}개의 문장을 수집하셨네요!`,
-      );
-    } else {
-      Alert.alert("기록 확인", "이날은 수집한 문장이 없습니다.");
+    const dateStr = day.dateString;
+    const sentencesForDate = allSentences.filter(
+      (s) => s.create_at.split("T")[0] === dateStr,
+    );
+
+    if (sentencesForDate.length > 0) {
+      setSelectedDate(dateStr);
+      setSelectedDateSentences(sentencesForDate);
+      setSheetVisible(true);
     }
+  };
+
+  const closeSheet = () => {
+    setSheetVisible(false);
   };
 
   return {
     isLoading,
     markedDates,
     onDayPress,
+    isSheetVisible,
+    closeSheet,
+    selectedDate,
+    selectedDateSentences,
   };
 };

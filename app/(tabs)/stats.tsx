@@ -1,7 +1,16 @@
+import BottomSheet from "@/components/BottomSheet";
+import SentenceList from "@/components/SentenceList";
 import { SIZES } from "@/constants/theme";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
 LocaleConfig.locales["kr"] = {
@@ -48,7 +57,15 @@ LocaleConfig.locales["kr"] = {
 LocaleConfig.defaultLocale = "kr";
 
 export default function StatsScreen() {
-  const { isLoading, markedDates, onDayPress } = useStatsViewModel();
+  const {
+    isLoading,
+    markedDates,
+    onDayPress,
+    isSheetVisible,
+    closeSheet,
+    selectedDate,
+    selectedDateSentences,
+  } = useStatsViewModel();
 
   return (
     <View style={styles.container}>
@@ -88,6 +105,16 @@ export default function StatsScreen() {
           />
         </View>
       )}
+
+      <BottomSheet isVisible={isSheetVisible} onClose={closeSheet}>
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>{selectedDate} 기록</Text>
+          <TouchableOpacity onPress={closeSheet}>
+            <Ionicons name="close" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+        <SentenceList sentences={selectedDateSentences} />
+      </BottomSheet>
     </View>
   );
 }
@@ -96,7 +123,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-    paddingTop: SIZES.padding * 2,
+    paddingTop: SIZES.padding * 3,
     paddingHorizontal: SIZES.padding,
   },
   headerTitle: {
@@ -124,5 +151,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: SIZES.padding,
+  },
+  sheetTitle: {
+    fontSize: SIZES.h3,
+    fontWeight: "bold",
   },
 });
