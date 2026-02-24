@@ -1,6 +1,8 @@
 import BottomSheet from "@/components/BottomSheet";
+import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import StreakProgressBar from "@/components/StreakProgressBar"; // Import the new component
+import StreakRewardModal from "@/components/StreakRewardModal";
 import { SIZES } from "@/constants/theme";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -77,6 +79,11 @@ export default function StatsScreen() {
     selectedDateSentences,
     continuousReadingDays,
     streakProgress,
+    showCongratsAnimation,
+    showStreakRewardModal,
+    streakRewardMessage,
+    handleCongratsAnimationFinish,
+    handleStreakRewardModalFinish,
   } = useStatsViewModel();
 
   const totalTags = tagStats.reduce((sum, stat) => sum + stat.count, 0);
@@ -202,6 +209,15 @@ export default function StatsScreen() {
         </View>
         <SentenceList sentences={selectedDateSentences} />
       </BottomSheet>
+      <CongratsModal
+        visible={showCongratsAnimation}
+        onFinish={handleCongratsAnimationFinish}
+      />
+      <StreakRewardModal
+        visible={showStreakRewardModal}
+        onFinish={handleStreakRewardModalFinish}
+        message={streakRewardMessage}
+      />
     </View>
   );
 }
@@ -310,3 +326,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+

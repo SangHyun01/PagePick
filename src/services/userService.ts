@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { AuthCredentials } from "@/types/auth";
+import { AuthCredentials, UserProfile } from "@/types/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 // 로그인
@@ -22,6 +22,38 @@ export const getUser = async () => {
   } = await supabase.auth.getUser();
   if (error) throw error;
   return user;
+};
+
+// 유저 프로필 정보 불러오기
+export const getUserProfile = async (): Promise<UserProfile | null> => {
+  const user = await getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching user profile:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// 연속 달성 보상 지급
+export const grantStreakReward = async (
+  userId: string,
+  newFreezeCount: number,
+  today: string,
+) => {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ streak_freezes: newFreezeCount, last_reward_date: today })
+    .eq("id", userId);
+  if (error) throw error;
 };
 
 // 로그아웃
