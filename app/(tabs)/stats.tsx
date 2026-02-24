@@ -1,5 +1,6 @@
 import BottomSheet from "@/components/BottomSheet";
 import SentenceList from "@/components/SentenceList";
+import StreakProgressBar from "@/components/StreakProgressBar"; // Import the new component
 import { SIZES } from "@/constants/theme";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -61,7 +62,7 @@ LocaleConfig.defaultLocale = "kr";
 
 const screenWidth = Dimensions.get("window").width;
 
-const sections = ["calendar", "piechart"];
+const sections = ["calendar", "streak", "piechart"]; // Add "streak" to sections
 
 export default function StatsScreen() {
   const {
@@ -74,6 +75,8 @@ export default function StatsScreen() {
     closeSheet,
     selectedDate,
     selectedDateSentences,
+    continuousReadingDays,
+    streakProgress,
   } = useStatsViewModel();
 
   const totalTags = tagStats.reduce((sum, stat) => sum + stat.count, 0);
@@ -112,12 +115,21 @@ export default function StatsScreen() {
       );
     }
 
+    if (item === "streak") {
+      return (
+        <StreakProgressBar
+          continuousReadingDays={continuousReadingDays}
+          streakProgress={streakProgress}
+        />
+      );
+    }
+
     if (item === "piechart") {
       return (
         <View style={styles.chartSectionContainer}>
           <Text style={styles.sectionTitle}>태그 분석</Text>
           <Text style={styles.totalSentencesText}>
-            저장된 문장: {totalSentencesCount}개
+            수집한 문장: {totalSentencesCount}개
           </Text>
           {tagStats.length > 0 ? (
             <View style={styles.chartWrapper}>
@@ -234,12 +246,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
-    marginBottom: SIZES.base, // Reduced margin to bring the next text closer
+    marginBottom: SIZES.base,
   },
   totalSentencesText: {
-    fontSize: SIZES.body4, // Smaller font size
-    color: "#888", // Gray color
-    marginBottom: SIZES.padding, // Margin below this text
+    fontSize: SIZES.body4,
+    color: "#888",
+    marginBottom: SIZES.padding,
   },
   chartWrapper: {
     flexDirection: "row",

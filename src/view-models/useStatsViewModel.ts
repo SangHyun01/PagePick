@@ -34,9 +34,12 @@ export const useStatsViewModel = () => {
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [isSheetVisible, setSheetVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedDateSentences, setSelectedDateSentences] = useState<
-    Sentence[]
-  >([]);
+  const [
+    selectedDateSentences,
+    setSelectedDateSentences,
+  ] = useState<Sentence[]>([]);
+  const [continuousReadingDays, setContinuousReadingDays] = useState(0);
+  const [streakProgress, setStreakProgress] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,7 +61,8 @@ export const useStatsViewModel = () => {
           );
 
           const marks: any = {};
-          Object.keys(countsByDate).forEach((date) => {
+          const readingDates = Object.keys(countsByDate);
+          readingDates.forEach((date) => {
             const count = countsByDate[date];
             let bgColor = "#ebedf0";
             let textColor = "black";
@@ -88,6 +92,31 @@ export const useStatsViewModel = () => {
             };
           });
           setMarkedDates(marks);
+
+          // 연속 독서일 계산
+          const readingDatesSet = new Set(readingDates);
+          let currentStreak = 0;
+          const today = new Date();
+          let currentDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+          );
+
+          while (true) {
+            const dateString = currentDate.toISOString().split("T")[0];
+            if (readingDatesSet.has(dateString)) {
+              currentStreak++;
+              currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+              break;
+            }
+          }
+          setContinuousReadingDays(currentStreak);
+
+          const displayStreak =
+            currentStreak > 0 && currentStreak % 7 === 0 ? 7 : currentStreak % 7;
+          setStreakProgress(displayStreak / 7);
 
           // 태그 통계 처리
           const allTags = sentences.flatMap((s) => s.tags || []);
@@ -148,5 +177,7 @@ export const useStatsViewModel = () => {
     closeSheet,
     selectedDate,
     selectedDateSentences,
+    continuousReadingDays,
+    streakProgress,
   };
 };
