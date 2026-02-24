@@ -6,12 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import { PieChart } from "react-native-chart-kit";
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -56,10 +59,16 @@ LocaleConfig.locales["kr"] = {
 };
 LocaleConfig.defaultLocale = "kr";
 
+const screenWidth = Dimensions.get("window").width;
+
+const sections = ["calendar", "piechart"];
+
 export default function StatsScreen() {
   const {
     isLoading,
     markedDates,
+    tagStats,
+    totalSentencesCount,
     onDayPress,
     isSheetVisible,
     closeSheet,
@@ -67,22 +76,19 @@ export default function StatsScreen() {
     selectedDateSentences,
   } = useStatsViewModel();
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>나의 독서 캘린더</Text>
+  const totalTags = tagStats.reduce((sum, stat) => sum + stat.count, 0);
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>달력을 불러오는 중입니다...</Text>
-        </View>
-      ) : (
+  const chartConfig = {
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+  };
+
+  const renderItem = ({ item }: { item: string }) => {
+    if (item === "calendar") {
+      return (
         <View style={styles.calendarContainer}>
           <Calendar
-            // custom 스타일
             markingType={"custom"}
             markedDates={markedDates}
-            // 달력 상단 헤더 스타일
             theme={{
               backgroundColor: "#ffffff",
               calendarBackground: "#ffffff",
@@ -100,12 +106,81 @@ export default function StatsScreen() {
               textDayFontSize: 16,
               textMonthFontSize: 18,
             }}
-            // 날짜를 눌렀을 때
             onDayPress={onDayPress}
           />
         </View>
-      )}
+      );
+    }
 
+    if (item === "piechart") {
+      return (
+        <View style={styles.chartSectionContainer}>
+          <Text style={styles.sectionTitle}>태그 분석</Text>
+          <Text style={styles.totalSentencesText}>
+            저장된 문장: {totalSentencesCount}개
+          </Text>
+          {tagStats.length > 0 ? (
+            <View style={styles.chartWrapper}>
+              <PieChart
+                data={tagStats}
+                width={screenWidth * 0.45}
+                height={screenWidth * 0.45}
+                chartConfig={chartConfig}
+                accessor={"count"}
+                backgroundColor={"transparent"}
+                paddingLeft={"0"}
+                center={[25, 0]}
+                absolute
+                hasLegend={false}
+              />
+              <View style={styles.legendContainer}>
+                {tagStats.map((stat) => (
+                  <View key={stat.name} style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: stat.color },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>{stat.name}</Text>
+                    <Text style={styles.legendPercentage}>
+                      {((stat.count / totalTags) * 100).toFixed(1)}%
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.emptyChartContainer}>
+              <Text style={styles.emptyChartText}>분석할 태그가 없습니다.</Text>
+            </View>
+          )}
+        </View>
+      );
+    }
+    return null;
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>통계 데이터를 불러오는 중...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={sections}
+        renderItem={renderItem}
+        keyExtractor={(item) => item}
+        ListHeaderComponent={
+          <Text style={styles.headerTitle}>나의 독서 통계</Text>
+        }
+        contentContainerStyle={{ paddingBottom: SIZES.padding * 2 }}
+      />
       <BottomSheet isVisible={isSheetVisible} onClose={closeSheet}>
         <View style={styles.sheetHeader}>
           <Text style={styles.sheetTitle}>{selectedDate} 기록</Text>
@@ -123,17 +198,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-    paddingTop: SIZES.padding * 3,
-    paddingHorizontal: SIZES.padding,
   },
   headerTitle: {
     fontSize: SIZES.h2,
     fontWeight: "bold",
+    paddingTop: SIZES.padding * 2,
+    paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     color: "#333",
   },
   loadingContainer: {
-    marginTop: 50,
+    justifyContent: "center",
     alignItems: "center",
   },
   loadingText: {
@@ -144,13 +219,73 @@ const styles = StyleSheet.create({
   calendarContainer: {
     backgroundColor: "#fff",
     borderRadius: SIZES.radius,
+    marginHorizontal: SIZES.padding,
     paddingBottom: SIZES.padding,
-    // 그림자 효과
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  chartSectionContainer: {
+    marginTop: SIZES.padding * 2,
+    paddingHorizontal: SIZES.padding,
+  },
+  sectionTitle: {
+    fontSize: SIZES.h3,
+    fontWeight: "bold",
+    marginBottom: SIZES.base, // Reduced margin to bring the next text closer
+  },
+  totalSentencesText: {
+    fontSize: SIZES.body4, // Smaller font size
+    color: "#888", // Gray color
+    marginBottom: SIZES.padding, // Margin below this text
+  },
+  chartWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    justifyContent: "space-between",
+  },
+  legendContainer: {
+    flex: 1,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SIZES.base,
+  },
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: SIZES.base,
+  },
+  legendText: {
+    flex: 1,
+    fontSize: 12,
+  },
+  legendPercentage: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  emptyChartContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 150,
+    backgroundColor: "#f9f9f9",
+    borderRadius: SIZES.radius,
+  },
+  emptyChartText: {
+    color: "#999",
+    fontSize: SIZES.body4,
   },
   sheetHeader: {
     flexDirection: "row",

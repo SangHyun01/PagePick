@@ -3,10 +3,35 @@ import { Sentence } from "@/types/sentence";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 
+// 색상 생성 유틸리티
+const generateColor = (index: number) => {
+  const colors = [
+    "#FF6384",
+    "#36A2EB",
+    "#FFCE56",
+    "#4BC0C0",
+    "#9966FF",
+    "#FF9F40",
+    "#C9CBCF",
+    "#a3e7ba",
+  ];
+  return colors[index % colors.length];
+};
+
+export interface TagStat {
+  name: string;
+  count: number;
+  color: string;
+  legendFontColor: string;
+  legendFontSize: number;
+}
+
 export const useStatsViewModel = () => {
   const [markedDates, setMarkedDates] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [allSentences, setAllSentences] = useState<Sentence[]>([]);
+  const [totalSentencesCount, setTotalSentencesCount] = useState<number>(0);
+  const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [isSheetVisible, setSheetVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDateSentences, setSelectedDateSentences] = useState<
@@ -20,7 +45,9 @@ export const useStatsViewModel = () => {
           setIsLoading(true);
           const sentences: Sentence[] = await getAllUserSentences();
           setAllSentences(sentences);
+          setTotalSentencesCount(sentences.length);
 
+          // 캘린더 데이터 처리
           const countsByDate = sentences.reduce(
             (acc, sentence) => {
               const dateOnly = sentence.create_at.split("T")[0];
@@ -60,8 +87,29 @@ export const useStatsViewModel = () => {
               },
             };
           });
-
           setMarkedDates(marks);
+
+          // 태그 통계 처리
+          const allTags = sentences.flatMap((s) => s.tags || []);
+          const tagCounts = allTags.reduce(
+            (acc, tag) => {
+              acc[tag] = (acc[tag] || 0) + 1;
+              return acc;
+            },
+            {} as Record<string, number>,
+          );
+
+          const stats: TagStat[] = Object.entries(tagCounts)
+            .map(([name, count], index) => ({
+              name,
+              count,
+              color: generateColor(index),
+              legendFontColor: "#333",
+              legendFontSize: 14,
+            }))
+            .sort((a, b) => b.count - a.count); // 많이 사용된 순으로 정렬
+
+          setTagStats(stats);
         } catch (error) {
           console.error("통계 데이터 불러오기 실패:", error);
         } finally {
@@ -93,6 +141,8 @@ export const useStatsViewModel = () => {
   return {
     isLoading,
     markedDates,
+    tagStats,
+    totalSentencesCount,
     onDayPress,
     isSheetVisible,
     closeSheet,
