@@ -79,7 +79,7 @@ export const useStatsViewModel = () => {
           );
 
           setStreakRewardMessage(
-            `7일 연속 기록을 달성하여 잔디 보호권 1개를 획득했어요!\n(현재 보유량: ${newFreezeCount}개)`,
+            `7일 연속 기록을 달성하여 보호권 1개를 획득했어요!\n(현재 보유량: ${newFreezeCount}개)`,
           );
           setShowCongratsAnimation(true);
         } catch (error) {

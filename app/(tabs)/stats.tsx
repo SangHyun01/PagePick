@@ -84,6 +84,7 @@ export default function StatsScreen() {
     streakRewardMessage,
     handleCongratsAnimationFinish,
     handleStreakRewardModalFinish,
+    userProfile,
   } = useStatsViewModel();
 
   const totalTags = tagStats.reduce((sum, stat) => sum + stat.count, 0);
@@ -124,10 +125,14 @@ export default function StatsScreen() {
 
     if (item === "streak") {
       return (
-        <StreakProgressBar
-          continuousReadingDays={continuousReadingDays}
-          streakProgress={streakProgress}
-        />
+        <View style={styles.chartSectionContainer}>
+          <Text style={styles.sectionTitle}>연속 독서 챌린지</Text>
+          <StreakProgressBar
+            continuousReadingDays={continuousReadingDays}
+            streakProgress={streakProgress}
+            streakFreezes={userProfile?.streak_freezes || 0}
+          />
+        </View>
       );
     }
 
@@ -135,39 +140,41 @@ export default function StatsScreen() {
       return (
         <View style={styles.chartSectionContainer}>
           <Text style={styles.sectionTitle}>태그 분석</Text>
-          <Text style={styles.totalSentencesText}>
-            수집한 문장: {totalSentencesCount}개
-          </Text>
           {tagStats.length > 0 ? (
             <View style={styles.chartWrapper}>
-              <PieChart
-                data={tagStats}
-                width={screenWidth * 0.45}
-                height={screenWidth * 0.45}
-                chartConfig={chartConfig}
-                accessor={"count"}
-                backgroundColor={"transparent"}
-                paddingLeft={"0"}
-                center={[25, 0]}
-                absolute
-                hasLegend={false}
-              />
-              <View style={styles.legendContainer}>
-                {tagStats.map((stat) => (
-                  <View key={stat.name} style={styles.legendItem}>
-                    <View
-                      style={[
-                        styles.legendColor,
-                        { backgroundColor: stat.color },
-                      ]}
-                    />
-                    <Text style={styles.legendText}>{stat.name}</Text>
-                    <Text style={styles.legendPercentage}>
-                      {((stat.count / totalTags) * 100).toFixed(1)}%
-                    </Text>
-                  </View>
-                ))}
+              <View style={styles.chartAndLegend}>
+                <PieChart
+                  data={tagStats}
+                  width={screenWidth * 0.45}
+                  height={screenWidth * 0.45}
+                  chartConfig={chartConfig}
+                  accessor={"count"}
+                  backgroundColor={"transparent"}
+                  paddingLeft={"0"}
+                  center={[25, 0]}
+                  absolute
+                  hasLegend={false}
+                />
+                <View style={styles.legendContainer}>
+                  {tagStats.map((stat) => (
+                    <View key={stat.name} style={styles.legendItem}>
+                      <View
+                        style={[
+                          styles.legendColor,
+                          { backgroundColor: stat.color },
+                        ]}
+                      />
+                      <Text style={styles.legendText}>{stat.name}</Text>
+                      <Text style={styles.legendPercentage}>
+                        {((stat.count / totalTags) * 100).toFixed(1)}%
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </View>
+              <Text style={styles.totalSentencesText}>
+                수집한 문장: {totalSentencesCount}개
+              </Text>
             </View>
           ) : (
             <View style={styles.emptyChartContainer}>
@@ -267,11 +274,10 @@ const styles = StyleSheet.create({
   totalSentencesText: {
     fontSize: SIZES.body4,
     color: "#888",
-    marginBottom: SIZES.padding,
+    textAlign: "center",
+    marginTop: SIZES.padding,
   },
   chartWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
@@ -280,6 +286,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  chartAndLegend: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
   legendContainer: {
@@ -326,4 +336,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-

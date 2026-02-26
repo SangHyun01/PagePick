@@ -1,4 +1,5 @@
 import { SIZES } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
 import LottieView from "lottie-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -6,19 +7,27 @@ import { StyleSheet, Text, View } from "react-native";
 interface StreakProgressBarProps {
   continuousReadingDays: number;
   streakProgress: number;
+  streakFreezes: number;
 }
 
 const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
   continuousReadingDays,
   streakProgress,
+  streakFreezes,
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>연속 독서 현황</Text>
-      <View style={styles.streakTextContainer}>
+      <View style={styles.topRow}>
         <Text style={styles.streakText}>
           연속 독서 {continuousReadingDays}일째
         </Text>
+        <View style={styles.streakFreezeContainer}>
+          <Ionicons name="shield-half-outline" size={16} color="#4CAF50" />
+          <Text style={styles.streakFreezeLabel}>보호권:</Text>
+          <Text style={styles.streakFreezeText}>{streakFreezes}</Text>
+        </View>
+      </View>
+      <View style={styles.percentageRow}>
         <Text style={styles.progressPercentage}>
           {(streakProgress * 100).toFixed(0)}%
         </Text>
@@ -51,8 +60,6 @@ const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: SIZES.padding * 2,
-    marginHorizontal: SIZES.padding,
     padding: SIZES.padding,
     backgroundColor: "#fff",
     borderRadius: SIZES.radius,
@@ -62,12 +69,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  title: {
-    fontSize: SIZES.h3,
-    fontWeight: "bold",
-    marginBottom: SIZES.padding,
-  },
-  streakTextContainer: {
+  topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -76,6 +78,25 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: SIZES.body3,
     fontWeight: "500",
+  },
+  streakFreezeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  streakFreezeLabel: {
+    fontSize: SIZES.body4,
+    color: "#888",
+    marginLeft: 4,
+    marginRight: 4,
+  },
+  streakFreezeText: {
+    fontSize: SIZES.body4,
+    fontWeight: "bold",
+    color: "#4CAF50",
+  },
+  percentageRow: {
+    alignItems: "flex-end",
+    marginBottom: SIZES.base * 2,
   },
   progressPercentage: {
     fontSize: SIZES.body4,
@@ -98,10 +119,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   flameAnimationAbsolute: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     position: "absolute",
-    transform: [{ translateX: -24 }, { translateY: -20 }],
+    transform: [{ translateX: -27 }, { translateY: -26 }],
     zIndex: 1,
   },
   description: {
