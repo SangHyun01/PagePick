@@ -5,13 +5,12 @@ export interface AuthCredentials {
 
 export interface UserProfile {
   id: string;
+  nickname: string;
   streak: number;
   streak_freezes: number;
+  created_at: string;
   last_reward_date: string;
   last_read_date: string;
   updated_at: string;
-  username: string;
-  avatar_url: string;
-  quote_count: number;
-  book_count: number;
+  frozen_dates: string[];
 }

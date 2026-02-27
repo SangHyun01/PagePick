@@ -31,7 +31,9 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      "id, nickname, streak_freezes, created_at, last_reward_date, last_read_date, streak, frozen_dates, updated_at", // Updated to match user's schema
+    )
     .eq("id", user.id)
     .single();
 
@@ -65,7 +67,7 @@ const getLocalDateString = (dateInput: Date | string) => {
 export const updateUserStreak = async (userId: string) => {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("streak, last_read_date, streak_freezes")
+    .select("streak, last_read_date, streak_freezes, frozen_dates") // Select frozen_dates
     .eq("id", userId)
     .single();
 
@@ -75,7 +77,7 @@ export const updateUserStreak = async (userId: string) => {
 
   const todayString = getLocalDateString(new Date());
 
-  const { streak, last_read_date, streak_freezes } = profile;
+  const { streak, last_read_date, streak_freezes, frozen_dates } = profile; // Destructure frozen_dates
 
   if (last_read_date === todayString) {
     // 이미 오늘 기록했으면 아무것도 안함
@@ -85,6 +87,7 @@ export const updateUserStreak = async (userId: string) => {
   let newStreak = streak || 0;
   let newFreezes = streak_freezes || 0;
   const newLastReadDate = todayString;
+  let newFrozenDates = frozen_dates || [];
 
   if (last_read_date) {
     const daysDifference = getDaysBetween(last_read_date, todayString);
@@ -99,9 +102,18 @@ export const updateUserStreak = async (userId: string) => {
         // 보호권으로 연속 유지
         newFreezes -= freezesNeeded;
         newStreak += 1;
+
+        let currentFrozenDate = new Date(last_read_date);
+        currentFrozenDate.setDate(currentFrozenDate.getDate() + 1);
+
+        for (let i = 0; i < freezesNeeded; i++) {
+          newFrozenDates.push(getLocalDateString(currentFrozenDate));
+          currentFrozenDate.setDate(currentFrozenDate.getDate() + 1);
+        }
       } else {
         // 보호권 부족, 연속 기록 리셋
         newStreak = 1; // 오늘부터 다시 1일
+        newFrozenDates = [];
       }
     }
   } else {
@@ -115,6 +127,7 @@ export const updateUserStreak = async (userId: string) => {
       streak: newStreak,
       last_read_date: newLastReadDate,
       streak_freezes: newFreezes,
+      frozen_dates: newFrozenDates,
     })
     .eq("id", userId);
 
@@ -160,4 +173,70 @@ export const deleteAccount = async () => {
   if (error) throw error;
 
   await signOut();
+};
+
+const getUserReadingDates = async (userId: string): Promise<string[]> => {
+  const { data: sentences, error } = await supabase
+    .from("sentences")
+    .select("create_at")
+    .eq("user_id", userId)
+    .order("create_at", { ascending: false });
+
+  if (error) {
+    console.error(
+      "Error fetching user sentences for streak recalculation:",
+      error,
+    );
+    return [];
+  }
+
+  const uniqueDates = new Set<string>();
+  sentences.forEach((s) => {
+    uniqueDates.add(getLocalDateString(s.create_at));
+  });
+
+  return Array.from(uniqueDates).sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+  );
+};
+
+// 연속 기록 및 마지막 독서일 재계산
+export const recalculateStreakAndLastReadDate = async (userId: string) => {
+  const readingDates = await getUserReadingDates(userId);
+
+  let newLastReadDate: string | null = null;
+  let newStreak = 0;
+
+  if (readingDates.length > 0) {
+    newLastReadDate = readingDates[0];
+
+    let currentCheckDate = new Date(newLastReadDate);
+    currentCheckDate.setHours(0, 0, 0, 0);
+
+    let streakCount = 0;
+    const readingDatesSet = new Set(readingDates);
+
+    while (true) {
+      const dateStr = getLocalDateString(currentCheckDate);
+      if (readingDatesSet.has(dateStr)) {
+        streakCount++;
+        currentCheckDate.setDate(currentCheckDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    newStreak = streakCount;
+  }
+
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({
+      streak: newStreak,
+      last_read_date: newLastReadDate,
+    })
+    .eq("id", userId);
+
+  if (updateError) {
+    throw new Error("연속 기록 및 마지막 독서일 재계산에 실패했습니다.");
+  }
 };

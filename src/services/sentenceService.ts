@@ -1,7 +1,8 @@
 import { supabase } from "../lib/supabase";
 import { Sentence } from "../types/sentence";
+import { getUser, recalculateStreakAndLastReadDate } from "./userService";
 
-// 모든 문장 불러오기 (현재 사용자 기준)
+// 모든 문장 불러오기
 export const getAllUserSentences = async (): Promise<Sentence[]> => {
   const {
     data: { user },
@@ -10,7 +11,7 @@ export const getAllUserSentences = async (): Promise<Sentence[]> => {
 
   const { data, error } = await supabase
     .from("sentences")
-    .select("*") // 히트맵 계산을 위해 id와 생성 날짜만 가져옵니다.
+    .select("*")
     .eq("user_id", user.id);
 
   if (error) throw error;
@@ -87,6 +88,11 @@ export const updateSentence = async (
 
 // 문장 삭제
 export const deleteSentence = async (id: number) => {
+  const user = await getUser();
+  if (!user) throw new Error("User not authenticated");
+
   const { error } = await supabase.from("sentences").delete().eq("id", id);
   if (error) throw error;
+
+  await recalculateStreakAndLastReadDate(user.id);
 };

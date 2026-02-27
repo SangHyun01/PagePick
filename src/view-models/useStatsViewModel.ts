@@ -48,13 +48,54 @@ export const useStatsViewModel = () => {
   const [streakRewardMessage, setStreakRewardMessage] = useState("");
 
   // 로컬(한국) 기준 YYYY-MM-DD 포맷을 뽑아주는 헬퍼 함수
-  const getLocalDateString = (dateInput: string | Date) => {
+  const getLocalDateString = useCallback((dateInput: string | Date) => {
     const date = new Date(dateInput);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
-  };
+  }, []);
+
+  const calculateEffectiveStreak = useCallback(
+    (
+      lastReadDate: string | null,
+      frozenDates: Set<string>,
+      today: string,
+      readDates: Set<string>,
+    ): number => {
+      if (!lastReadDate && frozenDates.size === 0 && !readDates.has(today)) {
+        return 0;
+      }
+
+      let streak = 0;
+      let currentDate = new Date(today);
+
+      if (!readDates.has(today) && !frozenDates.has(today)) {
+        currentDate.setDate(currentDate.getDate() - 1);
+      }
+
+      const earliestActivityDate = new Date(
+        Math.min(
+          ...(lastReadDate ? [new Date(lastReadDate).getTime()] : []),
+          ...Array.from(frozenDates).map((d) => new Date(d).getTime()),
+          ...Array.from(readDates).map((d) => new Date(d).getTime()),
+        ),
+      );
+
+      while (currentDate >= earliestActivityDate) {
+        const dateString = getLocalDateString(currentDate);
+
+        if (readDates.has(dateString) || frozenDates.has(dateString)) {
+          streak++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    },
+    [getLocalDateString],
+  );
 
   const checkAndGrantStreakReward = useCallback(
     async (profile: UserProfile, currentStreak: number) => {
@@ -106,7 +147,7 @@ export const useStatsViewModel = () => {
         }
       }
     },
-    [],
+    [getLocalDateString],
   );
 
   useFocusEffect(
@@ -118,7 +159,6 @@ export const useStatsViewModel = () => {
           setAllSentences(sentences);
           setTotalSentencesCount(sentences.length);
 
-          // 캘린더 데이터 처리
           const countsByDate = sentences.reduce(
             (acc, sentence) => {
               const dateOnly = getLocalDateString(sentence.create_at);
@@ -128,7 +168,32 @@ export const useStatsViewModel = () => {
             {} as Record<string, number>,
           );
 
+          const profile = await userService.getUserProfile();
+          if (!profile) {
+            setIsLoading(false);
+            return;
+          }
+          setUserProfile(profile);
+
+          const frozenDatesSet = new Set(profile.frozen_dates || []);
+
           const marks: any = {};
+
+          frozenDatesSet.forEach((date) => {
+            marks[date] = {
+              customStyles: {
+                container: {
+                  backgroundColor: "#ADD8E6",
+                  borderRadius: 4,
+                },
+                text: {
+                  color: "black",
+                  fontWeight: "bold",
+                },
+              },
+            };
+          });
+
           const readingDates = Object.keys(countsByDate);
           readingDates.forEach((date) => {
             const count = countsByDate[date];
@@ -146,15 +211,19 @@ export const useStatsViewModel = () => {
               textColor = "black";
             }
 
+            const existingMark = marks[date] || {};
             marks[date] = {
+              ...existingMark,
               customStyles: {
+                ...(existingMark.customStyles || {}),
                 container: {
+                  ...(existingMark.customStyles?.container || {}),
                   backgroundColor: bgColor,
-                  borderRadius: 6,
+                  borderRadius: 4,
                 },
                 text: {
+                  ...(existingMark.customStyles?.text || {}),
                   color: textColor,
-                  fontWeight: "bold",
                 },
               },
             };
@@ -184,34 +253,40 @@ export const useStatsViewModel = () => {
           setTagStats(stats);
 
           // 사용자 프로필 가져오기 및 연속 기록 처리
-          const profile = await userService.getUserProfile();
-          if (profile) {
-            setUserProfile(profile);
 
-            const currentStreak = profile.streak || 0;
-            setContinuousReadingDays(currentStreak);
+          const today = getLocalDateString(new Date());
+          const lastReadDate = profile.last_read_date
+            ? getLocalDateString(profile.last_read_date)
+            : null;
+          const hasReadToday = lastReadDate === today;
 
-            const today = getLocalDateString(new Date());
-            const lastReadDate = profile.last_read_date
-              ? getLocalDateString(profile.last_read_date)
-              : null;
-            const hasReadToday = lastReadDate === today;
+          const readDatesSet = new Set(Object.keys(countsByDate));
+          const effectiveStreak = calculateEffectiveStreak(
+            lastReadDate,
+            frozenDatesSet,
+            today,
+            readDatesSet,
+          );
+          setContinuousReadingDays(effectiveStreak);
 
-            let displayStreakValue = currentStreak;
+          let displayStreakValue = effectiveStreak;
 
-            // 7일 주기를 채웠고, 오늘 아직 읽지 않았다면 게이지를 0으로 표시
-            if (currentStreak > 0 && currentStreak % 7 === 0 && !hasReadToday) {
-              displayStreakValue = 0;
-            }
-
-            const displayStreak =
-              displayStreakValue > 0 && displayStreakValue % 7 === 0
-                ? 7
-                : displayStreakValue % 7;
-            setStreakProgress(displayStreak / 7);
-
-            checkAndGrantStreakReward(profile, currentStreak); // DB의 연속 기록으로 보상 확인
+          // 7일 주기를 채웠고, 오늘 아직 읽지 않았다면 게이지를 0으로 표시
+          if (
+            effectiveStreak > 0 &&
+            effectiveStreak % 7 === 0 &&
+            !hasReadToday
+          ) {
+            displayStreakValue = 0;
           }
+
+          const displayStreak =
+            displayStreakValue > 0 && displayStreakValue % 7 === 0
+              ? 7
+              : displayStreakValue % 7;
+          setStreakProgress(displayStreak / 7);
+
+          checkAndGrantStreakReward(profile, effectiveStreak);
         } catch (error) {
           console.error("통계 데이터 불러오기 실패:", error);
         } finally {
@@ -220,7 +295,11 @@ export const useStatsViewModel = () => {
       };
 
       fetchStatsAndProfile();
-    }, [checkAndGrantStreakReward]),
+    }, [
+      checkAndGrantStreakReward,
+      calculateEffectiveStreak,
+      getLocalDateString,
+    ]),
   );
 
   const onDayPress = (day: any) => {
