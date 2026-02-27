@@ -8,6 +8,7 @@ export interface UserProfile {
   streak: number;
   streak_freezes: number;
   last_reward_date: string;
+  last_read_date: string;
   updated_at: string;
   username: string;
   avatar_url: string;

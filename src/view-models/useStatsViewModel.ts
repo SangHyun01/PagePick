@@ -47,9 +47,27 @@ export const useStatsViewModel = () => {
   const [showStreakRewardModal, setShowStreakRewardModal] = useState(false);
   const [streakRewardMessage, setStreakRewardMessage] = useState("");
 
+  // 로컬(한국) 기준 YYYY-MM-DD 포맷을 뽑아주는 헬퍼 함수
+  const getLocalDateString = (dateInput: string | Date) => {
+    const date = new Date(dateInput);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const checkAndGrantStreakReward = useCallback(
     async (profile: UserProfile, currentStreak: number) => {
       const today = getLocalDateString(new Date());
+      const lastReadDate = profile.last_read_date
+        ? getLocalDateString(profile.last_read_date)
+        : null;
+
+      // 보상은 오늘 독서 활동으로 달성했을 때만 지급
+      if (lastReadDate !== today) {
+        return;
+      }
+
       const lastRewardDate = profile.last_reward_date
         ? getLocalDateString(profile.last_reward_date)
         : null;
@@ -143,53 +161,6 @@ export const useStatsViewModel = () => {
           });
           setMarkedDates(marks);
 
-          // 연속 독서일 계산
-          const readingDatesSet = new Set(readingDates);
-          let currentStreak = 0;
-
-          if (readingDatesSet.size === 0) {
-            setContinuousReadingDays(0);
-            setStreakProgress(0);
-          } else {
-            const today = new Date();
-            const todayString = getLocalDateString(today);
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-            const yesterdayString = getLocalDateString(yesterday);
-
-            let anchorDateString = "";
-            if (readingDatesSet.has(todayString)) {
-              anchorDateString = todayString;
-            } else if (readingDatesSet.has(yesterdayString)) {
-              anchorDateString = yesterdayString;
-            } else {
-              currentStreak = 0;
-            }
-
-            if (anchorDateString) {
-              let tempStreak = 0;
-              let checkDate = new Date(anchorDateString);
-
-              while (true) {
-                const dateStr = getLocalDateString(checkDate);
-                if (readingDatesSet.has(dateStr)) {
-                  tempStreak++;
-                  checkDate.setDate(checkDate.getDate() - 1);
-                } else {
-                  break;
-                }
-              }
-              currentStreak = tempStreak;
-            }
-          }
-          setContinuousReadingDays(currentStreak);
-
-          const displayStreak =
-            currentStreak > 0 && currentStreak % 7 === 0
-              ? 7
-              : currentStreak % 7;
-          setStreakProgress(displayStreak / 7);
-
           // 태그 통계 처리
           const allTags = sentences.flatMap((s) => s.tags || []);
           const tagCounts = allTags.reduce(
@@ -212,11 +183,34 @@ export const useStatsViewModel = () => {
 
           setTagStats(stats);
 
-          // 사용자 프로필 가져오기 및 보상 확인
+          // 사용자 프로필 가져오기 및 연속 기록 처리
           const profile = await userService.getUserProfile();
           if (profile) {
             setUserProfile(profile);
-            checkAndGrantStreakReward(profile, currentStreak); // 프로필과 계산된 연속 독서일 전달
+
+            const currentStreak = profile.streak || 0;
+            setContinuousReadingDays(currentStreak);
+
+            const today = getLocalDateString(new Date());
+            const lastReadDate = profile.last_read_date
+              ? getLocalDateString(profile.last_read_date)
+              : null;
+            const hasReadToday = lastReadDate === today;
+
+            let displayStreakValue = currentStreak;
+
+            // 7일 주기를 채웠고, 오늘 아직 읽지 않았다면 게이지를 0으로 표시
+            if (currentStreak > 0 && currentStreak % 7 === 0 && !hasReadToday) {
+              displayStreakValue = 0;
+            }
+
+            const displayStreak =
+              displayStreakValue > 0 && displayStreakValue % 7 === 0
+                ? 7
+                : displayStreakValue % 7;
+            setStreakProgress(displayStreak / 7);
+
+            checkAndGrantStreakReward(profile, currentStreak); // DB의 연속 기록으로 보상 확인
           }
         } catch (error) {
           console.error("통계 데이터 불러오기 실패:", error);
@@ -228,15 +222,6 @@ export const useStatsViewModel = () => {
       fetchStatsAndProfile();
     }, [checkAndGrantStreakReward]),
   );
-
-  // 로컬(한국) 기준 YYYY-MM-DD 포맷을 뽑아주는 헬퍼 함수
-  const getLocalDateString = (dateInput: string | Date) => {
-    const date = new Date(dateInput);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   const onDayPress = (day: any) => {
     const dateStr = day.dateString;
