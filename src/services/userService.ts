@@ -32,7 +32,7 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, nickname, streak_freezes, created_at, last_reward_date, last_read_date, streak, frozen_dates, updated_at", // Updated to match user's schema
+      "id, nickname, streak_freezes, created_at, last_reward_date, last_read_date, streak, frozen_dates, updated_at, max_streak",
     )
     .eq("id", user.id)
     .single();
@@ -63,11 +63,33 @@ const getLocalDateString = (dateInput: Date | string) => {
   return `${year}-${month}-${day}`;
 };
 
+// 특정 날짜까지의 연속 기록을 계산하는 헬퍼 함수
+const calculateStreakUpTo = (
+  endDate: string,
+  readingDatesSet: Set<string>,
+  frozenDatesSet: Set<string>,
+): number => {
+  let streakCount = 0;
+  let currentCheckDate = new Date(endDate);
+  currentCheckDate.setHours(0, 0, 0, 0);
+
+  while (true) {
+    const dateStr = getLocalDateString(currentCheckDate);
+    if (readingDatesSet.has(dateStr) || frozenDatesSet.has(dateStr)) {
+      streakCount++;
+      currentCheckDate.setDate(currentCheckDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streakCount;
+};
+
 // 연속 기록 업데이트 (징검다리 로직)
 export const updateUserStreak = async (userId: string) => {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("streak, last_read_date, streak_freezes, frozen_dates") // Select frozen_dates
+    .select("streak, max_streak, last_read_date, streak_freezes, frozen_dates")
     .eq("id", userId)
     .single();
 
@@ -76,18 +98,26 @@ export const updateUserStreak = async (userId: string) => {
   }
 
   const todayString = getLocalDateString(new Date());
-
-  const { streak, last_read_date, streak_freezes, frozen_dates } = profile; // Destructure frozen_dates
+  const { max_streak, last_read_date, streak_freezes, frozen_dates } = profile;
 
   if (last_read_date === todayString) {
-    // 이미 오늘 기록했으면 아무것도 안함
     return;
   }
 
-  let newStreak = streak || 0;
+  // 저장된 'streak'을 신뢰하는 대신 실제 데이터를 기반으로 연속 기록을 다시 계산
+  const allReadingDates = await getUserReadingDates(userId);
+  const readingDatesSet = new Set(allReadingDates);
+  const typedFrozenDates = (frozen_dates as string[]) || [];
+  const frozenDatesSet = new Set(typedFrozenDates);
+
+  // 마지막으로 읽은 날짜의 연속 기록이 필요함
+  const streakAtLastReadDate = last_read_date
+    ? calculateStreakUpTo(last_read_date, readingDatesSet, frozenDatesSet)
+    : 0;
+
+  let newStreak = streakAtLastReadDate;
   let newFreezes = streak_freezes || 0;
-  const newLastReadDate = todayString;
-  let newFrozenDates = frozen_dates || [];
+  let newFrozenDates = [...typedFrozenDates];
 
   if (last_read_date) {
     const daysDifference = getDaysBetween(last_read_date, todayString);
@@ -98,34 +128,38 @@ export const updateUserStreak = async (userId: string) => {
     } else if (daysDifference > 1) {
       // 연속이 끊김
       const freezesNeeded = daysDifference - 1;
-      if (streak_freezes >= freezesNeeded) {
+      if (newFreezes >= freezesNeeded) {
         // 보호권으로 연속 유지
         newFreezes -= freezesNeeded;
-        newStreak += 1;
+        newStreak += 1; // 이전 값에서 연속 기록이 이어짐
 
         let currentFrozenDate = new Date(last_read_date);
-        currentFrozenDate.setDate(currentFrozenDate.getDate() + 1);
-
         for (let i = 0; i < freezesNeeded; i++) {
-          newFrozenDates.push(getLocalDateString(currentFrozenDate));
           currentFrozenDate.setDate(currentFrozenDate.getDate() + 1);
+          newFrozenDates.push(getLocalDateString(currentFrozenDate));
         }
       } else {
         // 보호권 부족, 연속 기록 리셋
-        newStreak = 1; // 오늘부터 다시 1일
-        newFrozenDates = [];
+        newStreak = 1; // 오늘이 새로운 연속 기록의 첫날임
       }
     }
+    // daysDifference가 0 이하인 경우는 이미 반환됨
   } else {
     // 첫 기록
     newStreak = 1;
+  }
+
+  let newMaxStreak = max_streak || 0;
+  if (newStreak > newMaxStreak) {
+    newMaxStreak = newStreak;
   }
 
   const { error: updateError } = await supabase
     .from("profiles")
     .update({
       streak: newStreak,
-      last_read_date: newLastReadDate,
+      max_streak: newMaxStreak,
+      last_read_date: todayString,
       streak_freezes: newFreezes,
       frozen_dates: newFrozenDates,
     })
@@ -202,6 +236,16 @@ const getUserReadingDates = async (userId: string): Promise<string[]> => {
 
 // 연속 기록 및 마지막 독서일 재계산
 export const recalculateStreakAndLastReadDate = async (userId: string) => {
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("max_streak")
+    .eq("id", userId)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error("사용자 프로필을 찾을 수 없습니다.");
+  }
+
   const readingDates = await getUserReadingDates(userId);
 
   let newLastReadDate: string | null = null;
@@ -228,10 +272,16 @@ export const recalculateStreakAndLastReadDate = async (userId: string) => {
     newStreak = streakCount;
   }
 
+  let newMaxStreak = profile.max_streak || 0;
+  if (newStreak > newMaxStreak) {
+    newMaxStreak = newStreak;
+  }
+
   const { error: updateError } = await supabase
     .from("profiles")
     .update({
       streak: newStreak,
+      max_streak: newMaxStreak,
       last_read_date: newLastReadDate,
     })
     .eq("id", userId);

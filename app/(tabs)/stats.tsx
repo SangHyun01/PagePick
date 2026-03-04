@@ -131,6 +131,7 @@ export default function StatsScreen() {
             continuousReadingDays={continuousReadingDays}
             streakProgress={streakProgress}
             streakFreezes={userProfile?.streak_freezes || 0}
+            maxStreak={userProfile?.max_streak || 0}
           />
         </View>
       );

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "PagePick",
+    "name": "페이지픽",
     "slug": "PagePick",
-    "version": "1.0.23",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/pagepick-logo.png",
     "scheme": "pagepick",
@@ -24,7 +24,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.sanghyun01.PagePick",
-      "versionCode": 23,
+      "versionCode": 26,
       "permissions": ["CAMERA"],
       "intentFilters": [
         {

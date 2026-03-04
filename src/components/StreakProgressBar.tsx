@@ -8,18 +8,20 @@ interface StreakProgressBarProps {
   continuousReadingDays: number;
   streakProgress: number;
   streakFreezes: number;
+  maxStreak: number;
 }
 
 const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
   continuousReadingDays,
   streakProgress,
   streakFreezes,
+  maxStreak,
 }) => {
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
         <Text style={styles.streakText}>
-          연속 독서 {continuousReadingDays}일째
+          현재 연속 {continuousReadingDays}일째
         </Text>
         <View style={styles.streakFreezeContainer}>
           <Ionicons name="shield-half-outline" size={16} color="#4CAF50" />
@@ -28,6 +30,7 @@ const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
         </View>
       </View>
       <View style={styles.percentageRow}>
+        <Text style={styles.currentStreakText}>🏆 최고 기록 {maxStreak}일</Text>
         <Text style={styles.progressPercentage}>
           {(streakProgress * 100).toFixed(0)}%
         </Text>
@@ -95,8 +98,14 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
   },
   percentageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "flex-end",
     marginBottom: SIZES.base * 2,
+  },
+  currentStreakText: {
+    fontSize: SIZES.body4,
+    color: "#888",
   },
   progressPercentage: {
     fontSize: SIZES.body4,

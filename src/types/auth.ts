@@ -7,6 +7,7 @@ export interface UserProfile {
   id: string;
   nickname: string;
   streak: number;
+  max_streak: number;
   streak_freezes: number;
   created_at: string;
   last_reward_date: string;
