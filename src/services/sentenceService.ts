@@ -1,5 +1,22 @@
 import { supabase } from "../lib/supabase";
 import { Sentence } from "../types/sentence";
+import { getUser, recalculateStreakAndLastReadDate } from "./userService";
+
+// 모든 문장 불러오기
+export const getAllUserSentences = async (): Promise<Sentence[]> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  const { data, error } = await supabase
+    .from("sentences")
+    .select("*")
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+  return data || [];
+};
 
 // 첵 문장 불러오기
 export const getSentencesByBookId = async (
@@ -71,6 +88,11 @@ export const updateSentence = async (
 
 // 문장 삭제
 export const deleteSentence = async (id: number) => {
+  const user = await getUser();
+  if (!user) throw new Error("User not authenticated");
+
   const { error } = await supabase.from("sentences").delete().eq("id", id);
   if (error) throw error;
+
+  await recalculateStreakAndLastReadDate(user.id);
 };
