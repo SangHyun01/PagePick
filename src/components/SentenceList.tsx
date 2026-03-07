@@ -13,7 +13,7 @@ import {
 
 interface SentenceListProps {
   sentences: Sentence[];
-  onOptionPress: (item: Sentence) => void;
+  onOptionPress?: (item: Sentence) => void;
 }
 
 export default function SentenceList({
@@ -31,16 +31,18 @@ export default function SentenceList({
             style={{ opacity: 0.3 }}
           />
         </View>
-        <TouchableOpacity
-          onPress={() => onOptionPress(item)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons
-            name="ellipsis-vertical"
-            size={SIZES.h2}
-            color={Colors.light.icon}
-          />
-        </TouchableOpacity>
+        {onOptionPress && (
+          <TouchableOpacity
+            onPress={() => onOptionPress(item)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons
+              name="ellipsis-vertical"
+              size={SIZES.h2}
+              color={Colors.light.icon}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text style={styles.sentenceText}>{item.content}</Text>
@@ -78,8 +80,8 @@ export default function SentenceList({
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base * 2,
+    paddingHorizontal: SIZES.padding * 0.3,
+    paddingVertical: SIZES.padding,
   },
   card: {
     backgroundColor: Colors.light.background,

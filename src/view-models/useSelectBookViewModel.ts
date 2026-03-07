@@ -1,5 +1,6 @@
 import * as bookService from "@/services/bookService";
 import * as sentenceService from "@/services/sentenceService";
+import * as userService from "@/services/userService";
 import { Book } from "@/types/book";
 import { StackActions } from "@react-navigation/native";
 import {
@@ -134,6 +135,17 @@ export const useSelectBookViewModel = () => {
         tags: tags,
       });
       setShowSuccess(true);
+
+      // 문장 저장 성공 후 연속 기록 업데이트
+      try {
+        const user = await userService.getUser();
+        if (user) {
+          await userService.updateUserStreak(user.id);
+        }
+      } catch (streakError) {
+        console.error("Failed to update streak:", streakError);
+        // 사용자에게는 오류를 표시하지 않음
+      }
     } catch (e: any) {
       console.error(e);
       Alert.alert("저장 실패", e.message);
