@@ -150,17 +150,17 @@ export default function StatsScreen() {
               <View style={styles.chartAndLegend}>
                 <PieChart
                   data={tagStats}
-                  width={scale(180)}
+                  width={scale(160)}
                   height={scale(160)}
                   chartConfig={chartConfig}
                   accessor={"count"}
                   backgroundColor={"transparent"}
-                  paddingLeft={scale(20).toString()}
+                  paddingLeft={scale(25).toString()}
                   center={[0, 0]}
                   absolute
                   hasLegend={false}
                 />
-                <View style={styles.legendContainer}>
+                <View style={[styles.legendContainer]}>
                   {tagStats.map((stat) => (
                     <View key={stat.name} style={styles.legendItem}>
                       <View
