@@ -323,7 +323,7 @@ export default function StatsScreen() {
             <Ionicons name="close" size={24} color="black" />
           </TouchableOpacity>
         </View>
-        <SentenceList sentences={selectedDateSentences} />
+        <SentenceList sentences={selectedDateSentences} isBottomSheet={true} />
       </BottomSheet>
       <CongratsModal
         visible={showCongratsAnimation}

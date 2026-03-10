@@ -1,8 +1,10 @@
 import { supabase } from "@/lib/supabase";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useShareIntent } from "expo-share-intent";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   const [session, setSession] = useState<any>(null);
@@ -84,40 +86,48 @@ export default function RootLayout() {
   // 로딩 화면
   if (!initialized) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <View style={styles.container}>
+            <ActivityIndicator size="large" color="#007AFF" />
+          </View>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <Stack>
-      {/* 로그인/회원가입 화면 등록 */}
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <Stack>
+          {/* 로그인/회원가입 화면 등록 */}
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
 
-      {/* 메인 탭 화면 */}
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* 메인 탭 화면 */}
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-      {/* 카메라 화면 */}
-      <Stack.Screen name="camera" options={{ headerShown: false }} />
+          {/* 카메라 화면 */}
+          <Stack.Screen name="camera" options={{ headerShown: false }} />
 
-      {/* 글쓰기 화면 (모달) */}
-      <Stack.Screen
-        name="write"
-        options={{
-          presentation: "modal",
-          headerShown: false,
-        }}
-      />
+          {/* 글쓰기 화면 (모달) */}
+          <Stack.Screen
+            name="write"
+            options={{
+              presentation: "modal",
+              headerShown: false,
+            }}
+          />
 
-      {/* 책 추가 관련 화면들 */}
-      <Stack.Screen name="add-book" options={{ headerShown: false }} />
-      <Stack.Screen name="scan-barcode" options={{ headerShown: false }} />
-      <Stack.Screen name="select-book" options={{ headerShown: false }} />
+          {/* 책 추가 관련 화면들 */}
+          <Stack.Screen name="add-book" options={{ headerShown: false }} />
+          <Stack.Screen name="scan-barcode" options={{ headerShown: false }} />
+          <Stack.Screen name="select-book" options={{ headerShown: false }} />
 
-      {/* 책 상세 화면 */}
-      <Stack.Screen name="book-detail/[id]" options={{ headerShown: false }} />
-    </Stack>
+          {/* 책 상세 화면 */}
+          <Stack.Screen name="book-detail/[id]" options={{ headerShown: false }} />
+        </Stack>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
 
