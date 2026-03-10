@@ -182,6 +182,62 @@ export default function BookDetailScreen() {
               업로드한 사진 {photos.length}개
             </Text>
           </View>
+          {book.started_at && (
+            <Text style={styles.infoDate}>
+              {(() => {
+                const start = new Date(book.started_at);
+                const startStr = `${start.getFullYear()}.${String(
+                  start.getMonth() + 1
+                ).padStart(2, "0")}.${String(start.getDate()).padStart(
+                  2,
+                  "0"
+                )}`;
+
+                const startDateOnly = new Date(
+                  start.getFullYear(),
+                  start.getMonth(),
+                  start.getDate()
+                );
+
+                if (book.finished_at) {
+                  const end = new Date(book.finished_at);
+                  const endStr = `${end.getFullYear()}.${String(
+                    end.getMonth() + 1
+                  ).padStart(2, "0")}.${String(end.getDate()).padStart(
+                    2,
+                    "0"
+                  )}`;
+
+                  const endDateOnly = new Date(
+                    end.getFullYear(),
+                    end.getMonth(),
+                    end.getDate()
+                  );
+                  const diffTime = Math.abs(
+                    endDateOnly.getTime() - startDateOnly.getTime()
+                  );
+                  const diffDays =
+                    Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                  return `${startStr} ~ ${endStr} (총 ${diffDays}일)`;
+                } else {
+                  const now = new Date();
+                  const endDateOnly = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    now.getDate()
+                  );
+                  const diffTime = Math.abs(
+                    endDateOnly.getTime() - startDateOnly.getTime()
+                  );
+                  const diffDays =
+                    Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                  return `${startStr} ~ 읽는 중 (${diffDays}일째)`;
+                }
+              })()}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -607,6 +663,11 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body4,
     color: Colors.light.icon,
     marginHorizontal: SIZES.base,
+  },
+  infoDate: {
+    fontSize: 12,
+    color: Colors.light.icon,
+    marginTop: SIZES.base / 2,
   },
   statusSelectorContainer: {
     flexDirection: "row",
