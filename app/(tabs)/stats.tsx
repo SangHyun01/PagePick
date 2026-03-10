@@ -3,7 +3,8 @@ import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import StreakProgressBar from "@/components/StreakProgressBar"; // Import the new component
 import StreakRewardModal from "@/components/StreakRewardModal";
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
+import { fontScale, scale } from "@/utils/responsive";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { PieChart } from "react-native-chart-kit";
+import { LineChart } from "react-native-gifted-charts";
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -64,13 +66,15 @@ LocaleConfig.defaultLocale = "kr";
 
 const screenWidth = Dimensions.get("window").width;
 
-const sections = ["calendar", "streak", "piechart"]; // Add "streak" to sections
+const sections = ["calendar", "streak", "piechart", "bookchart"]; // Add "streak" to sections
 
 export default function StatsScreen() {
   const {
     isLoading,
     markedDates,
     tagStats,
+    monthlyBookStats,
+    totalFinishedBooks,
     totalSentencesCount,
     onDayPress,
     isSheetVisible,
@@ -140,19 +144,19 @@ export default function StatsScreen() {
     if (item === "piechart") {
       return (
         <View style={styles.chartSectionContainer}>
-          <Text style={styles.sectionTitle}>태그 분석</Text>
+          <Text style={styles.sectionTitle}>문장 취향 분석</Text>
           {tagStats.length > 0 ? (
             <View style={styles.chartWrapper}>
               <View style={styles.chartAndLegend}>
                 <PieChart
                   data={tagStats}
-                  width={screenWidth * 0.45}
-                  height={screenWidth * 0.45}
+                  width={scale(180)}
+                  height={scale(160)}
                   chartConfig={chartConfig}
                   accessor={"count"}
                   backgroundColor={"transparent"}
-                  paddingLeft={"0"}
-                  center={[25, 0]}
+                  paddingLeft={scale(20).toString()}
+                  center={[0, 0]}
                   absolute
                   hasLegend={false}
                 />
@@ -165,7 +169,9 @@ export default function StatsScreen() {
                           { backgroundColor: stat.color },
                         ]}
                       />
-                      <Text style={styles.legendText}>{stat.name}</Text>
+                      <Text style={styles.legendText} numberOfLines={1}>
+                        {stat.name}
+                      </Text>
                       <Text style={styles.legendPercentage}>
                         {((stat.count / totalTags) * 100).toFixed(1)}%
                       </Text>
@@ -182,6 +188,108 @@ export default function StatsScreen() {
               <Text style={styles.emptyChartText}>분석할 태그가 없습니다.</Text>
             </View>
           )}
+        </View>
+      );
+    }
+
+    if (item === "bookchart") {
+      const currentMonthStat =
+        monthlyBookStats.length > 0
+          ? monthlyBookStats[monthlyBookStats.length - 1]
+          : null;
+
+      return (
+        <View style={styles.chartSectionContainer}>
+          <Text style={styles.sectionTitle}>올해의 독서 성장</Text>
+          <View style={styles.chartWrapper}>
+            <View style={styles.bookStatsHeader}>
+              <View>
+                <Text style={styles.bookStatsLabel}>누적 완독</Text>
+                <Text style={styles.bookStatsValue}>
+                  {totalFinishedBooks}
+                  <Text style={styles.bookStatsUnit}> 권</Text>
+                </Text>
+              </View>
+              {currentMonthStat && (
+                <View style={styles.deltaContainer}>
+                  <Text style={styles.deltaLabel}>이번 달</Text>
+                  <View style={styles.deltaValueWrapper}>
+                    <Ionicons
+                      name="caret-up"
+                      size={scale(12)}
+                      color={Colors.light.tint}
+                    />
+                    <Text style={styles.deltaValue}>
+                      {currentMonthStat.delta}권
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {monthlyBookStats.length > 0 ? (
+              <View style={{ marginTop: scale(20), marginLeft: scale(-20) }}>
+                <LineChart
+                  data={monthlyBookStats}
+                  areaChart
+                  hideDataPoints
+                  spacing={(screenWidth - scale(80)) / 6}
+                  color={Colors.light.tint}
+                  thickness={3}
+                  startFillColor={Colors.light.tint}
+                  endFillColor="rgba(20,184,166,0.01)"
+                  startOpacity={0.4}
+                  endOpacity={0.1}
+                  initialSpacing={scale(20)}
+                  noOfSections={3}
+                  maxValue={Math.max(5, Math.ceil(totalFinishedBooks * 1.2))}
+                  roundToDigits={0}
+                  height={scale(180)}
+                  yAxisColor="lightgray"
+                  yAxisThickness={0}
+                  rulesType="solid"
+                  rulesColor="lightgray"
+                  yAxisTextStyle={{ color: "gray", fontSize: fontScale(10) }}
+                  xAxisColor="lightgray"
+                  pointerConfig={{
+                    pointerStripHeight: scale(160),
+                    pointerStripColor: "lightgray",
+                    pointerStripWidth: 2,
+                    pointerColor: Colors.light.tint,
+                    radius: scale(6),
+                    pointerLabelWidth: scale(80),
+                    pointerLabelHeight: scale(60),
+                    pointerLabelComponent: (items: any) => {
+                      return (
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            paddingTop: scale(30),
+                          }}
+                        >
+                          <View style={styles.pointerLabel}>
+                            <Text style={styles.pointerLabelMonth}>
+                              {items[0].label}
+                            </Text>
+                            <Text style={styles.pointerLabelValue}>
+                              {items[0].value}권
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    },
+                  }}
+                />
+              </View>
+            ) : (
+              <View style={styles.emptyChartContainer}>
+                <Text style={styles.emptyChartText}>
+                  올해 완독한 책이 없습니다.
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       );
     }
@@ -334,6 +442,71 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: SIZES.h3,
+    fontWeight: "bold",
+  },
+  bookStatsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 10,
+  },
+  bookStatsLabel: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 4,
+  },
+  bookStatsValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  bookStatsUnit: {
+    fontSize: 14,
+    fontWeight: "normal",
+  },
+  deltaContainer: {
+    alignItems: "flex-end",
+  },
+  deltaLabel: {
+    fontSize: 10,
+    color: "#888",
+    marginBottom: 2,
+  },
+  deltaValueWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(20, 184, 166, 0.1)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  deltaValue: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: Colors.light.tint,
+    marginLeft: 2,
+  },
+  pointerLabel: {
+    backgroundColor: "rgba(51, 51, 51, 0.9)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  pointerLabelMonth: {
+    color: "#ccc",
+    fontSize: 10,
+    marginBottom: 2,
+  },
+  pointerLabelValue: {
+    color: "white",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });
