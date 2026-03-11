@@ -18,8 +18,10 @@ import {
   View,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { PieChart } from "react-native-chart-kit";
-import { LineChart } from "react-native-gifted-charts";
+import { PieChart } from "react-native-chart-kit"; // PieChart만 유지, BarChart는 gifted-charts에서 가져옴
+import { BarChart as GiftedBarChart } from "react-native-gifted-charts"; // 명칭 충돌 방지
+
+// ... (상단 import 부분 수정 필요)
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -193,10 +195,42 @@ export default function StatsScreen() {
     }
 
     if (item === "bookchart") {
+      const currentMonthIndex = new Date().getMonth();
       const currentMonthStat =
         monthlyBookStats.length > 0
-          ? monthlyBookStats[monthlyBookStats.length - 1]
+          ? monthlyBookStats[currentMonthIndex]
           : null;
+
+      const previousMonthStat =
+        currentMonthIndex > 0 && monthlyBookStats.length > 0
+          ? monthlyBookStats[currentMonthIndex - 1]
+          : null;
+
+      const diff =
+        currentMonthStat && previousMonthStat
+          ? currentMonthStat.delta - previousMonthStat.delta
+          : currentMonthStat
+            ? currentMonthStat.delta
+            : 0;
+
+      const getDiffInfo = () => {
+        if (diff > 0)
+          return {
+            icon: "caret-up",
+            color: Colors.light.tint,
+            text: `${diff}`,
+          };
+        if (diff < 0)
+          return { icon: "caret-down", color: "#FF5252", text: `${diff}` };
+        return { icon: "remove", color: "#888", text: "0" };
+      };
+
+      const diffInfo = getDiffInfo();
+      const cardInnerWidth = screenWidth - scale(120);
+      const barWidth = scale(10);
+      const initialSpacing = scale(10);
+      const dynamicSpacing =
+        (cardInnerWidth - barWidth * 12 - initialSpacing * 2) / 11;
 
       return (
         <View style={styles.chartSectionContainer}>
@@ -212,15 +246,22 @@ export default function StatsScreen() {
               </View>
               {currentMonthStat && (
                 <View style={styles.deltaContainer}>
-                  <Text style={styles.deltaLabel}>이번 달</Text>
-                  <View style={styles.deltaValueWrapper}>
+                  <Text style={styles.deltaLabel}>전월 대비</Text>
+                  <View
+                    style={[
+                      styles.deltaValueWrapper,
+                      { backgroundColor: `${diffInfo.color}1A` },
+                    ]}
+                  >
                     <Ionicons
-                      name="caret-up"
+                      name={diffInfo.icon as any}
                       size={scale(12)}
-                      color={Colors.light.tint}
+                      color={diffInfo.color}
                     />
-                    <Text style={styles.deltaValue}>
-                      {currentMonthStat.delta}권
+                    <Text
+                      style={[styles.deltaValue, { color: diffInfo.color }]}
+                    >
+                      {diffInfo.text}권
                     </Text>
                   </View>
                 </View>
@@ -228,58 +269,68 @@ export default function StatsScreen() {
             </View>
 
             {monthlyBookStats.length > 0 ? (
-              <View style={{ marginTop: scale(20), marginLeft: scale(-20) }}>
-                <LineChart
+              <View
+                style={{
+                  marginTop: scale(20),
+                  marginLeft: scale(-25),
+                  alignItems: "center",
+                }}
+              >
+                <GiftedBarChart
                   data={monthlyBookStats}
-                  areaChart
-                  hideDataPoints
-                  spacing={(screenWidth - scale(80)) / 6}
-                  color={Colors.light.tint}
-                  thickness={3}
-                  startFillColor={Colors.light.tint}
-                  endFillColor="rgba(20,184,166,0.01)"
-                  startOpacity={0.4}
-                  endOpacity={0.1}
-                  initialSpacing={scale(20)}
+                  width={cardInnerWidth}
+                  spacing={dynamicSpacing}
+                  barWidth={barWidth}
+                  roundedTop
+                  roundedBottom
+                  disableScroll
+                  frontColor={Colors.light.tint}
+                  initialSpacing={initialSpacing}
                   noOfSections={3}
-                  maxValue={Math.max(5, Math.ceil(totalFinishedBooks * 1.2))}
+                  maxValue={Math.max(
+                    5,
+                    Math.ceil(
+                      Math.max(...monthlyBookStats.map((s) => s.delta || 0)) *
+                        1.5,
+                    ),
+                  )}
                   roundToDigits={0}
                   height={scale(180)}
                   yAxisColor="lightgray"
                   yAxisThickness={0}
                   rulesType="solid"
                   rulesColor="lightgray"
-                  yAxisTextStyle={{ color: "gray", fontSize: fontScale(10) }}
+                  yAxisTextStyle={{ color: "gray", fontSize: fontScale(9) }}
                   xAxisColor="lightgray"
-                  pointerConfig={{
-                    pointerStripHeight: scale(160),
-                    pointerStripColor: "lightgray",
-                    pointerStripWidth: 2,
-                    pointerColor: Colors.light.tint,
-                    radius: scale(6),
-                    pointerLabelWidth: scale(80),
-                    pointerLabelHeight: scale(60),
-                    pointerLabelComponent: (items: any) => {
-                      return (
-                        <View
-                          style={{
-                            justifyContent: "center",
-                            alignItems: "center",
-                            paddingTop: scale(30),
-                          }}
-                        >
-                          <View style={styles.pointerLabel}>
-                            <Text style={styles.pointerLabelMonth}>
-                              {items[0].label}
-                            </Text>
-                            <Text style={styles.pointerLabelValue}>
-                              {items[0].value}권
-                            </Text>
-                          </View>
-                        </View>
-                      );
-                    },
+                  xAxisLabelTextStyle={{
+                    color: "gray",
+                    fontSize: fontScale(8),
+                    width: screenWidth * 0.08,
+                    textAlign: "center",
                   }}
+                  renderTooltip={(item: any, index: number) => {
+                    if (item.value === undefined) return null;
+                    const isLast = index >= 9;
+                    return (
+                      <View
+                        style={{
+                          marginBottom: scale(5),
+                          marginLeft: isLast ? scale(-45) : scale(-15),
+                        }}
+                      >
+                        <View style={styles.pointerLabel}>
+                          <Text style={styles.pointerLabelMonth}>
+                            {item.label}
+                          </Text>
+                          <Text style={styles.pointerLabelValue}>
+                            {item.delta}권
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  }}
+                  leftShiftForTooltip={scale(10)}
+                  activeOpacity={0.7}
                 />
               </View>
             ) : (

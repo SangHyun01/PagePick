@@ -31,7 +31,7 @@ export interface TagStat {
 }
 
 export interface MonthlyBookStat {
-  value: number;
+  value?: number;
   label: string;
   delta: number;
 }
@@ -269,7 +269,6 @@ export const useStatsViewModel = () => {
 
           // 월별 완독 책 통계 (누적 차트용)
           const currentYear = new Date().getFullYear();
-          const currentMonth = new Date().getMonth() + 1;
 
           const finishedBooksThisYear = books.filter((book) => {
             if (book.status === "finished" && book.finished_at) {
@@ -286,17 +285,27 @@ export const useStatsViewModel = () => {
           });
 
           const cumulativeStats: MonthlyBookStat[] = [];
-          let cumulativeSum = 0;
-          for (let i = 0; i < currentMonth; i++) {
-            cumulativeSum += monthlyCounts[i];
-            cumulativeStats.push({
-              value: cumulativeSum,
+          let totalFinishedUntilNow = 0;
+          const currentMonthIndex = new Date().getMonth(); // 0-indexed (1월=0, 3월=2)
+
+          for (let i = 0; i < 12; i++) {
+            const delta = monthlyCounts[i];
+            const stat: MonthlyBookStat = {
               label: `${i + 1}월`,
-              delta: monthlyCounts[i],
-            });
+              delta: delta,
+            };
+
+            // 현재 월(index)까지만 value(그래프 높이)를 할당
+            // 누적값이 아닌 해당 월의 권수(delta)를 막대 높이로 사용
+            if (i <= currentMonthIndex) {
+              stat.value = delta;
+              totalFinishedUntilNow += delta; // 전체 누적은 계속 계산
+            }
+
+            cumulativeStats.push(stat);
           }
           setMonthlyBookStats(cumulativeStats);
-          setTotalFinishedBooks(cumulativeSum);
+          setTotalFinishedBooks(totalFinishedUntilNow);
 
           // 사용자 프로필 가져오기 및 연속 기록 처리
 
