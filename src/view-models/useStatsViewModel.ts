@@ -1,3 +1,4 @@
+import * as bookService from "@/services/bookService";
 import { getAllUserSentences } from "@/services/sentenceService";
 import * as userService from "@/services/userService";
 import { UserProfile } from "@/types/auth";
@@ -29,12 +30,22 @@ export interface TagStat {
   legendFontSize: number;
 }
 
+export interface MonthlyBookStat {
+  value?: number;
+  label: string;
+  delta: number;
+}
+
 export const useStatsViewModel = () => {
   const [markedDates, setMarkedDates] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [allSentences, setAllSentences] = useState<Sentence[]>([]);
   const [totalSentencesCount, setTotalSentencesCount] = useState<number>(0);
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
+  const [monthlyBookStats, setMonthlyBookStats] = useState<MonthlyBookStat[]>(
+    [],
+  );
+  const [totalFinishedBooks, setTotalFinishedBooks] = useState(0);
   const [isSheetVisible, setSheetVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDateSentences, setSelectedDateSentences] = useState<
@@ -155,7 +166,12 @@ export const useStatsViewModel = () => {
       const fetchStatsAndProfile = async () => {
         try {
           setIsLoading(true);
-          const sentences: Sentence[] = await getAllUserSentences();
+          const [sentences, books, profile] = await Promise.all([
+            getAllUserSentences(),
+            bookService.fetchBooks(),
+            userService.getUserProfile(),
+          ]);
+
           setAllSentences(sentences);
           setTotalSentencesCount(sentences.length);
 
@@ -168,7 +184,6 @@ export const useStatsViewModel = () => {
             {} as Record<string, number>,
           );
 
-          const profile = await userService.getUserProfile();
           if (!profile) {
             setIsLoading(false);
             return;
@@ -252,6 +267,46 @@ export const useStatsViewModel = () => {
 
           setTagStats(stats);
 
+          // 월별 완독 책 통계 (누적 차트용)
+          const currentYear = new Date().getFullYear();
+
+          const finishedBooksThisYear = books.filter((book) => {
+            if (book.status === "finished" && book.finished_at) {
+              const finishedDate = new Date(book.finished_at);
+              return finishedDate.getFullYear() === currentYear;
+            }
+            return false;
+          });
+
+          const monthlyCounts = new Array(12).fill(0);
+          finishedBooksThisYear.forEach((book) => {
+            const month = new Date(book.finished_at!).getMonth();
+            monthlyCounts[month]++;
+          });
+
+          const cumulativeStats: MonthlyBookStat[] = [];
+          let totalFinishedUntilNow = 0;
+          const currentMonthIndex = new Date().getMonth(); // 0-indexed (1월=0, 3월=2)
+
+          for (let i = 0; i < 12; i++) {
+            const delta = monthlyCounts[i];
+            const stat: MonthlyBookStat = {
+              label: `${i + 1}월`,
+              delta: delta,
+            };
+
+            // 현재 월(index)까지만 value(그래프 높이)를 할당
+            // 누적값이 아닌 해당 월의 권수(delta)를 막대 높이로 사용
+            if (i <= currentMonthIndex) {
+              stat.value = delta;
+              totalFinishedUntilNow += delta; // 전체 누적은 계속 계산
+            }
+
+            cumulativeStats.push(stat);
+          }
+          setMonthlyBookStats(cumulativeStats);
+          setTotalFinishedBooks(totalFinishedUntilNow);
+
           // 사용자 프로필 가져오기 및 연속 기록 처리
 
           const today = getLocalDateString(new Date());
@@ -332,6 +387,8 @@ export const useStatsViewModel = () => {
     isLoading,
     markedDates,
     tagStats,
+    monthlyBookStats,
+    totalFinishedBooks,
     totalSentencesCount,
     onDayPress,
     isSheetVisible,
