@@ -14,14 +14,16 @@ import {
 interface SentenceListProps {
   sentences: Sentence[];
   onOptionPress?: (item: Sentence) => void;
+  isBottomSheet?: boolean;
 }
 
 export default function SentenceList({
   sentences,
   onOptionPress,
+  isBottomSheet = false,
 }: SentenceListProps) {
-  const renderSentenceItem = ({ item }: { item: Sentence }) => (
-    <View style={styles.card}>
+  const renderSentenceItem = (item: Sentence) => (
+    <View key={item.id} style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.quoteIcon}>
           <FontAwesome
@@ -63,10 +65,26 @@ export default function SentenceList({
     </View>
   );
 
+  // 바텀시트 내부라면 부모(BottomSheetScrollView)에 스크롤을 맡기고 일반 View로 렌더링
+  if (isBottomSheet) {
+    return (
+      <View style={styles.container}>
+        {sentences.length > 0 ? (
+          sentences.map((item) => renderSentenceItem(item))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>아직 저장된 문장이 없습니다.</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  // 일반 화면이라면 자체적으로 FlatList를 사용하여 스크롤 가능하게 함
   return (
     <FlatList
       data={sentences}
-      renderItem={renderSentenceItem}
+      renderItem={({ item }) => renderSentenceItem(item)}
       keyExtractor={(item) => item.id.toString()}
       contentContainerStyle={styles.listContent}
       ListEmptyComponent={
@@ -79,6 +97,9 @@ export default function SentenceList({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingVertical: SIZES.base,
+  },
   listContent: {
     paddingHorizontal: SIZES.padding * 0.3,
     paddingVertical: SIZES.padding,

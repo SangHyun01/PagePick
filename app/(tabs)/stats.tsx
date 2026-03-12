@@ -3,7 +3,8 @@ import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import StreakProgressBar from "@/components/StreakProgressBar"; // Import the new component
 import StreakRewardModal from "@/components/StreakRewardModal";
-import { SIZES } from "@/constants/theme";
+import { Colors, SIZES } from "@/constants/theme";
+import { fontScale, scale } from "@/utils/responsive";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -17,7 +18,10 @@ import {
   View,
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { PieChart } from "react-native-chart-kit";
+import { PieChart } from "react-native-chart-kit"; // PieChart만 유지, BarChart는 gifted-charts에서 가져옴
+import { BarChart as GiftedBarChart } from "react-native-gifted-charts"; // 명칭 충돌 방지
+
+// ... (상단 import 부분 수정 필요)
 
 LocaleConfig.locales["kr"] = {
   monthNames: [
@@ -64,13 +68,15 @@ LocaleConfig.defaultLocale = "kr";
 
 const screenWidth = Dimensions.get("window").width;
 
-const sections = ["calendar", "streak", "piechart"]; // Add "streak" to sections
+const sections = ["calendar", "streak", "piechart", "bookchart"]; // Add "streak" to sections
 
 export default function StatsScreen() {
   const {
     isLoading,
     markedDates,
     tagStats,
+    monthlyBookStats,
+    totalFinishedBooks,
     totalSentencesCount,
     onDayPress,
     isSheetVisible,
@@ -140,23 +146,23 @@ export default function StatsScreen() {
     if (item === "piechart") {
       return (
         <View style={styles.chartSectionContainer}>
-          <Text style={styles.sectionTitle}>태그 분석</Text>
+          <Text style={styles.sectionTitle}>문장 취향 분석</Text>
           {tagStats.length > 0 ? (
             <View style={styles.chartWrapper}>
               <View style={styles.chartAndLegend}>
                 <PieChart
                   data={tagStats}
-                  width={screenWidth * 0.45}
-                  height={screenWidth * 0.45}
+                  width={scale(160)}
+                  height={scale(160)}
                   chartConfig={chartConfig}
                   accessor={"count"}
                   backgroundColor={"transparent"}
-                  paddingLeft={"0"}
-                  center={[25, 0]}
+                  paddingLeft={scale(25).toString()}
+                  center={[0, 0]}
                   absolute
                   hasLegend={false}
                 />
-                <View style={styles.legendContainer}>
+                <View style={[styles.legendContainer]}>
                   {tagStats.map((stat) => (
                     <View key={stat.name} style={styles.legendItem}>
                       <View
@@ -165,7 +171,9 @@ export default function StatsScreen() {
                           { backgroundColor: stat.color },
                         ]}
                       />
-                      <Text style={styles.legendText}>{stat.name}</Text>
+                      <Text style={styles.legendText} numberOfLines={1}>
+                        {stat.name}
+                      </Text>
                       <Text style={styles.legendPercentage}>
                         {((stat.count / totalTags) * 100).toFixed(1)}%
                       </Text>
@@ -182,6 +190,157 @@ export default function StatsScreen() {
               <Text style={styles.emptyChartText}>분석할 태그가 없습니다.</Text>
             </View>
           )}
+        </View>
+      );
+    }
+
+    if (item === "bookchart") {
+      const currentMonthIndex = new Date().getMonth();
+      const currentMonthStat =
+        monthlyBookStats.length > 0
+          ? monthlyBookStats[currentMonthIndex]
+          : null;
+
+      const previousMonthStat =
+        currentMonthIndex > 0 && monthlyBookStats.length > 0
+          ? monthlyBookStats[currentMonthIndex - 1]
+          : null;
+
+      const diff =
+        currentMonthStat && previousMonthStat
+          ? currentMonthStat.delta - previousMonthStat.delta
+          : currentMonthStat
+            ? currentMonthStat.delta
+            : 0;
+
+      const getDiffInfo = () => {
+        if (diff > 0)
+          return {
+            icon: "caret-up",
+            color: Colors.light.tint,
+            text: `${diff}`,
+          };
+        if (diff < 0)
+          return { icon: "caret-down", color: "#FF5252", text: `${diff}` };
+        return { icon: "remove", color: "#888", text: "0" };
+      };
+
+      const diffInfo = getDiffInfo();
+      const cardInnerWidth = screenWidth - scale(120);
+      const barWidth = scale(10);
+      const initialSpacing = scale(10);
+      const dynamicSpacing =
+        (cardInnerWidth - barWidth * 12 - initialSpacing * 2) / 11;
+
+      return (
+        <View style={styles.chartSectionContainer}>
+          <Text style={styles.sectionTitle}>올해의 독서 성장</Text>
+          <View style={styles.chartWrapper}>
+            <View style={styles.bookStatsHeader}>
+              <View>
+                <Text style={styles.bookStatsLabel}>누적 완독</Text>
+                <Text style={styles.bookStatsValue}>
+                  {totalFinishedBooks}
+                  <Text style={styles.bookStatsUnit}> 권</Text>
+                </Text>
+              </View>
+              {currentMonthStat && (
+                <View style={styles.deltaContainer}>
+                  <Text style={styles.deltaLabel}>전월 대비</Text>
+                  <View
+                    style={[
+                      styles.deltaValueWrapper,
+                      { backgroundColor: `${diffInfo.color}1A` },
+                    ]}
+                  >
+                    <Ionicons
+                      name={diffInfo.icon as any}
+                      size={scale(12)}
+                      color={diffInfo.color}
+                    />
+                    <Text
+                      style={[styles.deltaValue, { color: diffInfo.color }]}
+                    >
+                      {diffInfo.text}권
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {monthlyBookStats.length > 0 ? (
+              <View
+                style={{
+                  marginTop: scale(20),
+                  marginLeft: scale(-25),
+                  alignItems: "center",
+                }}
+              >
+                <GiftedBarChart
+                  data={monthlyBookStats}
+                  width={cardInnerWidth}
+                  spacing={dynamicSpacing}
+                  barWidth={barWidth}
+                  roundedTop
+                  roundedBottom
+                  disableScroll
+                  frontColor={Colors.light.tint}
+                  initialSpacing={initialSpacing}
+                  noOfSections={3}
+                  maxValue={Math.max(
+                    5,
+                    Math.ceil(
+                      Math.max(...monthlyBookStats.map((s) => s.delta || 0)) *
+                        1.5,
+                    ),
+                  )}
+                  roundToDigits={0}
+                  height={scale(180)}
+                  yAxisColor="lightgray"
+                  yAxisThickness={0}
+                  rulesType="solid"
+                  rulesColor="lightgray"
+                  yAxisTextStyle={{ color: "gray", fontSize: fontScale(9) }}
+                  xAxisColor="lightgray"
+                  xAxisLabelTextStyle={{
+                    color: "gray",
+                    fontSize: fontScale(8),
+                    width: screenWidth * 0.08,
+                    textAlign: "center",
+                  }}
+                  renderTooltip={(item: any, index: number) => {
+                    if (item.value === undefined) return null;
+                    const isLast = index >= 9;
+                    return (
+                      <View
+                        style={{
+                          marginBottom: scale(5),
+                          marginLeft: isLast ? scale(-45) : scale(-15),
+                        }}
+                      >
+                        <View style={styles.pointerLabel}>
+                          <Text style={styles.pointerLabelMonth}>
+                            {item.label}
+                          </Text>
+                          <Text style={styles.pointerLabelValue}>
+                            {item.delta}권
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  }}
+                  leftShiftForTooltip={scale(10)}
+                  activeOpacity={0.7}
+                />
+              </View>
+            ) : (
+              <View style={styles.emptyChartContainer}>
+                <Text style={styles.emptyChartText}>
+                  올해 완독한 책이 없습니다.
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       );
     }
@@ -215,7 +374,7 @@ export default function StatsScreen() {
             <Ionicons name="close" size={24} color="black" />
           </TouchableOpacity>
         </View>
-        <SentenceList sentences={selectedDateSentences} />
+        <SentenceList sentences={selectedDateSentences} isBottomSheet={true} />
       </BottomSheet>
       <CongratsModal
         visible={showCongratsAnimation}
@@ -334,6 +493,71 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: SIZES.h3,
+    fontWeight: "bold",
+  },
+  bookStatsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 10,
+  },
+  bookStatsLabel: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 4,
+  },
+  bookStatsValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  bookStatsUnit: {
+    fontSize: 14,
+    fontWeight: "normal",
+  },
+  deltaContainer: {
+    alignItems: "flex-end",
+  },
+  deltaLabel: {
+    fontSize: 10,
+    color: "#888",
+    marginBottom: 2,
+  },
+  deltaValueWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(20, 184, 166, 0.1)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  deltaValue: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: Colors.light.tint,
+    marginLeft: 2,
+  },
+  pointerLabel: {
+    backgroundColor: "rgba(51, 51, 51, 0.9)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  pointerLabelMonth: {
+    color: "#ccc",
+    fontSize: 10,
+    marginBottom: 2,
+  },
+  pointerLabelValue: {
+    color: "white",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

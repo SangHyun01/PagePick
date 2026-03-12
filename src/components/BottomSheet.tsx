@@ -1,18 +1,11 @@
-import React, { useEffect } from "react";
+import { SIZES } from "@/constants/theme";
 import {
-  Dimensions,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-import { SIZES } from "../constants/theme";
-
-const { height } = Dimensions.get("window");
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { StyleSheet } from "react-native";
 
 interface BottomSheetProps {
   isVisible: boolean;
@@ -25,76 +18,59 @@ export default function BottomSheet({
   onClose,
   children,
 }: BottomSheetProps) {
-  const translateY = useSharedValue(height);
-  const backdropOpacity = useSharedValue(0);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ["70%"], []);
 
   useEffect(() => {
     if (isVisible) {
-      translateY.value = withTiming(0, { duration: 300 });
-      backdropOpacity.value = withTiming(0.5, { duration: 300 });
+      bottomSheetModalRef.current?.present();
     } else {
-      translateY.value = withTiming(height, { duration: 300 });
-      backdropOpacity.value = withTiming(0, { duration: 300 });
+      bottomSheetModalRef.current?.dismiss();
     }
-  }, [isVisible, backdropOpacity, translateY]);
+  }, [isVisible]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: translateY.value }],
-    };
-  });
-
-  const backdropStyle = useAnimatedStyle(() => {
-    return {
-      opacity: backdropOpacity.value,
-    };
-  });
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   return (
-    <>
-      {isVisible && (
-        <TouchableWithoutFeedback onPress={onClose}>
-          <Animated.View style={[styles.backdrop, backdropStyle]} />
-        </TouchableWithoutFeedback>
-      )}
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <View style={styles.handle} />
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      index={0}
+      snapPoints={snapPoints}
+      onDismiss={onClose}
+      backdropComponent={renderBackdrop}
+      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={styles.background}
+    >
+      {/* 바텀시트 전체를 스크롤 가능하게 함 */}
+      <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
         {children}
-      </Animated.View>
-    </>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "black",
+  scrollContent: {
+    paddingHorizontal: SIZES.padding,
+    paddingBottom: SIZES.padding * 2,
   },
-  container: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: height * 0.7,
-    backgroundColor: "white",
+  background: {
     borderTopLeftRadius: SIZES.radius * 2,
     borderTopRightRadius: SIZES.radius * 2,
-    padding: SIZES.padding,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: "white",
   },
-  handle: {
-    width: 40,
-    height: 5,
-    borderRadius: 2.5,
+  handleIndicator: {
     backgroundColor: "#ccc",
-    alignSelf: "center",
-    marginBottom: SIZES.base,
+    width: 40,
   },
 });
