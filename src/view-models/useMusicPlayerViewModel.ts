@@ -3,6 +3,7 @@ import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-au
 
 export const useMusicPlayerViewModel = () => {
   const [url, setUrl] = useState<string | null>(null);
+  const [loop, setLoop] = useState(false);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -15,6 +16,11 @@ export const useMusicPlayerViewModel = () => {
   const player = useAudioPlayer(url);
   const status = useAudioPlayerStatus(player);
 
+  // 루프 상태를 플레이어에 반영
+  useEffect(() => {
+    player.loop = loop;
+  }, [player, loop]);
+
   const playMusic = (newUrl: string) => {
     if (url !== newUrl) {
       setUrl(newUrl);
@@ -25,8 +31,16 @@ export const useMusicPlayerViewModel = () => {
     if (status.playing) {
       player.pause();
     } else {
+      // 곡이 끝까지 재생된 상태에서 재생 버튼을 누르면 처음부터
+      if (status.didJustFinish || (status.duration > 0 && status.currentTime >= status.duration)) {
+        player.seekTo(0);
+      }
       player.play();
     }
+  };
+
+  const toggleLoop = () => {
+    setLoop((prev) => !prev);
   };
 
   const seekTo = (seconds: number) => {
@@ -48,8 +62,10 @@ export const useMusicPlayerViewModel = () => {
     isLoaded: status.isLoaded,
     currentTime: status.currentTime,
     duration: status.duration,
+    loop,
     playMusic,
     togglePlayPause,
+    toggleLoop,
     seekTo,
     skipBackward,
     skipForward,

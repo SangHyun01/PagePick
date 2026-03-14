@@ -33,8 +33,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
     isLoaded,
     currentTime,
     duration,
+    loop,
     playMusic,
     togglePlayPause,
+    toggleLoop,
     seekTo,
     skipBackward,
     skipForward,
@@ -113,6 +115,14 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
       </View>
 
       <View style={styles.controlsRow}>
+        <TouchableOpacity style={styles.loopButton} onPress={toggleLoop}>
+          <Ionicons
+            name="repeat"
+            size={22}
+            color={loop ? "#007AFF" : "#666"}
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={skipBackward} disabled={!isLoaded}>
           <Ionicons
             name="play-back"
@@ -255,6 +265,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#4A4A4A",
     justifyContent: "center",
     alignItems: "center",
+  },
+  loopButton: {
+    position: "absolute",
+    left: SIZES.base,
   },
   listButton: {
     position: "absolute",
