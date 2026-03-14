@@ -1,20 +1,19 @@
-
+import BottomSheet from "@/components/BottomSheet";
+import { SIZES } from "@/constants/theme";
+import { getAllMusic } from "@/services/musicService";
+import { AudioTrack } from "@/types/music";
+import { useMusicPlayerViewModel } from "@/view-models/useMusicPlayerViewModel";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   GestureResponderEvent,
   LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { AudioTrack } from "@/types/music";
-import { useMusicPlayerViewModel } from "@/view-models/useMusicPlayerViewModel";
-import { getAllMusic } from "@/services/musicService";
-import { SIZES } from "@/constants/theme";
-import BottomSheet from "@/components/BottomSheet";
 
 interface MusicPlayerProps {
   track: AudioTrack;
@@ -49,7 +48,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
     if (track?.url) {
       playMusic(track.url);
     }
-  }, [track]);
+  }, [track, playMusic]);
 
   const openPlaylist = async () => {
     if (playlist.length === 0) {
@@ -103,10 +102,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
         >
           <View style={styles.progressBarBackground}>
             <View
-              style={[
-                styles.progressBarFill,
-                { width: `${progress * 100}%` },
-              ]}
+              style={[styles.progressBarFill, { width: `${progress * 100}%` }]}
             />
           </View>
         </TouchableOpacity>
@@ -149,10 +145,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.listButton}
-          onPress={openPlaylist}
-        >
+        <TouchableOpacity style={styles.listButton} onPress={openPlaylist}>
           <Ionicons name="list" size={22} color="white" />
         </TouchableOpacity>
       </View>
