@@ -1,5 +1,5 @@
 import LottieView from "lottie-react-native";
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Modal, StyleSheet, Text, View } from "react-native";
 import { SIZES } from "../constants/theme";
 
@@ -17,7 +17,7 @@ export default function StreakRewardModal({
   const animation = useRef<LottieView>(null);
 
   useEffect(() => {
-    let timer: number;
+    let timer: ReturnType<typeof setTimeout>;
     if (visible) {
       timer = setTimeout(() => {
         onFinish();

@@ -228,7 +228,7 @@ export default function StatsScreen() {
       const diffInfo = getDiffInfo();
       const cardInnerWidth = screenWidth - scale(120);
       const barWidth = scale(10);
-      const initialSpacing = scale(10);
+      const initialSpacing = scale(12);
       const dynamicSpacing =
         (cardInnerWidth - barWidth * 12 - initialSpacing * 2) / 11;
 
@@ -305,7 +305,7 @@ export default function StatsScreen() {
                   xAxisLabelTextStyle={{
                     color: "gray",
                     fontSize: fontScale(8),
-                    width: screenWidth * 0.08,
+                    width: screenWidth * 0.06,
                     textAlign: "center",
                   }}
                   renderTooltip={(item: any, index: number) => {

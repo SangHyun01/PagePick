@@ -118,12 +118,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
     borderRadius: SIZES.base,
   },
-  uploadButtonContainer: {
-    padding: SIZES.padding,
-    backgroundColor: Colors.light.background,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
   uploadButton: {
     backgroundColor: Colors.light.tint,
     padding: SIZES.padding / 1.5,
