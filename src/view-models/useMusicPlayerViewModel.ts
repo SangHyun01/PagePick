@@ -8,7 +8,7 @@ export const useMusicPlayerViewModel = () => {
     setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
+      interruptionMode: 'duckOthers',
     });
   }, []);
 
