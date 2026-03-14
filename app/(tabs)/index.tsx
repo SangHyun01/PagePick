@@ -1,7 +1,11 @@
+import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
+import { getTodaysMusic } from "@/services/musicService";
+import { AudioTrack } from "@/types/music";
 import { useHomeViewModel } from "@/view-models/useHomeViewModel";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,6 +18,15 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { quote, loading, isDefaultQuote } = useHomeViewModel();
+  const [music, setMusic] = useState<AudioTrack | null>(null);
+
+  useEffect(() => {
+    const fetchMusic = async () => {
+      const todaysMusic = await getTodaysMusic();
+      setMusic(todaysMusic);
+    };
+    fetchMusic();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -60,6 +73,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
+      {music && <MusicPlayer track={music} />}
       <View style={styles.actionContainer}>
         <TouchableOpacity
           style={styles.mainButton}
