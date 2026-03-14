@@ -73,7 +73,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {music && <MusicPlayer track={music} />}
+      {music && <MusicPlayer track={music} onTrackChange={setMusic} />}
       <View style={styles.actionContainer}>
         <TouchableOpacity
           style={styles.mainButton}

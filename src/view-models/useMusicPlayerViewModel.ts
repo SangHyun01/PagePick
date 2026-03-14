@@ -1,8 +1,16 @@
-import { useState } from 'react';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useState, useEffect } from 'react';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 
 export const useMusicPlayerViewModel = () => {
   const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+    });
+  }, []);
 
   const player = useAudioPlayer(url);
   const status = useAudioPlayerStatus(player);
