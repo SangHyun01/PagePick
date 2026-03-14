@@ -1,5 +1,6 @@
 import AlbumList from "@/components/AlbumList";
 import CongratsModal from "@/components/CongratsModal";
+import MemoList from "@/components/MemoList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
 import { Colors, SIZES } from "@/constants/theme";
@@ -44,12 +45,15 @@ export default function BookDetailScreen() {
   const params = useLocalSearchParams();
   const bookId = Number(params.id);
   const coverUrl = params.cover_url as string;
-  const [activeTab, setActiveTab] = useState<"sentence" | "album">("sentence");
+  const [activeTab, setActiveTab] = useState<"sentence" | "memo" | "album">(
+    "sentence",
+  );
   const { newPhotoUri } = useLocalSearchParams();
 
   const {
     book,
     sentences,
+    memos,
     loading,
     isSuccess,
     isDelete,
@@ -67,6 +71,18 @@ export default function BookDetailScreen() {
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
+    memoEditModalVisible,
+    memoContent,
+    memoPage,
+    setMemoContent,
+    setMemoPage,
+    setMemoEditModalVisible,
+    isMemoAddModalVisible,
+    newMemoContent,
+    newMemoPage,
+    setNewMemoContent,
+    setNewMemoPage,
+    setMemoAddModalVisible,
     isReviewModalVisible,
     setReviewModalVisible,
     newRating,
@@ -87,6 +103,9 @@ export default function BookDetailScreen() {
     updateBook,
     handleSentenceOptions,
     updateSentence,
+    handleMemoOptions,
+    updateMemo,
+    addMemo,
     handleUpdateStatus,
     handleSubmitReview,
     handleCancelReview,
@@ -174,47 +193,45 @@ export default function BookDetailScreen() {
           <Text style={styles.infoTitle}>{book.title}</Text>
           <Text style={styles.infoAuthor}>{book.author}</Text>
           <View style={styles.infoCountContainer}>
-            <Text style={styles.infoCount}>
-              수집한 문장 {sentences.length}개
-            </Text>
+            <Text style={styles.infoCount}>문장 {sentences.length}</Text>
             <Text style={styles.infoCountDivider}>|</Text>
-            <Text style={styles.infoCount}>
-              업로드한 사진 {photos.length}개
-            </Text>
+            <Text style={styles.infoCount}>메모 {memos.length}</Text>
+            <Text style={styles.infoCountDivider}>|</Text>
+            <Text style={styles.infoCount}>앨범 {photos.length}</Text>
           </View>
           {book.started_at && (
             <Text style={styles.infoDate}>
               {(() => {
                 const start = new Date(book.started_at);
                 const startStr = `${start.getFullYear()}.${String(
-                  start.getMonth() + 1
+                  start.getMonth() + 1,
                 ).padStart(2, "0")}.${String(start.getDate()).padStart(
                   2,
-                  "0"
+                  "0",
                 )}`;
 
                 const startDateOnly = new Date(
                   start.getFullYear(),
                   start.getMonth(),
-                  start.getDate()
+                  start.getDate(),
                 );
 
                 if (book.finished_at) {
                   const end = new Date(book.finished_at);
                   const endStr = `${end.getFullYear()}.${String(
-                    end.getMonth() + 1
+                    end.getMonth() + 1,
                   ).padStart(2, "0")}.${String(end.getDate()).padStart(
                     2,
-                    "0"
+                    "0",
                   )}`;
 
                   const endDateOnly = new Date(
                     end.getFullYear(),
                     end.getMonth(),
-                    end.getDate()
+                    end.getDate(),
                   );
                   const diffTime = Math.abs(
-                    endDateOnly.getTime() - startDateOnly.getTime()
+                    endDateOnly.getTime() - startDateOnly.getTime(),
                   );
                   const diffDays =
                     Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
@@ -225,10 +242,10 @@ export default function BookDetailScreen() {
                   const endDateOnly = new Date(
                     now.getFullYear(),
                     now.getMonth(),
-                    now.getDate()
+                    now.getDate(),
                   );
                   const diffTime = Math.abs(
-                    endDateOnly.getTime() - startDateOnly.getTime()
+                    endDateOnly.getTime() - startDateOnly.getTime(),
                   );
                   const diffDays =
                     Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
@@ -297,7 +314,7 @@ export default function BookDetailScreen() {
         ))}
       </View>
 
-      {/* 탭 버튼 (문장 / 앨범) */}
+      {/* 탭 버튼 (문장 / 메모 / 앨범) */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
@@ -313,6 +330,22 @@ export default function BookDetailScreen() {
             ]}
           >
             문장
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "memo" && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab("memo")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "memo" && styles.activeTabText,
+            ]}
+          >
+            메모
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -339,6 +372,16 @@ export default function BookDetailScreen() {
             sentences={sentences}
             onOptionPress={handleSentenceOptions}
           />
+        ) : activeTab === "memo" ? (
+          <View style={{ flex: 1 }}>
+            <MemoList memos={memos} onOptionPress={handleMemoOptions} />
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => setMemoAddModalVisible(true)}
+            >
+              <Ionicons name="add" size={32} color="white" />
+            </TouchableOpacity>
+          </View>
         ) : (
           <AlbumList
             photos={photos}
@@ -460,6 +503,104 @@ export default function BookDetailScreen() {
                 onPress={updateSentence}
               >
                 <Text style={styles.btnTextSave}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* 메모 수정 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={memoEditModalVisible}
+        onRequestClose={() => setMemoEditModalVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>메모 수정하기</Text>
+            <Text style={styles.label}>메모 내용</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={memoContent}
+              onChangeText={setMemoContent}
+              multiline
+              textAlignVertical="top"
+              placeholder="메모를 입력하세요"
+            />
+            <Text style={styles.label}>페이지</Text>
+            <TextInput
+              style={styles.input}
+              value={memoPage}
+              onChangeText={setMemoPage}
+              keyboardType="number-pad"
+              placeholder="페이지 번호"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={() => setMemoEditModalVisible(false)}
+              >
+                <Text style={styles.btnTextCancel}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={updateMemo}
+              >
+                <Text style={styles.btnTextSave}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* 메모 추가 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isMemoAddModalVisible}
+        onRequestClose={() => setMemoAddModalVisible(false)}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>새 메모 작성</Text>
+            <Text style={styles.label}>메모 내용</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={newMemoContent}
+              onChangeText={setNewMemoContent}
+              multiline
+              textAlignVertical="top"
+              placeholder="독서 중 떠오른 생각을 기록해보세요"
+            />
+            <Text style={styles.label}>페이지 (선택)</Text>
+            <TextInput
+              style={styles.input}
+              value={newMemoPage}
+              onChangeText={setNewMemoPage}
+              keyboardType="number-pad"
+              placeholder="페이지 번호"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnCancel]}
+                onPress={() => setMemoAddModalVisible(false)}
+              >
+                <Text style={styles.btnTextCancel}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave]}
+                onPress={addMemo}
+              >
+                <Text style={styles.btnTextSave}>작성 완료</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -832,5 +973,21 @@ const styles = StyleSheet.create({
   selectedTagText: {
     color: "white",
     fontWeight: "bold",
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.tint,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
