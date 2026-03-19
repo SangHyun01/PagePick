@@ -39,11 +39,13 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<Mode>("Stopwatch");
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   const [timerTargetSeconds, setTimerTargetSeconds] = useState(25 * 60);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
-  
+  const [isFinishReadingModalVisible, setIsFinishReadingModalVisible] =
+    useState(false);
 
   const [inputHours, setInputHours] = useState("00");
   const [inputMinutes, setInputMinutes] = useState("25");
@@ -88,17 +90,34 @@ export default function HomeScreen() {
     if (!isActive) {
       setMode(newMode);
       setTime(newMode === "Timer" ? timerTargetSeconds : 0);
+      setHasStarted(false);
     }
   };
 
   const handleStartPause = () => {
     if (mode === "Timer" && time === 0) return;
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
     setIsActive((prev) => !prev);
   };
 
   const handleFinishReading = () => {
-    setIsActive(false);
-    setTime(mode === "Timer" ? timerTargetSeconds : 0);
+    if (!hasStarted) return;
+    setIsActive(false); // Pause the timer/stopwatch
+    setIsFinishReadingModalVisible(true); // Show the confirmation modal
+  };
+
+  const handleConfirmFinishReading = () => {
+    setIsFinishReadingModalVisible(false);
+    setTime(mode === "Timer" ? timerTargetSeconds : 0); // Reset time
+    setHasStarted(false);
+    // TODO: Add logic to save reading session data to Supabase
+  };
+
+  const handleResumeReading = () => {
+    setIsFinishReadingModalVisible(false);
+    setIsActive(true); // Resume timer/stopwatch
   };
 
   const openTimePicker = () => {
@@ -125,6 +144,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Time Setting Modal */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -183,6 +203,34 @@ export default function HomeScreen() {
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Finish Reading Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isFinishReadingModalVisible}
+        onRequestClose={() => setIsFinishReadingModalVisible(false)}
+      >
+        <View style={styles.modalCenteredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>책을 다 읽으셨나요?</Text>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalCancelButton]}
+                onPress={handleResumeReading}
+              >
+                <Text style={styles.modalButtonText}>더 읽을래요</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalSetButton]}
+                onPress={handleConfirmFinishReading}
+              >
+                <Text style={styles.modalButtonText}>다 읽었어요</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       <View style={styles.header}>
@@ -403,16 +451,8 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 25,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    paddingVertical: 35,
+    paddingHorizontal: 25,
     width: "90%",
   },
   modalTitle: {
@@ -468,5 +508,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
 
 
