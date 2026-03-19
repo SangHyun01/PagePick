@@ -7,6 +7,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState, useRef } from "react";
 import {
+  AppState,
+  AppStateStatus,
   StyleSheet,
   Text,
   View,
@@ -16,6 +18,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 type Mode = "Timer" | "Stopwatch";
@@ -107,6 +110,59 @@ export default function HomeScreen() {
       setHasStarted(false);
     }
   }, [timerJustFinished, timerTargetSeconds, music]);
+
+  useEffect(() => {
+    const STORAGE_KEY = "@PagePick:reading_session_bg";
+
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState.match(/inactive|background/)) {
+        if (isActive) {
+          const data = {
+            time,
+            mode,
+            timerTargetSeconds,
+            timestamp: Date.now(),
+          };
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+      } else if (nextAppState === "active") {
+        const rawData = await AsyncStorage.getItem(STORAGE_KEY);
+        if (rawData) {
+          await AsyncStorage.removeItem(STORAGE_KEY);
+          const data = JSON.parse(rawData);
+          const elapsed = Math.round((Date.now() - data.timestamp) / 1000);
+
+          if (data.mode === "Stopwatch") {
+            setTime(data.time + elapsed);
+          } else if (data.mode === "Timer") {
+            const newTime = data.time - elapsed;
+            if (newTime <= 0) {
+              setTime(0);
+              setIsActive(false);
+              setHasStarted(false);
+              const session = {
+                mode: "timer" as const,
+                duration_seconds: data.timerTargetSeconds,
+                goal_seconds: data.timerTargetSeconds,
+                audio_track_id: music?.id ?? null,
+              };
+              addReadingSession(session).catch((error) =>
+                console.error("Failed to save session on resume:", error),
+              );
+            } else {
+              setTime(newTime);
+            }
+          }
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener("change", handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isActive, time, mode, timerTargetSeconds, music]);
 
   const handleModeChange = (newMode: Mode) => {
     if (!isActive) {
