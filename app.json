@@ -13,7 +13,8 @@
       "bundleIdentifier": "com.sanghyun01.PagePick",
       "infoPlist": {
         "NSCameraUsageDescription": "책 페이지를 촬영하여 텍스트를 추출하기 위해 카메라 접근 권한이 필요합니다.",
-        "NSPhotoLibraryUsageDescription": "책 페이지 사진을 불러와 텍스트를 추출하기 위해 앨범 접근 권한이 필요합니다."
+        "NSPhotoLibraryUsageDescription": "책 페이지 사진을 불러와 텍스트를 추출하기 위해 앨범 접근 권한이 필요합니다.",
+        "UIBackgroundModes": ["audio"]
       }
     },
     "android": {
@@ -85,6 +86,17 @@
                 }
               }
             ]
+          }
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "ios": {
+            "backgroundAudio": true
+          },
+          "android": {
+            "backgroundAudio": true
           }
         }
       ],
