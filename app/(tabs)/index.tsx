@@ -8,9 +8,12 @@ import { getTodaysMusic } from "@/services/musicService";
 import { addReadingSession } from "@/services/readingSessionService";
 import { AudioTrack } from "@/types/music";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  AppState,
+  AppStateStatus,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -52,6 +55,8 @@ export default function HomeScreen() {
   const [inputHours, setInputHours] = useState("00");
   const [inputMinutes, setInputMinutes] = useState("25");
   const [inputSeconds, setInputSeconds] = useState("00");
+
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     const fetchMusic = async () => {
@@ -107,6 +112,79 @@ export default function HomeScreen() {
       setHasStarted(false);
     }
   }, [timerJustFinished, timerTargetSeconds, music]);
+
+  useEffect(() => {
+    const STORAGE_KEY = "@PagePick:reading_session_bg";
+
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      // App has gone to the background
+      if (
+        appState.current === "active" &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        if (isActive) {
+          // Save current state to AsyncStorage
+          const data = {
+            time,
+            mode,
+            timerTargetSeconds, // Need this for timer completion logic on resume
+            timestamp: Date.now(),
+          };
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+      }
+      // App has come to the foreground
+      else if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        const rawData = await AsyncStorage.getItem(STORAGE_KEY);
+        if (rawData) {
+          await AsyncStorage.removeItem(STORAGE_KEY);
+          const data = JSON.parse(rawData);
+
+          const elapsed = Math.round((Date.now() - data.timestamp) / 1000);
+
+          if (data.mode === "Stopwatch") {
+            setTime(data.time + elapsed);
+          } else if (data.mode === "Timer") {
+            const newTime = data.time - elapsed;
+            if (newTime <= 0) {
+              // Timer finished while in background.
+              // The scheduled notification should have fired (or will fire).
+              // We just need to update the UI.
+              setTime(0);
+              setIsActive(false);
+              setHasStarted(false);
+              // We can also save the reading session here, as the timer is done.
+              const session = {
+                mode: "timer" as const,
+                duration_seconds: data.timerTargetSeconds,
+                goal_seconds: data.timerTargetSeconds,
+                audio_track_id: music?.id ?? null,
+              };
+              addReadingSession(session).catch((error) =>
+                console.error("Failed to save session on resume:", error),
+              );
+            } else {
+              setTime(newTime);
+            }
+          }
+        }
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isActive, time, mode, timerTargetSeconds, music]);
 
   const handleModeChange = (newMode: Mode) => {
     if (!isActive) {
