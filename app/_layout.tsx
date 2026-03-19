@@ -1,3 +1,4 @@
+import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -14,6 +15,8 @@ export default function RootLayout() {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
   useEffect(() => {
+    registerForPushNotificationsAsync();
+
     const checkSession = async () => {
       const {
         data: { session },

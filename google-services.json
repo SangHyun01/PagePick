@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764147206560",
+    "project_id": "pagepick-12fe0",
+    "storage_bucket": "pagepick-12fe0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764147206560:android:0e32d43fd9426ac16ebcc5",
+        "android_client_info": {
+          "package_name": "com.sanghyun01.PagePick"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeivP8QqbPtgg3DRupfIX0vhQdbVbFr3k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

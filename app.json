@@ -25,6 +25,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.sanghyun01.PagePick",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 26,
       "permissions": ["CAMERA"],
       "intentFilters": [

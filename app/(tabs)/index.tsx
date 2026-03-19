@@ -1,28 +1,27 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
+import {
+  cancelAllScheduledNotifications,
+  schedulePushNotification,
+} from "@/lib/notifications";
 import { getTodaysMusic } from "@/services/musicService";
 import { addReadingSession } from "@/services/readingSessionService";
 import { AudioTrack } from "@/types/music";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  AppState,
-  AppStateStatus,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 
 type Mode = "Timer" | "Stopwatch";
-
 
 const formatTime = (totalSeconds: number) => {
   const hours = Math.floor(totalSeconds / 3600)
@@ -34,8 +33,6 @@ const formatTime = (totalSeconds: number) => {
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 };
-
-
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -111,59 +108,6 @@ export default function HomeScreen() {
     }
   }, [timerJustFinished, timerTargetSeconds, music]);
 
-  useEffect(() => {
-    const STORAGE_KEY = "@PagePick:reading_session_bg";
-
-    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      if (nextAppState.match(/inactive|background/)) {
-        if (isActive) {
-          const data = {
-            time,
-            mode,
-            timerTargetSeconds,
-            timestamp: Date.now(),
-          };
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-      } else if (nextAppState === "active") {
-        const rawData = await AsyncStorage.getItem(STORAGE_KEY);
-        if (rawData) {
-          await AsyncStorage.removeItem(STORAGE_KEY);
-          const data = JSON.parse(rawData);
-          const elapsed = Math.round((Date.now() - data.timestamp) / 1000);
-
-          if (data.mode === "Stopwatch") {
-            setTime(data.time + elapsed);
-          } else if (data.mode === "Timer") {
-            const newTime = data.time - elapsed;
-            if (newTime <= 0) {
-              setTime(0);
-              setIsActive(false);
-              setHasStarted(false);
-              const session = {
-                mode: "timer" as const,
-                duration_seconds: data.timerTargetSeconds,
-                goal_seconds: data.timerTargetSeconds,
-                audio_track_id: music?.id ?? null,
-              };
-              addReadingSession(session).catch((error) =>
-                console.error("Failed to save session on resume:", error),
-              );
-            } else {
-              setTime(newTime);
-            }
-          }
-        }
-      }
-    };
-
-    const subscription = AppState.addEventListener("change", handleAppStateChange);
-
-    return () => {
-      subscription.remove();
-    };
-  }, [isActive, time, mode, timerTargetSeconds, music]);
-
   const handleModeChange = (newMode: Mode) => {
     if (!isActive) {
       setMode(newMode);
@@ -172,33 +116,45 @@ export default function HomeScreen() {
     }
   };
 
-  const handleStartPause = () => {
+  const handleStartPause = async () => {
     if (mode === "Timer" && time === 0) return;
     if (!hasStarted) {
       setHasStarted(true);
+    }
+
+    if (isActive) {
+      await cancelAllScheduledNotifications();
+    } else {
+      if (mode === "Timer" && time > 0) {
+        await cancelAllScheduledNotifications();
+        await schedulePushNotification(
+          "PagePick",
+          "설정한 시간이 모두 지났어요!",
+          time,
+        );
+      }
     }
     setIsActive((prev) => !prev);
   };
 
   const handleFinishReading = () => {
     if (!hasStarted) return;
-    setIsActive(false); // Pause the timer/stopwatch
-    setIsFinishReadingModalVisible(true); // Show the confirmation modal
+    setIsActive(false);
+    setIsFinishReadingModalVisible(true);
   };
 
   const handleConfirmFinishReading = async () => {
     setIsFinishReadingModalVisible(false);
+    cancelAllScheduledNotifications();
 
     if (hasStarted) {
       let duration_seconds = 0;
       if (mode === "Stopwatch") {
         duration_seconds = time;
       } else {
-        // Timer
         duration_seconds = timerTargetSeconds - time;
       }
 
-      // Duration should not be negative
       if (duration_seconds < 0) duration_seconds = 0;
 
       const session = {
@@ -212,17 +168,16 @@ export default function HomeScreen() {
         await addReadingSession(session);
       } catch (error) {
         console.error("Failed to save reading session:", error);
-        // Optionally show an error to the user
       }
     }
 
-    setTime(mode === "Timer" ? timerTargetSeconds : 0); // Reset time
+    setTime(mode === "Timer" ? timerTargetSeconds : 0);
     setHasStarted(false);
   };
 
   const handleResumeReading = () => {
     setIsFinishReadingModalVisible(false);
-    setIsActive(true); // Resume timer/stopwatch
+    setIsActive(true);
   };
 
   const openTimePicker = () => {
@@ -565,7 +520,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
   },
-  
+
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -587,7 +542,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h2,
     marginHorizontal: 5,
   },
-  
+
   modalButtonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -614,6 +569,3 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h4,
   },
 });
-
-
-
