@@ -1,6 +1,7 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
 import { getTodaysMusic } from "@/services/musicService";
+import { addReadingSession } from "@/services/readingSessionService";
 import { AudioTrack } from "@/types/music";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -46,6 +47,7 @@ export default function HomeScreen() {
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [isFinishReadingModalVisible, setIsFinishReadingModalVisible] =
     useState(false);
+  const [timerJustFinished, setTimerJustFinished] = useState(false);
 
   const [inputHours, setInputHours] = useState("00");
   const [inputMinutes, setInputMinutes] = useState("25");
@@ -66,9 +68,10 @@ export default function HomeScreen() {
           setTime((prevTime) => prevTime + 1);
         } else if (mode === "Timer") {
           setTime((prevTime) => {
-            if (prevTime > 0) {
+            if (prevTime > 1) {
               return prevTime - 1;
             }
+            setTimerJustFinished(true);
             setIsActive(false);
             return 0;
           });
@@ -85,6 +88,25 @@ export default function HomeScreen() {
       }
     };
   }, [isActive, mode]);
+
+  useEffect(() => {
+    if (timerJustFinished) {
+      const session = {
+        mode: "timer" as const,
+        duration_seconds: timerTargetSeconds,
+        goal_seconds: timerTargetSeconds,
+        audio_track_id: music?.id ?? null,
+      };
+      addReadingSession(session).catch((error) => {
+        console.error(
+          "Failed to save reading session on timer completion:",
+          error,
+        );
+      });
+      setTimerJustFinished(false); // Reset the flag
+      setHasStarted(false);
+    }
+  }, [timerJustFinished, timerTargetSeconds, music]);
 
   const handleModeChange = (newMode: Mode) => {
     if (!isActive) {
@@ -108,11 +130,38 @@ export default function HomeScreen() {
     setIsFinishReadingModalVisible(true); // Show the confirmation modal
   };
 
-  const handleConfirmFinishReading = () => {
+  const handleConfirmFinishReading = async () => {
     setIsFinishReadingModalVisible(false);
+
+    if (hasStarted) {
+      let duration_seconds = 0;
+      if (mode === "Stopwatch") {
+        duration_seconds = time;
+      } else {
+        // Timer
+        duration_seconds = timerTargetSeconds - time;
+      }
+
+      // Duration should not be negative
+      if (duration_seconds < 0) duration_seconds = 0;
+
+      const session = {
+        mode: mode.toLowerCase() as "timer" | "stopwatch",
+        duration_seconds: duration_seconds,
+        goal_seconds: mode === "Timer" ? timerTargetSeconds : null,
+        audio_track_id: music?.id ?? null,
+      };
+
+      try {
+        await addReadingSession(session);
+      } catch (error) {
+        console.error("Failed to save reading session:", error);
+        // Optionally show an error to the user
+      }
+    }
+
     setTime(mode === "Timer" ? timerTargetSeconds : 0); // Reset time
     setHasStarted(false);
-    // TODO: Add logic to save reading session data to Supabase
   };
 
   const handleResumeReading = () => {
