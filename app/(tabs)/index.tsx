@@ -220,13 +220,13 @@ export default function HomeScreen() {
                 style={[styles.modalButton, styles.modalCancelButton]}
                 onPress={handleResumeReading}
               >
-                <Text style={styles.modalButtonText}>더 읽을래요</Text>
+                <Text style={styles.modalButtonText}>계속 읽기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalSetButton]}
                 onPress={handleConfirmFinishReading}
               >
-                <Text style={styles.modalButtonText}>다 읽었어요</Text>
+                <Text style={styles.modalButtonText}>독서 완료</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -279,7 +279,7 @@ export default function HomeScreen() {
             onPress={handleStartPause}
           >
             <Text style={styles.buttonText}>
-              {isActive ? "일시정지" : "시작"}
+              {isActive ? "일시정지" : "독서 시작"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -382,11 +382,11 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: SIZES.padding,
-    paddingHorizontal: SIZES.padding * 2,
+    paddingHorizontal: SIZES.padding,
     borderRadius: SIZES.radius * 2,
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 120,
+    width: 140,
   },
   pauseButton: {
     backgroundColor: "#007AFF",
@@ -490,11 +490,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   modalButton: {
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding / 2,
     elevation: 2,
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: SIZES.base / 2,
   },
   modalCancelButton: {
     backgroundColor: "#6C757D",
@@ -506,6 +506,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+    fontSize: SIZES.h4,
   },
 });
 
