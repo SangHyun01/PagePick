@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: SIZES.h1,
-    fontWeight: "900",
+    fontWeight: "600",
     color: "#212529",
   },
   timerContainer: {
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: SIZES.padding,
-    marginBottom: SIZES.padding * 3, // Added margin to push content below
+    marginBottom: SIZES.padding * 3,
   },
   tabContainer: {
     flexDirection: "row",
@@ -610,9 +610,9 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.padding * 0.5, // Adjust vertical padding
+    paddingVertical: SIZES.padding * 0.5,
     fontSize: SIZES.h2,
-    lineHeight: SIZES.h2, // Set line height equal to font size for better vertical centering
+    lineHeight: SIZES.h2,
     textAlign: "center",
     width: 75,
   },

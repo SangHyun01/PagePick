@@ -2,6 +2,7 @@ import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useShareIntent } from "expo-share-intent";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
@@ -102,6 +103,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
+        <StatusBar style="dark" />
         <Stack>
           {/* 로그인/회원가입 화면 등록 */}
           <Stack.Screen name="auth" options={{ headerShown: false }} />
