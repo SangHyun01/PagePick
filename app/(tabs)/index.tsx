@@ -1,19 +1,12 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
-import {
-  cancelAllScheduledNotifications,
-  schedulePushNotification,
-} from "@/lib/notifications";
 import { getTodaysMusic } from "@/services/musicService";
-import { addReadingSession } from "@/services/readingSessionService";
+import { useHomeViewModel } from "@/view-models/useHomeViewModel";
 import { AudioTrack } from "@/types/music";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  AppState,
-  AppStateStatus,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -24,39 +17,36 @@ import {
   View,
 } from "react-native";
 
-type Mode = "Timer" | "Stopwatch";
-
-const formatTime = (totalSeconds: number) => {
-  const hours = Math.floor(totalSeconds / 3600)
-    .toString()
-    .padStart(2, "0");
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
-};
-
 export default function HomeScreen() {
   const router = useRouter();
   const [music, setMusic] = useState<AudioTrack | null>(null);
-  const [mode, setMode] = useState<Mode>("Stopwatch");
-  const [time, setTime] = useState(0);
-  const [isActive, setIsActive] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const intervalRef = useRef<number | null>(null);
 
-  const [timerTargetSeconds, setTimerTargetSeconds] = useState(25 * 60);
-  const [isPickerVisible, setIsPickerVisible] = useState(false);
-  const [isFinishReadingModalVisible, setIsFinishReadingModalVisible] =
-    useState(false);
-  const [timerJustFinished, setTimerJustFinished] = useState(false);
+  // All logic is now in the view model
+  const {
+    // State
+    mode,
+    isActive,
+    // UI Values
+    formattedLiveTime,
+    formattedTodayTotalDuration,
+    // Handlers
+    handleModeChange,
+    handleStartPause,
+    handleConfirmFinishReading,
+    handleSetTimer,
+    // Modal visibility and handlers
+    isFinishReadingModalVisible,
+    openFinishReadingModal,
+    closeFinishReadingModal,
+    isPickerVisible,
+    openTimePicker,
+    closeTimePicker,
+  } = useHomeViewModel(music);
 
+  // Local state for time picker inputs
   const [inputHours, setInputHours] = useState("00");
   const [inputMinutes, setInputMinutes] = useState("25");
   const [inputSeconds, setInputSeconds] = useState("00");
-
-  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     const fetchMusic = async () => {
@@ -66,218 +56,18 @@ export default function HomeScreen() {
     fetchMusic();
   }, []);
 
-  useEffect(() => {
-    if (isActive) {
-      intervalRef.current = setInterval(() => {
-        if (mode === "Stopwatch") {
-          setTime((prevTime) => prevTime + 1);
-        } else if (mode === "Timer") {
-          setTime((prevTime) => {
-            if (prevTime > 1) {
-              return prevTime - 1;
-            }
-            setTimerJustFinished(true);
-            setIsActive(false);
-            return 0;
-          });
-        }
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isActive, mode]);
-
-  useEffect(() => {
-    if (timerJustFinished) {
-      const session = {
-        mode: "timer" as const,
-        duration_seconds: timerTargetSeconds,
-        goal_seconds: timerTargetSeconds,
-        audio_track_id: music?.id ?? null,
-      };
-      addReadingSession(session).catch((error) => {
-        console.error(
-          "Failed to save reading session on timer completion:",
-          error,
-        );
-      });
-      setTimerJustFinished(false); // Reset the flag
-      setHasStarted(false);
-    }
-  }, [timerJustFinished, timerTargetSeconds, music]);
-
-  useEffect(() => {
-    const STORAGE_KEY = "@PagePick:reading_session_bg";
-
-    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      // App has gone to the background
-      if (
-        appState.current === "active" &&
-        nextAppState.match(/inactive|background/)
-      ) {
-        if (isActive) {
-          // Save current state to AsyncStorage
-          const data = {
-            time,
-            mode,
-            timerTargetSeconds, // Need this for timer completion logic on resume
-            timestamp: Date.now(),
-          };
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-      }
-      // App has come to the foreground
-      else if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === "active"
-      ) {
-        const rawData = await AsyncStorage.getItem(STORAGE_KEY);
-        if (rawData) {
-          await AsyncStorage.removeItem(STORAGE_KEY);
-          const data = JSON.parse(rawData);
-
-          const elapsed = Math.round((Date.now() - data.timestamp) / 1000);
-
-          if (data.mode === "Stopwatch") {
-            setTime(data.time + elapsed);
-          } else if (data.mode === "Timer") {
-            const newTime = data.time - elapsed;
-            if (newTime <= 0) {
-              // Timer finished while in background.
-              // The scheduled notification should have fired (or will fire).
-              // We just need to update the UI.
-              setTime(0);
-              setIsActive(false);
-              setHasStarted(false);
-              // We can also save the reading session here, as the timer is done.
-              const session = {
-                mode: "timer" as const,
-                duration_seconds: data.timerTargetSeconds,
-                goal_seconds: data.timerTargetSeconds,
-                audio_track_id: music?.id ?? null,
-              };
-              addReadingSession(session).catch((error) =>
-                console.error("Failed to save session on resume:", error),
-              );
-            } else {
-              setTime(newTime);
-            }
-          }
-        }
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener(
-      "change",
-      handleAppStateChange,
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [isActive, time, mode, timerTargetSeconds, music]);
-
-  const handleModeChange = (newMode: Mode) => {
-    if (!isActive) {
-      setMode(newMode);
-      setTime(newMode === "Timer" ? timerTargetSeconds : 0);
-      setHasStarted(false);
-    }
-  };
-
-  const handleStartPause = async () => {
-    if (mode === "Timer" && time === 0) return;
-    if (!hasStarted) {
-      setHasStarted(true);
-    }
-
-    if (isActive) {
-      await cancelAllScheduledNotifications();
-    } else {
-      if (mode === "Timer" && time > 0) {
-        await cancelAllScheduledNotifications();
-        await schedulePushNotification(
-          "PagePick",
-          "설정한 시간이 모두 지났어요!",
-          time,
-        );
-      }
-    }
-    setIsActive((prev) => !prev);
-  };
-
-  const handleFinishReading = () => {
-    if (!hasStarted) return;
-    setIsActive(false);
-    setIsFinishReadingModalVisible(true);
-  };
-
-  const handleConfirmFinishReading = async () => {
-    setIsFinishReadingModalVisible(false);
-    cancelAllScheduledNotifications();
-
-    if (hasStarted) {
-      let duration_seconds = 0;
-      if (mode === "Stopwatch") {
-        duration_seconds = time;
-      } else {
-        duration_seconds = timerTargetSeconds - time;
-      }
-
-      if (duration_seconds < 0) duration_seconds = 0;
-
-      const session = {
-        mode: mode.toLowerCase() as "timer" | "stopwatch",
-        duration_seconds: duration_seconds,
-        goal_seconds: mode === "Timer" ? timerTargetSeconds : null,
-        audio_track_id: music?.id ?? null,
-      };
-
-      try {
-        await addReadingSession(session);
-      } catch (error) {
-        console.error("Failed to save reading session:", error);
-      }
-    }
-
-    setTime(mode === "Timer" ? timerTargetSeconds : 0);
-    setHasStarted(false);
-  };
-
-  const handleResumeReading = () => {
-    setIsFinishReadingModalVisible(false);
-    setIsActive(true);
-  };
-
-  const openTimePicker = () => {
-    if (mode === "Timer" && !isActive) {
-      const h = Math.floor(timerTargetSeconds / 3600);
-      const m = Math.floor((timerTargetSeconds % 3600) / 60);
-      const s = timerTargetSeconds % 60;
-      setInputHours(h.toString().padStart(2, "0"));
-      setInputMinutes(m.toString().padStart(2, "0"));
-      setInputSeconds(s.toString().padStart(2, "0"));
-      setIsPickerVisible(true);
-    }
-  };
-
-  const handleSetTime = () => {
+  const onSetTime = () => {
     const hours = parseInt(inputHours, 10) || 0;
     const minutes = parseInt(inputMinutes, 10) || 0;
     const seconds = parseInt(inputSeconds, 10) || 0;
     const total = hours * 3600 + minutes * 60 + seconds;
-    setTimerTargetSeconds(total);
-    setTime(total);
-    setIsPickerVisible(false);
+    handleSetTimer(total);
+    closeTimePicker();
+  };
+
+  const onResumeReading = () => {
+    closeFinishReadingModal();
+    handleStartPause(); // To resume the timer
   };
 
   return (
@@ -287,7 +77,7 @@ export default function HomeScreen() {
         animationType="fade"
         transparent={true}
         visible={isPickerVisible}
-        onRequestClose={() => setIsPickerVisible(false)}
+        onRequestClose={closeTimePicker}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -295,7 +85,6 @@ export default function HomeScreen() {
         >
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>시간 설정</Text>
-
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.timeInput}
@@ -324,17 +113,16 @@ export default function HomeScreen() {
                 selectTextOnFocus
               />
             </View>
-
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalCancelButton]}
-                onPress={() => setIsPickerVisible(false)}
+                onPress={closeTimePicker}
               >
                 <Text style={styles.modalButtonText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalSetButton]}
-                onPress={handleSetTime}
+                onPress={onSetTime}
               >
                 <Text style={styles.modalButtonText}>설정</Text>
               </TouchableOpacity>
@@ -348,7 +136,7 @@ export default function HomeScreen() {
         animationType="fade"
         transparent={true}
         visible={isFinishReadingModalVisible}
-        onRequestClose={() => setIsFinishReadingModalVisible(false)}
+        onRequestClose={closeFinishReadingModal}
       >
         <View style={styles.modalCenteredView}>
           <View style={styles.modalView}>
@@ -356,13 +144,16 @@ export default function HomeScreen() {
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalCancelButton]}
-                onPress={handleResumeReading}
+                onPress={onResumeReading}
               >
                 <Text style={styles.modalButtonText}>계속 읽기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalSetButton]}
-                onPress={handleConfirmFinishReading}
+                onPress={() => {
+                  closeFinishReadingModal();
+                  handleConfirmFinishReading();
+                }}
               >
                 <Text style={styles.modalButtonText}>독서 완료</Text>
               </TouchableOpacity>
@@ -373,6 +164,9 @@ export default function HomeScreen() {
 
       <View style={styles.header}>
         <Text style={styles.logoText}>PagePick</Text>
+        <Text style={styles.dailyReadingText}>
+          오늘은 {formattedTodayTotalDuration} 만큼 읽었어요!
+        </Text>
       </View>
 
       <View style={styles.timerContainer}>
@@ -408,7 +202,7 @@ export default function HomeScreen() {
           onPress={openTimePicker}
           disabled={mode !== "Timer" || isActive}
         >
-          <Text style={styles.timeText}>{formatTime(time)}</Text>
+          <Text style={styles.timeText}>{formattedLiveTime}</Text>
         </TouchableOpacity>
 
         <View style={styles.buttonContainer}>
@@ -422,7 +216,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.completeButton]}
-            onPress={handleFinishReading}
+            onPress={openFinishReadingModal}
           >
             <Text style={styles.buttonText}>독서 완료</Text>
           </TouchableOpacity>
@@ -462,12 +256,17 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: SIZES.padding,
-    paddingBottom: SIZES.padding,
+    paddingBottom: SIZES.padding * 2,
   },
   logoText: {
     fontSize: SIZES.h1,
     fontWeight: "600",
     color: "#212529",
+    marginBottom: SIZES.base,
+  },
+  dailyReadingText: {
+    fontSize: SIZES.body3,
+    color: "#495057",
   },
   timerContainer: {
     flex: 1,
@@ -597,8 +396,8 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h3,
     fontWeight: "bold",
     marginBottom: 15,
+    textAlign: "center",
   },
-
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -620,7 +419,6 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h2,
     marginHorizontal: 5,
   },
-
   modalButtonRow: {
     flexDirection: "row",
     justifyContent: "space-between",

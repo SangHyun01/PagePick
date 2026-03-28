@@ -26,3 +26,34 @@ export const addReadingSession = async (
     throw error;
   }
 };
+
+export const getTodayReadingDuration = async (userId: string): Promise<number> => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const { data, error } = await supabase
+    .from("reading_sessions")
+    .select("duration_seconds")
+    .eq("user_id", userId)
+    .gte("created_at", today.toISOString())
+    .lt("created_at", tomorrow.toISOString());
+
+  if (error) {
+    console.error("Error fetching today's reading duration:", error);
+    return 0;
+  }
+
+  if (!data) {
+    return 0;
+  }
+
+  const totalDuration = data.reduce(
+    (sum, session) => sum + (session.duration_seconds || 0),
+    0
+  );
+
+  return totalDuration;
+};
