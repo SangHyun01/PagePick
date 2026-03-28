@@ -1,6 +1,8 @@
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useShareIntent } from "expo-share-intent";
@@ -15,7 +17,13 @@ export default function RootLayout() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+  });
+
   useEffect(() => {
+    if (!fontsLoaded) return;
+
     registerForPushNotificationsAsync();
 
     const checkSession = async () => {
@@ -36,10 +44,10 @@ export default function RootLayout() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fontsLoaded]);
 
   useEffect(() => {
-    if (!initialized) return; // 로딩 중이면 대기
+    if (!initialized || !fontsLoaded) return; // 로딩 중이면 대기
 
     const inAuthGroup = segments[0] === "auth";
 
@@ -80,6 +88,7 @@ export default function RootLayout() {
   }, [
     session,
     initialized,
+    fontsLoaded,
     segments,
     hasShareIntent,
     shareIntent,
@@ -88,7 +97,7 @@ export default function RootLayout() {
   ]);
 
   // 로딩 화면
-  if (!initialized) {
+  if (!initialized || !fontsLoaded) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
