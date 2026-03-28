@@ -70,7 +70,14 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
     const currentSessionProgress =
       mode === "Stopwatch" && hasStarted ? time : 0;
     const totalTodaySeconds = dbTodayDuration + currentSessionProgress;
-    return formatTime(totalTodaySeconds);
+
+    if (totalTodaySeconds < 0) return "0시간 0분 0초";
+
+    const hours = Math.floor(totalTodaySeconds / 3600);
+    const minutes = Math.floor((totalTodaySeconds % 3600) / 60);
+    const seconds = Math.floor(totalTodaySeconds % 60);
+
+    return `${hours}시간 ${minutes}분 ${seconds}초`;
   }, [dbTodayDuration, time, mode, hasStarted]);
 
   // --- Data Fetching ---

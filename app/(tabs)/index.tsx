@@ -1,8 +1,8 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
 import { getTodaysMusic } from "@/services/musicService";
-import { useHomeViewModel } from "@/view-models/useHomeViewModel";
 import { AudioTrack } from "@/types/music";
+import { useHomeViewModel } from "@/view-models/useHomeViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -165,7 +165,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <Text style={styles.logoText}>PagePick</Text>
         <Text style={styles.dailyReadingText}>
-          오늘은 {formattedTodayTotalDuration} 만큼 읽었어요!
+          오늘은 {formattedTodayTotalDuration} 읽었어요
         </Text>
       </View>
 
