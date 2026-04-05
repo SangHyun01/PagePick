@@ -24,7 +24,7 @@ const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
           현재 연속 {continuousReadingDays}일째
         </Text>
         <View style={styles.streakFreezeContainer}>
-          <Ionicons name="shield-half-outline" size={16} color="#4CAF50" />
+          <Ionicons name="shield-half-outline" size={16} color="#00adf5" />
           <Text style={styles.streakFreezeLabel}>보호권:</Text>
           <Text style={styles.streakFreezeText}>{streakFreezes}</Text>
         </View>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   streakFreezeText: {
     fontSize: SIZES.body4,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: "#00adf5",
   },
   percentageRow: {
     flexDirection: "row",
