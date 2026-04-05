@@ -1,6 +1,9 @@
 import * as bookService from "@/services/bookService";
+import * as memoService from "@/services/memoService";
 import * as sentenceService from "@/services/sentenceService";
+import * as userService from "@/services/userService";
 import { Book, BookStatus } from "@/types/book";
+import { Memo } from "@/types/memo";
 import { Sentence } from "@/types/sentence";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -15,12 +18,13 @@ export const useBookDetailViewModel = ({
 }: BookDetailViewModelProps) => {
   const [book, setBook] = useState<Book | null>(null);
   const [sentences, setSentences] = useState<Sentence[]>([]);
+  const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isDelete, setIsDelete] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<"book" | "sentence" | null>(
-    null,
-  );
+  const [deleteTarget, setDeleteTarget] = useState<
+    "book" | "sentence" | "memo" | null
+  >(null);
   const [successType, setSuccessType] = useState<"default" | "review">(
     "default",
   );
@@ -38,6 +42,17 @@ export const useBookDetailViewModel = ({
   const [editPage, setEditPage] = useState("");
   const [editingTags, setEditingTags] = useState<string[]>([]);
 
+  // 메모 수정 모달
+  const [memoEditModalVisible, setMemoEditModalVisible] = useState(false);
+  const [editingMemo, setEditingMemo] = useState<Memo | null>(null);
+  const [memoContent, setMemoContent] = useState("");
+  const [memoPage, setMemoPage] = useState("");
+
+  // 메모 추가 모달
+  const [isMemoAddModalVisible, setMemoAddModalVisible] = useState(false);
+  const [newMemoContent, setNewMemoContent] = useState("");
+  const [newMemoPage, setNewMemoPage] = useState("");
+
   // 리뷰 작성 모달
   const [isReviewModalVisible, setReviewModalVisible] = useState(false);
   const [newRating, setNewRating] = useState(0);
@@ -51,9 +66,10 @@ export const useBookDetailViewModel = ({
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [bookData, sentencesData] = await Promise.all([
+      const [bookData, sentencesData, memosData] = await Promise.all([
         bookService.getBookById(bookId),
         sentenceService.getSentencesByBookId(bookId),
+        memoService.getMemosByBookId(bookId),
       ]);
 
       if (bookData) {
@@ -62,13 +78,14 @@ export const useBookDetailViewModel = ({
         setEditAuthor(bookData.author || "");
       }
       setSentences(sentencesData);
+      setMemos(memosData);
     } catch (e) {
       console.error(e);
       Alert.alert("오류", "데이터를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
-  }, [bookId, setLoading, setBook, setEditTitle, setEditAuthor, setSentences]);
+  }, [bookId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -103,7 +120,7 @@ export const useBookDetailViewModel = ({
   const confirmDeleteBook = () => {
     Alert.alert(
       "경고",
-      "책을 삭제하면 저장된 모든 문장들도 모두 사라집니다.\n정말 삭제하시겠습니까?",
+      "책을 삭제하면 저장된 모든 문장들과 메모들도 모두 사라집니다.\n정말 삭제하시겠습니까?",
       [
         { text: "취소", style: "cancel" },
         { text: "삭제", style: "destructive", onPress: deleteBook },
@@ -360,10 +377,116 @@ export const useBookDetailViewModel = ({
     );
   };
 
+  // 메모 관련 이벤트
+  const handleMemoOptions = (memo: Memo) => {
+    Alert.alert(
+      "메모 관리",
+      "원하시는 작업을 선택하세요.",
+      [
+        { text: "수정하기", onPress: () => openMemoEditModal(memo) },
+        {
+          text: "삭제하기",
+          onPress: () => confirmDeleteMemo(memo.id),
+          style: "destructive",
+        },
+        { text: "취소", style: "cancel" },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  const openMemoEditModal = (memo: Memo) => {
+    setEditingMemo(memo);
+    setMemoContent(memo.content);
+    setMemoPage(memo.page ? memo.page.toString() : "");
+    setMemoEditModalVisible(true);
+  };
+
+  const confirmDeleteMemo = (id: number) => {
+    Alert.alert("삭제 확인", "정말 이 메모를 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      { text: "삭제", style: "destructive", onPress: () => deleteMemo(id) },
+    ]);
+  };
+
+  const deleteMemo = async (id: number) => {
+    try {
+      await memoService.deleteMemo(id);
+      setMemos((prev) => prev.filter((m) => m.id !== id));
+      setDeleteTarget("memo");
+      setIsDelete(true);
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "삭제에 실패했습니다.");
+    }
+  };
+
+  const updateMemo = async () => {
+    if (!editingMemo || !memoContent.trim()) {
+      Alert.alert("알림", "메모 내용을 입력해주세요.");
+      return;
+    }
+    try {
+      const updatedPage = memoPage.trim() || null;
+      await memoService.updateMemo(editingMemo.id, {
+        content: memoContent,
+        page: updatedPage,
+      });
+      setMemos((prev) =>
+        prev.map((m) =>
+          m.id === editingMemo.id
+            ? {
+                ...m,
+                content: memoContent,
+                page: updatedPage,
+              }
+            : m,
+        ),
+      );
+      setMemoEditModalVisible(false);
+      setSuccessType("default");
+      setIsSuccess(true);
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "수정에 실패했습니다.");
+    }
+  };
+
+  const addMemo = async () => {
+    if (!newMemoContent.trim()) {
+      Alert.alert("알림", "메모 내용을 입력해주세요.");
+      return;
+    }
+    try {
+      const user = await userService.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const pageStr = newMemoPage.trim() || null;
+      await memoService.addMemo({
+        content: newMemoContent,
+        page: pageStr,
+        book_id: bookId,
+        user_id: user.id,
+      });
+
+      // 새로고침 대신 상태 업데이트
+      const memosData = await memoService.getMemosByBookId(bookId);
+      setMemos(memosData);
+
+      setMemoAddModalVisible(false);
+      setNewMemoContent("");
+      setNewMemoPage("");
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "메모 저장에 실패했습니다.");
+    }
+  };
+
   return {
     // 상태
     book,
     sentences,
+    memos,
     loading,
     isSuccess,
     isDelete,
@@ -385,6 +508,22 @@ export const useBookDetailViewModel = ({
     setEditContent,
     setEditPage,
     setSentenceEditModalVisible,
+
+    // 메모 수정 모달
+    memoEditModalVisible,
+    memoContent,
+    memoPage,
+    setMemoContent,
+    setMemoPage,
+    setMemoEditModalVisible,
+
+    // 메모 추가 모달
+    isMemoAddModalVisible,
+    newMemoContent,
+    newMemoPage,
+    setNewMemoContent,
+    setNewMemoPage,
+    setMemoAddModalVisible,
 
     // 리뷰 작성 모달
     isReviewModalVisible,
@@ -410,6 +549,9 @@ export const useBookDetailViewModel = ({
     handleUpdateStatus,
     handleSentenceOptions,
     updateSentence,
+    handleMemoOptions,
+    updateMemo,
+    addMemo,
     handleSubmitReview,
     handleCancelReview,
     openReviewEditModal,

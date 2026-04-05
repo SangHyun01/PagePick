@@ -1,7 +1,9 @@
+import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useShareIntent } from "expo-share-intent";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -14,12 +16,19 @@ export default function RootLayout() {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
   useEffect(() => {
+    registerForPushNotificationsAsync();
+
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-      setInitialized(true);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setSession(session);
+        setInitialized(true);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        setInitialized(true); // 에러여도 initialized는 true로
+      }
     };
 
     checkSession();
@@ -35,8 +44,7 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!initialized) return; // 로딩 중이면 대기
-
+    if (!initialized) return;
     const inAuthGroup = segments[0] === "auth";
 
     // 로그인이 안 되어 있으면 로그인 화면으로
@@ -99,6 +107,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
+        <StatusBar style="dark" />
         <Stack>
           {/* 로그인/회원가입 화면 등록 */}
           <Stack.Screen name="auth" options={{ headerShown: false }} />
@@ -124,7 +133,10 @@ export default function RootLayout() {
           <Stack.Screen name="select-book" options={{ headerShown: false }} />
 
           {/* 책 상세 화면 */}
-          <Stack.Screen name="book-detail/[id]" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="book-detail/[id]"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
