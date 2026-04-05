@@ -2,7 +2,6 @@ import {
   addReadingSession,
   getTodayReadingDuration,
 } from "@/services/readingSessionService";
-import * as sentenceService from "@/services/sentenceService";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, AppStateStatus } from "react-native";
@@ -26,21 +25,10 @@ const formatTime = (totalSeconds: number) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
-const DEFAULT_QUOTE = {
-  content: "책은 얼어붙은 감수성을 깨는 도끼여야 한다.",
-  source: "프란츠 카프카",
-  page: null,
-  author: null,
-};
-
 export type Mode = "Timer" | "Stopwatch";
 
 export const useHomeViewModel = (music: AudioTrack | null) => {
   // --- State ---
-  // Quote
-  const [quote, setQuote] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
   // Timer/Stopwatch
   const [mode, setMode] = useState<Mode>("Stopwatch");
   const [time, setTime] = useState(0); // Live time for stopwatch or timer
@@ -81,19 +69,6 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
   }, [dbTodayDuration, time, mode, hasStarted]);
 
   // --- Data Fetching ---
-  const fetchRandomSentence = async () => {
-    setLoading(true);
-    try {
-      const randomQuote = await sentenceService.getRandomSentence();
-      setQuote(randomQuote || DEFAULT_QUOTE);
-    } catch (e) {
-      console.error(e);
-      setQuote(DEFAULT_QUOTE);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchTodayDuration = useCallback(async () => {
     const {
       data: { session },
@@ -106,7 +81,6 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchRandomSentence();
       fetchTodayDuration();
     }, [fetchTodayDuration]),
   );
@@ -312,9 +286,6 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
 
   return {
     // State
-    quote,
-    loading,
-    isDefaultQuote: quote === DEFAULT_QUOTE,
     mode,
     isActive,
     hasStarted,

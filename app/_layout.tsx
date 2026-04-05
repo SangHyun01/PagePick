@@ -1,11 +1,9 @@
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
-import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useShareIntent } from "expo-share-intent";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -17,21 +15,20 @@ export default function RootLayout() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
-  const [fontsLoaded] = useFonts({
-    ...Ionicons.font,
-  });
-
   useEffect(() => {
-    if (!fontsLoaded) return;
-
     registerForPushNotificationsAsync();
 
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-      setInitialized(true);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setSession(session);
+        setInitialized(true);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        setInitialized(true); // 에러여도 initialized는 true로
+      }
     };
 
     checkSession();
@@ -44,11 +41,10 @@ export default function RootLayout() {
     });
 
     return () => subscription.unsubscribe();
-  }, [fontsLoaded]);
+  }, []);
 
   useEffect(() => {
-    if (!initialized || !fontsLoaded) return; // 로딩 중이면 대기
-
+    if (!initialized) return;
     const inAuthGroup = segments[0] === "auth";
 
     // 로그인이 안 되어 있으면 로그인 화면으로
@@ -88,7 +84,6 @@ export default function RootLayout() {
   }, [
     session,
     initialized,
-    fontsLoaded,
     segments,
     hasShareIntent,
     shareIntent,
@@ -97,7 +92,7 @@ export default function RootLayout() {
   ]);
 
   // 로딩 화면
-  if (!initialized || !fontsLoaded) {
+  if (!initialized) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
@@ -138,7 +133,10 @@ export default function RootLayout() {
           <Stack.Screen name="select-book" options={{ headerShown: false }} />
 
           {/* 책 상세 화면 */}
-          <Stack.Screen name="book-detail/[id]" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="book-detail/[id]"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
