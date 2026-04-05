@@ -34,7 +34,7 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
   const [time, setTime] = useState(0); // Live time for stopwatch or timer
   const [isActive, setIsActive] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Timer specific
   const [timerTargetSeconds, setTimerTargetSeconds] = useState(25 * 60);
