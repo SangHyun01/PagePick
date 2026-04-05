@@ -2,7 +2,7 @@
   "expo": {
     "name": "페이지픽",
     "slug": "PagePick",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "orientation": "portrait",
     "icon": "./src/assets/images/pagepick-logo.png",
     "scheme": "pagepick",
@@ -26,7 +26,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.sanghyun01.PagePick",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 31,
+      "versionCode": 32,
       "permissions": ["CAMERA"],
       "intentFilters": [
         {
