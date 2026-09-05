@@ -44,7 +44,7 @@ export const useAuthViewModel = () => {
     "https://www.notion.so/PagePick-2f00ea70703080659305d1735208f6ba?source=copy_link";
   const instagramUrl = "https://www.instagram.com/pagepick.official/";
   const instagramDeepLink = "instagram://_u/pagepick.official";
-  const developerEmail = "simon010809@gmail.com";
+  const developerEmail = "pagepick.help@gmail.com";
   const announcementsUrl =
     "https://www.notion.so/PagePick-3040ea7070308053a72cdeea98896833?source=copy_link";
   const termsOfServiceUrl =
