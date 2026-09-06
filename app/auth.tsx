@@ -112,6 +112,15 @@ export default function AuthScreen() {
           </View>
         )}
 
+        {isLoginMode && (
+          <TouchableOpacity
+            style={styles.forgotPasswordButton}
+            onPress={() => router.push("/forgot-password")}
+          >
+            <Text style={styles.forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
+          </TouchableOpacity>
+        )}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[
@@ -132,15 +141,6 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </View>
 
-        {isLoginMode && (
-          <TouchableOpacity
-            style={styles.forgotPasswordButton}
-            onPress={() => router.push("/forgot-password")}
-          >
-            <Text style={styles.forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
-          </TouchableOpacity>
-        )}
-
         <TouchableOpacity style={styles.switchButton} onPress={toggleMode}>
           <Text style={styles.switchButtonText}>
             {isLoginMode
@@ -150,6 +150,11 @@ export default function AuthScreen() {
         </TouchableOpacity>
 
         <View style={styles.socialLoginContainer}>
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>또는</Text>
+            <View style={styles.dividerLine} />
+          </View>
           <TouchableOpacity
             style={[styles.socialButton, styles.googleButton]}
             onPress={signInWithGoogle}
@@ -240,18 +245,19 @@ const styles = StyleSheet.create({
   mainButtonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
   forgotPasswordButton: {
     alignSelf: "flex-end",
-    marginTop: SIZES.base * 1.5,
-    padding: SIZES.base / 2,
+    marginTop: -SIZES.base,
+    marginBottom: SIZES.base,
+    paddingVertical: SIZES.base / 2,
   },
   forgotPasswordText: { color: "#007AFF", fontSize: SIZES.body4 },
   switchButton: {
-    marginTop: SIZES.padding,
+    marginTop: SIZES.base,
     alignItems: "center",
-    padding: SIZES.base,
+    paddingVertical: SIZES.base,
   },
   switchButtonText: { color: "#666", fontSize: SIZES.body4 },
   privacyButton: {
-    marginTop: SIZES.padding,
+    marginTop: SIZES.padding * 1.5,
     alignItems: "center",
     padding: SIZES.base,
   },
@@ -266,8 +272,16 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   socialLoginContainer: {
-    marginTop: SIZES.padding * 2,
+    marginTop: SIZES.padding,
   },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.base,
+    marginBottom: SIZES.padding,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: "#eee" },
+  dividerText: { color: "#999", fontSize: SIZES.body4 },
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
