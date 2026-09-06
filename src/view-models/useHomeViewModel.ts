@@ -287,6 +287,8 @@ export const useHomeViewModel = (music: AudioTrack | null) => {
   return {
     // State
     mode,
+    time,
+    timerTargetSeconds,
     isActive,
     hasStarted,
     // UI Values

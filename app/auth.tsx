@@ -117,7 +117,9 @@ export default function AuthScreen() {
             style={styles.forgotPasswordButton}
             onPress={() => router.push("/forgot-password")}
           >
-            <Text style={styles.forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
+            <Text style={styles.forgotPasswordText}>
+              비밀번호를 잊으셨나요?
+            </Text>
           </TouchableOpacity>
         )}
 
