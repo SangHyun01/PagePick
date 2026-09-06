@@ -14,6 +14,81 @@ export const signUp = async (credentials: AuthCredentials) => {
   if (error) throw error;
 };
 
+// 비밀번호 재설정 메일 발송
+export const requestPasswordReset = async (email: string) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: "pagepick://reset-password",
+  });
+
+  if (error) throw error;
+};
+
+// 비밀번호 재설정 메일의 딥링크에서 복구 세션 생성
+export const createRecoverySessionFromUrl = async (url: string) => {
+  let recoveryUrl = url;
+  let params = new URLSearchParams();
+
+  // Expo 개발 빌드는 원본 딥링크를 `url` 파라미터로 한 번 감싸 전달할 수 있다.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const query = recoveryUrl.split("?")[1]?.split("#")[0] ?? "";
+    const hash = recoveryUrl.includes("#") ? recoveryUrl.split("#")[1] : "";
+    params = new URLSearchParams([query, hash].filter(Boolean).join("&"));
+
+    const nestedUrl = params.get("url");
+    if (!nestedUrl || !/^[a-z][a-z\d+.-]*:/i.test(nestedUrl)) break;
+    recoveryUrl = nestedUrl;
+  }
+
+  // 토큰 값은 기록하지 않고, 디버깅에 필요한 파라미터 이름만 남긴다.
+  console.log("Password recovery link received:", {
+    path: recoveryUrl.split(/[?#]/)[0],
+    parameterNames: Array.from(params.keys()),
+  });
+
+  const code = params.get("code");
+  const tokenHash = params.get("token_hash");
+  const type = params.get("type");
+  const errorDescription = params.get("error_description");
+
+  if (errorDescription) {
+    throw new Error(errorDescription);
+  }
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    return;
+  }
+
+  if (tokenHash && type === "recovery") {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "recovery",
+    });
+    if (error) throw error;
+    return;
+  }
+
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+
+  if (!accessToken || !refreshToken) {
+    throw new Error("유효하지 않거나 만료된 비밀번호 재설정 링크입니다.");
+  }
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+  if (error) throw error;
+};
+
+// 복구 세션에서 새 비밀번호 저장
+export const updatePassword = async (password: string) => {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+};
+
 // 유저 정보 불러오기
 export const getUser = async () => {
   const {

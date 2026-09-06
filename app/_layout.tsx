@@ -1,6 +1,8 @@
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
 import { supabase } from "@/lib/supabase";
+import * as userService from "@/services/userService";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import * as Linking from "expo-linking";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
@@ -44,12 +46,27 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    // 화면 전환 전에 수신한 복구 딥링크도 놓치지 않도록 앱 최상단에서 처리한다.
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      if (!url.startsWith("pagepick://reset-password")) return;
+
+      void userService.createRecoverySessionFromUrl(url).catch((error) => {
+        console.error("Password recovery link failed:", error);
+      });
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
     if (!initialized) return;
     const inAuthGroup = segments[0] === "auth";
+    const inPasswordResetRequest = segments[0] === "forgot-password";
+    const inPasswordRecovery = segments[0] === "reset-password";
 
     // 로그인이 안 되어 있으면 로그인 화면으로
     if (!session) {
-      if (!inAuthGroup) {
+      if (!inAuthGroup && !inPasswordResetRequest && !inPasswordRecovery) {
         router.replace("/auth");
       }
       return;
@@ -111,6 +128,14 @@ export default function RootLayout() {
         <Stack>
           {/* 로그인/회원가입 화면 등록 */}
           <Stack.Screen name="auth" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="forgot-password"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="reset-password"
+            options={{ headerShown: false }}
+          />
 
           {/* 메인 탭 화면 */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -2,7 +2,7 @@ import { SIZES } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { useAuthViewModel } from "@/view-models/useAuthViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
@@ -24,6 +24,7 @@ AppState.addEventListener("change", (state) => {
 });
 
 export default function AuthScreen() {
+  const router = useRouter();
   const {
     email,
     setEmail,
@@ -131,6 +132,15 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </View>
 
+        {isLoginMode && (
+          <TouchableOpacity
+            style={styles.forgotPasswordButton}
+            onPress={() => router.push("/forgot-password")}
+          >
+            <Text style={styles.forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity style={styles.switchButton} onPress={toggleMode}>
           <Text style={styles.switchButtonText}>
             {isLoginMode
@@ -228,6 +238,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   mainButtonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
+  forgotPasswordButton: {
+    alignSelf: "flex-end",
+    marginTop: SIZES.base * 1.5,
+    padding: SIZES.base / 2,
+  },
+  forgotPasswordText: { color: "#007AFF", fontSize: SIZES.body4 },
   switchButton: {
     marginTop: SIZES.padding,
     alignItems: "center",
