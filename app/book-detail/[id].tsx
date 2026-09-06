@@ -3,7 +3,7 @@ import CongratsModal from "@/components/CongratsModal";
 import MemoList from "@/components/MemoList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
-import { Colors, SIZES } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
@@ -151,7 +151,7 @@ export default function BookDetailScreen() {
   if (loading || !book) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.light.tint} />
+        <ActivityIndicator size="large" color="#375A4E" />
       </View>
     );
   }
@@ -166,7 +166,7 @@ export default function BookDetailScreen() {
           style={styles.backButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={28} color={Colors.light.text} />
+          <Ionicons name="chevron-back" size={28} color="#375A4E" />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={styles.headerTitle} numberOfLines={1}>
@@ -180,7 +180,7 @@ export default function BookDetailScreen() {
           <Ionicons
             name="settings-outline"
             size={24}
-            color={Colors.light.text}
+            color="#375A4E"
           />
         </TouchableOpacity>
       </View>
@@ -270,7 +270,7 @@ export default function BookDetailScreen() {
                 key={star}
                 name={star <= book.rating! ? "star" : "star-outline"}
                 size={24}
-                color={Colors.light.tint}
+                color="#C49750"
               />
             ))}
           </View>
@@ -285,7 +285,7 @@ export default function BookDetailScreen() {
             <Ionicons
               name="create-outline"
               size={24}
-              color={Colors.light.tint}
+              color="#557A68"
             />
           </TouchableOpacity>
         )
@@ -627,7 +627,7 @@ export default function BookDetailScreen() {
                   <Ionicons
                     name={star <= newRating ? "star" : "star-outline"}
                     size={32}
-                    color={Colors.light.tint}
+                    color="#C49750"
                     style={{ marginHorizontal: 5 }}
                   />
                 </TouchableOpacity>
@@ -684,7 +684,7 @@ export default function BookDetailScreen() {
                   <Ionicons
                     name={star <= editingRating ? "star" : "star-outline"}
                     size={32}
-                    color={Colors.light.tint}
+                    color="#C49750"
                     style={{ marginHorizontal: 5 }}
                   />
                 </TouchableOpacity>
@@ -737,7 +737,7 @@ export default function BookDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background },
+  container: { flex: 1, backgroundColor: "#F7F5F0" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   content: {
     flex: 1,
@@ -747,11 +747,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: SIZES.padding * 1.5,
-    paddingBottom: SIZES.base * 2,
-    paddingHorizontal: SIZES.base * 2,
-    backgroundColor: Colors.light.background,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingBottom: SIZES.base * 1.5,
+    paddingHorizontal: SIZES.padding,
   },
   backButton: { padding: SIZES.base / 2 },
   titleContainer: {
@@ -761,34 +758,44 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: SIZES.h3,
-    fontWeight: "bold",
-    color: Colors.light.text,
+    fontWeight: "700",
+    color: "#24332D",
   },
   settingsButton: {
     padding: 5,
   },
   bookInfoSection: {
     flexDirection: "row",
-    padding: SIZES.padding,
-    backgroundColor: Colors.light.background,
+    padding: SIZES.padding * 0.75,
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.base,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.5,
+    borderWidth: 1,
+    borderColor: "#E6E4DC",
+    shadowColor: "#3A493F",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   smallCover: {
     width: 60,
     height: 90,
-    borderRadius: SIZES.radius / 2,
+    borderRadius: SIZES.radius,
     marginRight: SIZES.base * 2,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#E8E7E0",
   },
   infoText: { justifyContent: "center", flex: 1 },
   infoTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
     marginBottom: SIZES.base / 2,
-    color: Colors.light.text,
+    color: "#24332D",
   },
   infoAuthor: {
     fontSize: SIZES.body4,
-    color: Colors.light.icon,
+    color: "#78857E",
     marginBottom: SIZES.base / 2,
   },
   infoCountContainer: {
@@ -797,41 +804,38 @@ const styles = StyleSheet.create({
   },
   infoCount: {
     fontSize: SIZES.body4,
-    color: Colors.light.tint,
+    color: "#557A68",
     fontWeight: "600",
   },
   infoCountDivider: {
     fontSize: SIZES.body4,
-    color: Colors.light.icon,
+    color: "#A0AAA3",
     marginHorizontal: SIZES.base,
   },
   infoDate: {
     fontSize: 12,
-    color: Colors.light.icon,
+    color: "#87958C",
     marginTop: SIZES.base / 2,
   },
   statusSelectorContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: SIZES.base,
+    justifyContent: "space-between",
+    paddingVertical: SIZES.base * 0.75,
     paddingHorizontal: SIZES.padding,
-    backgroundColor: Colors.light.background,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   statusButton: {
-    paddingVertical: SIZES.base,
-    paddingHorizontal: SIZES.base * 2,
+    paddingVertical: SIZES.base * 0.8,
+    paddingHorizontal: SIZES.base * 1.5,
     borderRadius: SIZES.radius * 2,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#EEF2ED",
   },
   activeStatusButton: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
   },
   statusButtonText: {
     fontSize: SIZES.body4,
-    color: Colors.light.text,
-    fontWeight: "bold",
+    color: "#66766D",
+    fontWeight: "700",
   },
   activeStatusButtonText: {
     color: "white",
@@ -840,14 +844,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(36, 51, 45, 0.38)",
   },
   modalContent: {
     width: "85%",
-    backgroundColor: Colors.light.background,
-    borderRadius: SIZES.radius * 1.5,
+    backgroundColor: "#FFFEFA",
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
     padding: SIZES.padding,
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -858,25 +864,25 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: SIZES.padding,
     textAlign: "center",
-    color: Colors.light.text,
+    color: "#24332D",
   },
   label: {
     alignSelf: "flex-start",
     fontSize: SIZES.body4,
     fontWeight: "600",
-    color: Colors.light.icon,
+    color: "#66766D",
     marginBottom: SIZES.base * 0.75,
     marginTop: SIZES.base,
   },
   input: {
     width: "100%",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#F3F6F1",
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#DCE5DB",
     borderRadius: SIZES.radius,
     padding: SIZES.base * 1.5,
     fontSize: SIZES.body3,
-    color: Colors.light.text,
+    color: "#24332D",
   },
   textArea: { height: 100, textAlignVertical: "top" },
   modalButtons: {
@@ -891,33 +897,34 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
     alignItems: "center",
   },
-  btnCancel: { backgroundColor: "#f0f0f0", marginRight: SIZES.base },
-  btnSave: { backgroundColor: Colors.light.tint },
-  btnTextCancel: { color: Colors.light.icon, fontWeight: "bold" },
-  btnTextSave: { color: Colors.light.background, fontWeight: "bold" },
+  btnCancel: { backgroundColor: "#EEF2ED", marginRight: SIZES.base },
+  btnSave: { backgroundColor: "#375A4E" },
+  btnTextCancel: { color: "#66766D", fontWeight: "bold" },
+  btnTextSave: { color: "#FFFFFF", fontWeight: "bold" },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: Colors.light.background,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    backgroundColor: "#EEF2ED",
+    borderRadius: SIZES.radius,
+    padding: 4,
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.base,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: SIZES.base * 1.8,
+    paddingVertical: SIZES.base,
     alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
+    borderRadius: SIZES.radius - 2,
   },
   activeTabButton: {
-    borderBottomColor: Colors.light.tint,
+    backgroundColor: "#FFFDFC",
   },
   tabText: {
     fontSize: SIZES.body3,
-    color: Colors.light.icon,
+    color: "#78857E",
     fontWeight: "600",
   },
   activeTabText: {
-    color: Colors.light.tint,
+    color: "#375A4E",
     fontWeight: "bold",
   },
   starContainer: {
@@ -931,14 +938,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.base * 1.5,
-    backgroundColor: Colors.light.background,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.base,
+    backgroundColor: "#FFF8EC",
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: "#F0E2C9",
   },
   ratingLabel: {
     fontSize: SIZES.body3,
     fontWeight: "bold",
-    color: Colors.light.text,
+    color: "#63513A",
   },
   btnDelete: {
     backgroundColor: "#ff4d4f",
@@ -958,17 +968,17 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base,
   },
   tag: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#EEF2ED",
     borderRadius: SIZES.radius * 2,
     paddingVertical: SIZES.base,
     paddingHorizontal: SIZES.base * 1.5,
   },
   selectedTag: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
   },
   tagText: {
     fontSize: SIZES.body4,
-    color: Colors.light.text,
+    color: "#66766D",
   },
   selectedTagText: {
     color: "white",
@@ -981,11 +991,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

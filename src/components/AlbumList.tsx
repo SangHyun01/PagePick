@@ -1,4 +1,4 @@
-import { Colors, SIZES } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import React from "react";
 import {
   FlatList,
@@ -102,6 +102,7 @@ const AlbumList: React.FC<AlbumListProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F7F5F0",
   },
   emptyContainer: {
     alignItems: "center",
@@ -115,23 +116,23 @@ const styles = StyleSheet.create({
   albumImage: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#E9E7E1",
     borderRadius: SIZES.base,
   },
   uploadButton: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
     padding: SIZES.padding / 1.5,
     borderRadius: SIZES.radius,
     alignItems: "center",
     marginHorizontal: SIZES.padding,
   },
   uploadButtonText: {
-    color: Colors.light.background,
+    color: "#FFFFFF",
     fontSize: SIZES.h3,
     fontWeight: "bold",
   },
   emptyListText: {
-    color: Colors.light.icon,
+    color: "#87958C",
     fontSize: SIZES.body4,
   },
 });

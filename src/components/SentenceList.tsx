@@ -1,4 +1,4 @@
-import { Colors, SIZES } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { Sentence } from "@/types/sentence";
 import { fontScale } from "@/utils/responsive";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -29,7 +29,7 @@ export default function SentenceList({
           <FontAwesome
             name="quote-left"
             size={SIZES.h2}
-            color={Colors.light.tint}
+            color="#557A68"
             style={{ opacity: 0.3 }}
           />
         </View>
@@ -41,7 +41,7 @@ export default function SentenceList({
             <Ionicons
               name="ellipsis-vertical"
               size={SIZES.h2}
-              color={Colors.light.icon}
+              color="#87958C"
             />
           </TouchableOpacity>
         )}
@@ -105,11 +105,13 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.padding,
   },
   card: {
-    backgroundColor: Colors.light.background,
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.25,
+    borderWidth: 1,
+    borderColor: "#E6E4DC",
     padding: SIZES.padding,
     marginBottom: SIZES.base * 2,
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
   sentenceText: {
     fontSize: SIZES.body3,
     lineHeight: SIZES.h2,
-    color: Colors.light.text,
+    color: "#24332D",
     fontWeight: "500",
     letterSpacing: -0.5,
     marginBottom: SIZES.base * 1.5,
@@ -136,15 +138,15 @@ const styles = StyleSheet.create({
   },
   pageText: {
     fontSize: SIZES.h4,
-    color: Colors.light.icon,
-    backgroundColor: "#F5F5F5",
+    color: "#66766D",
+    backgroundColor: "#EEF2ED",
     paddingHorizontal: SIZES.base,
     paddingVertical: SIZES.base / 2,
     borderRadius: SIZES.base,
     overflow: "hidden",
   },
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
-  emptyText: { color: Colors.light.icon, fontSize: SIZES.body4 },
+  emptyText: { color: "#87958C", fontSize: SIZES.body4 },
   tagList: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -152,8 +154,8 @@ const styles = StyleSheet.create({
     marginTop: SIZES.base,
   },
   tag: {
-    backgroundColor: "white",
-    borderColor: Colors.light.tint,
+    backgroundColor: "#F3F6F1",
+    borderColor: "#D8E4D8",
     borderWidth: 1,
     borderRadius: SIZES.radius,
     paddingVertical: SIZES.base / 2,
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: fontScale(10),
-    color: Colors.light.tint,
+    color: "#557A68",
     fontWeight: "600",
   },
 });
