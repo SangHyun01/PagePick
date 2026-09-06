@@ -3,13 +3,13 @@ import { withSupabase } from "@supabase/server";
 
 type Book = { id: number; title: string; author: string | null; status: "wish" | "reading" | "finished"; rating: number | null; review: string | null; started_at: string | null; finished_at: string | null };
 type Sentence = { id: number; book_id: number; content: string; page: number | null; tags: string[] | null; create_at: string | null };
-type Memo = { id: number; book_id: number; content: string; page: string | null; created_at: string | null };
+type Memo = { id: string; book_id: string; content: string; page: string | null; created_at: string | null };
 type Archive = { user_id: string; root_page_id: string; root_page_url: string; books_data_source_id: string };
-type PageMapping = { id: number; source_type: "book" | "sentence" | "memo"; source_id: number; notion_page_id: string | null; notion_block_id: string | null };
+type PageMapping = { id: number; source_type: "book" | "sentence" | "memo"; source_id: string; notion_page_id: string | null; notion_block_id: string | null };
 type BookSections = { book_id: number; sentences_section_block_id: string; memos_section_block_id: string };
 type NotionPage = { id: string; url: string };
-type NotionDatabase = { data_sources?: Array<{ id: string }>; in_trash?: boolean };
-type NotionDataSource = { properties: Record<string, { id: string; type: string }> };
+type NotionDatabase = { data_sources?: Array<{ id: string }> };
+type NotionDataSource = { properties: Record<string, { id: string; type: string }>; in_trash?: boolean };
 type NotionBlock = { id: string };
 type AppendBlocksResponse = { results: NotionBlock[] };
 
@@ -19,6 +19,7 @@ const STATUS_LABEL: Record<Book["status"], string> = { wish: "읽을 책", readi
 const truncate = (value: string, maxLength = 1800) => value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
 const richText = (content: string) => content ? [{ type: "text", text: { content: truncate(content) } }] : [];
 const toNotionDate = (value: string | null) => (value ? { start: value } : null);
+const bookKey = (bookId: number | string) => String(bookId).trim();
 const ratingStars = (rating: number | null) => {
   if (rating === null) return "";
   const filled = Math.max(0, Math.min(5, Math.round(rating)));
@@ -150,8 +151,8 @@ export default {
       let archive = archiveResult.data as Archive | null;
       if (archive) {
         try {
-          const booksDatabase = await notionRequest<NotionDatabase>(`/databases/${archive.books_data_source_id}`, notionToken, "GET");
-          if (booksDatabase.in_trash) throw new NotionResourceNotFoundError("Notion 아카이브가 휴지통에 있습니다.");
+          const booksDataSource = await notionRequest<NotionDataSource>(`/data_sources/${archive.books_data_source_id}`, notionToken, "GET");
+          if (booksDataSource.in_trash) throw new NotionResourceNotFoundError("Notion 아카이브가 휴지통에 있습니다.");
         } catch (error) {
           if (!(error instanceof NotionResourceNotFoundError)) throw error;
 
@@ -180,26 +181,29 @@ export default {
       ]);
       if (mappingsResult.error || sectionsResult.error) throw new Error("동기화 정보를 읽지 못했습니다.");
       const mappingBySource = new Map(((mappingsResult.data ?? []) as PageMapping[]).map((mapping) => [`${mapping.source_type}:${mapping.source_id}`, mapping]));
-      const sectionByBook = new Map(((sectionsResult.data ?? []) as BookSections[]).map((section) => [section.book_id, section]));
-      const bookPageIdByBookId = new Map<number, string>();
+      const sectionByBook = new Map(((sectionsResult.data ?? []) as BookSections[]).map((section) => [bookKey(section.book_id), section]));
+      const bookPageIdByBookId = new Map<string, string>();
+      let syncedSentenceCount = 0;
+      let syncedMemoCount = 0;
 
       for (const book of books) {
         const mapping = mappingBySource.get(`book:${book.id}`);
         const result = await syncBookPage(notionToken, archive.books_data_source_id, mapping, book);
-        bookPageIdByBookId.set(book.id, result.notionPageId);
+        bookPageIdByBookId.set(bookKey(book.id), result.notionPageId);
         if (result.isNew) {
           const { error } = await ctx.supabaseAdmin.from("notion_export_page_mappings").insert({ user_id: user.id, source_type: "book", source_id: book.id, notion_page_id: result.notionPageId });
           if (error) throw error;
         }
-        const section = await ensureBookSections(notionToken, result.notionPageId, sectionByBook.get(book.id));
-        if (!sectionByBook.has(book.id)) {
+        const key = bookKey(book.id);
+        const section = await ensureBookSections(notionToken, result.notionPageId, sectionByBook.get(key));
+        if (!sectionByBook.has(key)) {
           const { error } = await ctx.supabaseAdmin.from("notion_export_book_sections").insert({ user_id: user.id, book_id: book.id, sentences_section_block_id: section.sentences_section_block_id, memos_section_block_id: section.memos_section_block_id });
           if (error) throw error;
-          sectionByBook.set(book.id, { ...section, book_id: book.id });
+          sectionByBook.set(key, { ...section, book_id: book.id });
         }
       }
 
-      const saveBlockId = async (sourceType: PageMapping["source_type"], sourceId: number, existing: PageMapping | undefined, notionBlockId: string) => {
+      const saveBlockId = async (sourceType: PageMapping["source_type"], sourceId: string, existing: PageMapping | undefined, notionBlockId: string) => {
         const query = existing
           ? ctx.supabaseAdmin.from("notion_export_page_mappings").update({ notion_block_id: notionBlockId }).eq("id", existing.id)
           : ctx.supabaseAdmin.from("notion_export_page_mappings").insert({ user_id: user.id, source_type: sourceType, source_id: sourceId, notion_block_id: notionBlockId });
@@ -208,23 +212,31 @@ export default {
       };
 
       for (const sentence of sentences) {
-        const section = sectionByBook.get(sentence.book_id);
-        if (!section || !bookPageIdByBookId.has(sentence.book_id)) continue;
+        const key = bookKey(sentence.book_id);
+        const section = sectionByBook.get(key);
+        if (!section || !bookPageIdByBookId.has(key)) {
+          throw new Error("문장을 연결할 책 페이지를 찾지 못했습니다.");
+        }
         const existing = mappingBySource.get(`sentence:${sentence.id}`);
         const notionBlockId = await syncContentBlock(notionToken, section.sentences_section_block_id, existing?.notion_block_id ?? null, sentenceBlock(sentence));
-        await saveBlockId("sentence", sentence.id, existing, notionBlockId);
+        await saveBlockId("sentence", String(sentence.id), existing, notionBlockId);
+        syncedSentenceCount += 1;
       }
       for (const memo of memos) {
-        const section = sectionByBook.get(memo.book_id);
-        if (!section || !bookPageIdByBookId.has(memo.book_id)) continue;
+        const key = bookKey(memo.book_id);
+        const section = sectionByBook.get(key);
+        if (!section || !bookPageIdByBookId.has(key)) {
+          throw new Error("메모를 연결할 책 페이지를 찾지 못했습니다.");
+        }
         const existing = mappingBySource.get(`memo:${memo.id}`);
         const notionBlockId = await syncContentBlock(notionToken, section.memos_section_block_id, existing?.notion_block_id ?? null, memoBlock(memo));
         await saveBlockId("memo", memo.id, existing, notionBlockId);
+        syncedMemoCount += 1;
       }
 
       const { error: updateArchiveError } = await ctx.supabaseAdmin.from("notion_export_archives").update({ last_synced_at: new Date().toISOString() }).eq("user_id", user.id);
       if (updateArchiveError) throw updateArchiveError;
-      return Response.json({ url: archive.root_page_url, exported: { books: books.length, sentences: sentences.length, memos: memos.length } });
+      return Response.json({ url: archive.root_page_url, exported: { books: books.length, sentences: syncedSentenceCount, memos: syncedMemoCount } });
     } catch (error) {
       console.error("Notion export failed", error instanceof Error ? error.message : error);
       return Response.json({ error: error instanceof Error ? error.message : "독서 기록을 동기화하는 중 문제가 발생했습니다." }, { status: 500 });
