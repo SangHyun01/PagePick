@@ -3,7 +3,7 @@ import CongratsModal from "@/components/CongratsModal";
 import SentenceList from "@/components/SentenceList";
 import StreakProgressBar from "@/components/StreakProgressBar"; // Import the new component
 import StreakRewardModal from "@/components/StreakRewardModal";
-import { Colors, SIZES } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { fontScale, scale } from "@/utils/responsive";
 import { useStatsViewModel } from "@/view-models/useStatsViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -96,7 +96,7 @@ export default function StatsScreen() {
   const totalTags = tagStats.reduce((sum, stat) => sum + stat.count, 0);
 
   const chartConfig = {
-    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    color: (opacity = 1) => `rgba(85, 122, 104, ${opacity})`,
   };
 
   const renderItem = ({ item }: { item: string }) => {
@@ -107,16 +107,16 @@ export default function StatsScreen() {
             markingType={"custom"}
             markedDates={markedDates}
             theme={{
-              backgroundColor: "#ffffff",
-              calendarBackground: "#ffffff",
-              textSectionTitleColor: "#b6c1cd",
-              selectedDayBackgroundColor: "#00adf5",
-              selectedDayTextColor: "#ffffff",
-              todayTextColor: "#007AFF",
-              dayTextColor: "#2d4150",
-              textDisabledColor: "#d9e1e8",
-              arrowColor: "#007AFF",
-              monthTextColor: "#333",
+              backgroundColor: "#FFFDFC",
+              calendarBackground: "#FFFDFC",
+              textSectionTitleColor: "#87958C",
+              selectedDayBackgroundColor: "#375A4E",
+              selectedDayTextColor: "#FFFFFF",
+              todayTextColor: "#557A68",
+              dayTextColor: "#405148",
+              textDisabledColor: "#D6DDD6",
+              arrowColor: "#375A4E",
+              monthTextColor: "#24332D",
               textDayFontWeight: "500",
               textMonthFontWeight: "bold",
               textDayHeaderFontWeight: "bold",
@@ -217,7 +217,7 @@ export default function StatsScreen() {
         if (diff > 0)
           return {
             icon: "caret-up",
-            color: Colors.light.tint,
+            color: "#557A68",
             text: `${diff}`,
           };
         if (diff < 0)
@@ -284,7 +284,7 @@ export default function StatsScreen() {
                   roundedTop
                   roundedBottom
                   disableScroll
-                  frontColor={Colors.light.tint}
+                  frontColor="#557A68"
                   initialSpacing={initialSpacing}
                   noOfSections={3}
                   maxValue={Math.max(
@@ -296,14 +296,14 @@ export default function StatsScreen() {
                   )}
                   roundToDigits={0}
                   height={scale(180)}
-                  yAxisColor="lightgray"
+                  yAxisColor="#DDE4DC"
                   yAxisThickness={0}
                   rulesType="solid"
-                  rulesColor="lightgray"
-                  yAxisTextStyle={{ color: "gray", fontSize: fontScale(9) }}
-                  xAxisColor="lightgray"
+                  rulesColor="#E8EDE7"
+                  yAxisTextStyle={{ color: "#87958C", fontSize: fontScale(9) }}
+                  xAxisColor="#DDE4DC"
                   xAxisLabelTextStyle={{
-                    color: "gray",
+                    color: "#87958C",
                     fontSize: fontScale(8),
                     width: screenWidth * 0.06,
                     textAlign: "center",
@@ -350,7 +350,7 @@ export default function StatsScreen() {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#375A4E" />
         <Text style={styles.loadingText}>통계 데이터를 불러오는 중...</Text>
       </View>
     );
@@ -371,7 +371,7 @@ export default function StatsScreen() {
         <View style={styles.sheetHeader}>
           <Text style={styles.sheetTitle}>{selectedDate} 기록</Text>
           <TouchableOpacity onPress={closeSheet}>
-            <Ionicons name="close" size={24} color="black" />
+            <Ionicons name="close" size={24} color="#375A4E" />
           </TouchableOpacity>
         </View>
         <SentenceList sentences={selectedDateSentences} isBottomSheet={true} />
@@ -392,15 +392,15 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F7F5F0",
   },
   headerTitle: {
-    fontSize: SIZES.h2,
-    fontWeight: "bold",
-    paddingTop: SIZES.padding * 2,
+    fontSize: SIZES.h1 + 2,
+    fontWeight: "700",
+    paddingTop: SIZES.padding * 1.5,
     paddingHorizontal: SIZES.padding,
-    marginBottom: SIZES.padding,
-    color: "#333",
+    marginBottom: SIZES.padding * 0.8,
+    color: "#24332D",
   },
   loadingContainer: {
     justifyContent: "center",
@@ -409,39 +409,44 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: SIZES.base,
     fontSize: SIZES.body4,
-    color: "#666",
+    color: "#78857E",
   },
   calendarContainer: {
-    backgroundColor: "#fff",
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.5,
+    borderWidth: 1,
+    borderColor: "#E6E4DC",
     marginHorizontal: SIZES.padding,
     paddingBottom: SIZES.padding,
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   chartSectionContainer: {
-    marginTop: SIZES.padding * 2,
+    marginTop: SIZES.padding * 1.5,
     paddingHorizontal: SIZES.padding,
   },
   sectionTitle: {
     fontSize: SIZES.h3,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginBottom: SIZES.base,
+    color: "#405148",
   },
   totalSentencesText: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#78857E",
     textAlign: "center",
     marginTop: SIZES.padding,
   },
   chartWrapper: {
-    backgroundColor: "#fff",
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.5,
+    borderWidth: 1,
+    borderColor: "#E6E4DC",
     padding: SIZES.padding,
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -478,11 +483,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 150,
-    backgroundColor: "#f9f9f9",
-    borderRadius: SIZES.radius,
+    backgroundColor: "#EEF2ED",
+    borderRadius: SIZES.radius * 1.25,
   },
   emptyChartText: {
-    color: "#999",
+    color: "#87958C",
     fontSize: SIZES.body4,
   },
   sheetHeader: {
@@ -493,7 +498,8 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: SIZES.h3,
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: "#24332D",
   },
   bookStatsHeader: {
     flexDirection: "row",
@@ -503,13 +509,13 @@ const styles = StyleSheet.create({
   },
   bookStatsLabel: {
     fontSize: 12,
-    color: "#888",
+    color: "#87958C",
     marginBottom: 4,
   },
   bookStatsValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: "#24332D",
   },
   bookStatsUnit: {
     fontSize: 14,
@@ -520,7 +526,7 @@ const styles = StyleSheet.create({
   },
   deltaLabel: {
     fontSize: 10,
-    color: "#888",
+    color: "#87958C",
     marginBottom: 2,
   },
   deltaValueWrapper: {
@@ -534,24 +540,24 @@ const styles = StyleSheet.create({
   deltaValue: {
     fontSize: 12,
     fontWeight: "bold",
-    color: Colors.light.tint,
+    color: "#557A68",
     marginLeft: 2,
   },
   pointerLabel: {
-    backgroundColor: "rgba(51, 51, 51, 0.9)",
+    backgroundColor: "rgba(55, 90, 78, 0.95)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
   pointerLabelMonth: {
-    color: "#ccc",
+    color: "#D9E6DA",
     fontSize: 10,
     marginBottom: 2,
   },

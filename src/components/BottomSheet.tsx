@@ -67,10 +67,10 @@ const styles = StyleSheet.create({
   background: {
     borderTopLeftRadius: SIZES.radius * 2,
     borderTopRightRadius: SIZES.radius * 2,
-    backgroundColor: "white",
+    backgroundColor: "#FFFEFA",
   },
   handleIndicator: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#B6C5B7",
     width: 40,
   },
 });

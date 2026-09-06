@@ -24,7 +24,7 @@ const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
           현재 연속 {continuousReadingDays}일째
         </Text>
         <View style={styles.streakFreezeContainer}>
-          <Ionicons name="shield-half-outline" size={16} color="#00adf5" />
+          <Ionicons name="shield-half-outline" size={16} color="#ADD8E6" />
           <Text style={styles.streakFreezeLabel}>보호권:</Text>
           <Text style={styles.streakFreezeText}>{streakFreezes}</Text>
         </View>
@@ -64,9 +64,11 @@ const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: SIZES.padding,
-    backgroundColor: "#fff",
-    borderRadius: SIZES.radius,
-    shadowColor: "#000",
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.5,
+    borderWidth: 1,
+    borderColor: "#E6E4DC",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -80,7 +82,8 @@ const styles = StyleSheet.create({
   },
   streakText: {
     fontSize: SIZES.body3,
-    fontWeight: "500",
+    fontWeight: "700",
+    color: "#24332D",
   },
   streakFreezeContainer: {
     flexDirection: "row",
@@ -88,14 +91,14 @@ const styles = StyleSheet.create({
   },
   streakFreezeLabel: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#78857E",
     marginLeft: 4,
     marginRight: 4,
   },
   streakFreezeText: {
     fontSize: SIZES.body4,
     fontWeight: "bold",
-    color: "#00adf5",
+    color: "#ADD8E6",
   },
   percentageRow: {
     flexDirection: "row",
@@ -105,11 +108,11 @@ const styles = StyleSheet.create({
   },
   currentStreakText: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#78857E",
   },
   progressPercentage: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#78857E",
   },
   progressBarWrapper: {
     position: "relative",
@@ -118,13 +121,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: "100%",
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#E7EDE6",
     borderRadius: 8,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#FF8C00",
+    backgroundColor: "#557A68",
     borderRadius: 8,
   },
   flameAnimationAbsolute: {
@@ -136,7 +139,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#78857E",
     textAlign: "center",
     marginTop: SIZES.base,
   },
