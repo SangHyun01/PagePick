@@ -1,8 +1,10 @@
 import { SIZES } from "@/constants/theme";
+import { exportReadingArchiveToNotion } from "@/services/notionExportService";
 import { useAuthViewModel } from "@/view-models/useAuthViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -63,24 +65,37 @@ const SectionHeader = ({ title }: SectionHeaderProps) => (
 
 interface ExportCardProps {
   onPress: () => void;
+  isLoading: boolean;
 }
 
-const ExportCard = ({ onPress }: ExportCardProps) => (
-  <TouchableOpacity style={styles.exportCard} onPress={onPress} activeOpacity={0.8}>
+const ExportCard = ({ onPress, isLoading }: ExportCardProps) => (
+  <TouchableOpacity
+    style={[styles.exportCard, isLoading && styles.exportCardDisabled]}
+    onPress={onPress}
+    activeOpacity={0.8}
+    disabled={isLoading}
+  >
     <View style={styles.exportIconCircle}>
       <Ionicons name="share-outline" size={SIZES.h2} color="#375A4E" />
     </View>
     <View style={styles.exportTextContainer}>
-      <Text style={styles.exportTitle}>나의 독서 기록 내보내기</Text>
+      <Text style={styles.exportTitle}>
+        {isLoading ? "노션 아카이브를 동기화하는 중" : "노션 아카이브 동기화"}
+      </Text>
       <Text style={styles.exportDescription}>
-        책, 문장, 메모와 리뷰를 한곳에 정리해요
+        책, 문장, 메모와 리뷰를 표로 최신 상태로 정리해요
       </Text>
     </View>
-    <Ionicons name="chevron-forward" size={SIZES.h3} color="#557A68" />
+    {isLoading ? (
+      <ActivityIndicator size="small" color="#375A4E" />
+    ) : (
+      <Ionicons name="chevron-forward" size={SIZES.h3} color="#557A68" />
+    )}
   </TouchableOpacity>
 );
 
 export default function ProfileScreen() {
+  const [isExporting, setIsExporting] = useState(false);
   const {
     userEmail,
     getUserProfile,
@@ -100,11 +115,29 @@ export default function ProfileScreen() {
     getUserProfile();
   }, [getUserProfile]);
 
-  const handleExportPress = () => {
-    Alert.alert(
-      "독서 기록 내보내기",
-      "노션으로 나의 독서 기록을 정리하는 기능을 준비하고 있어요.",
-    );
+  const handleExportPress = async () => {
+    setIsExporting(true);
+    try {
+      const result = await exportReadingArchiveToNotion();
+      Alert.alert(
+        "동기화 완료",
+        `책 ${result.exported.books}권, 문장 ${result.exported.sentences}개, 메모 ${result.exported.memos}개를 노션 표에 반영했어요.`,
+        [
+          { text: "닫기", style: "cancel" },
+          { text: "Notion에서 보기", onPress: () => openUrl(result.url) },
+        ],
+      );
+    } catch (error) {
+      console.error("Notion export failed", error);
+      Alert.alert(
+        "내보내기에 실패했어요",
+        error instanceof Error
+          ? error.message
+          : "Notion 설정을 확인한 뒤 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -121,7 +154,7 @@ export default function ProfileScreen() {
         </View>
 
         <SectionHeader title="데이터 관리" />
-        <ExportCard onPress={handleExportPress} />
+        <ExportCard onPress={handleExportPress} isLoading={isExporting} />
 
         {/* 커뮤니티 & 문의 */}
         <SectionHeader title="커뮤니티 & 문의" />
@@ -236,6 +269,9 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius * 1.25,
     borderWidth: 1,
     borderColor: "#D8E5D8",
+  },
+  exportCardDisabled: {
+    opacity: 0.75,
   },
   exportIconCircle: {
     width: SIZES.padding * 2,
