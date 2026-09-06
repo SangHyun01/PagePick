@@ -1,4 +1,4 @@
-import { SIZES, Colors } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { Book, BookStatus } from "@/types/book";
 import { useBookshelfViewModel } from "@/view-models/useBookshelfViewModel";
 import { Ionicons } from "@expo/vector-icons";
@@ -66,6 +66,9 @@ export default function BookshelfScreen() {
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="library-outline" size={SIZES.h1} color="#557A68" />
+      </View>
       <Text style={styles.emptyText}>
         {searchQuery
           ? "검색 결과가 없습니다."
@@ -94,19 +97,30 @@ export default function BookshelfScreen() {
         })
       }
     >
-      {item.cover_url ? (
-        <Image
-          source={{ uri: item.cover_url }}
-          style={styles.bookCover}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.bookCoverPlaceholder}>
-          <Text style={{ fontSize: SIZES.h2, color: "#aaa" }}>
-            {item.title?.substring(0, 1)}
-          </Text>
+      <View style={styles.coverContainer}>
+        {item.cover_url ? (
+          <Image
+            source={{ uri: item.cover_url }}
+            style={styles.bookCover}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.bookCoverPlaceholder}>
+            <Text style={styles.placeholderInitial}>
+              {item.title?.substring(0, 1)}
+            </Text>
+          </View>
+        )}
+        <View
+          style={[
+            styles.bookStatusBadge,
+            item.status === "reading" && styles.readingBookStatusBadge,
+            item.status === "finished" && styles.finishedBookStatusBadge,
+          ]}
+        >
+          <Text style={styles.bookStatusText}>{STATUS_MAP[item.status]}</Text>
         </View>
-      )}
+      </View>
       <Text style={styles.bookTitle} numberOfLines={1}>
         {item.title}
       </Text>
@@ -119,14 +133,19 @@ export default function BookshelfScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>책장</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>나의 책장</Text>
+          <View style={styles.bookCountBadge}>
+            <Text style={styles.bookCountText}>{books.length}권</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
           size={20}
-          color={Colors.light.icon}
+          color="#78857E"
           style={styles.searchIcon}
         />
         <TextInput
@@ -134,7 +153,7 @@ export default function BookshelfScreen() {
           placeholder="책 제목, 저자 검색"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor={Colors.light.icon}
+          placeholderTextColor="#9AA69E"
         />
       </View>
 
@@ -162,7 +181,7 @@ export default function BookshelfScreen() {
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.light.tint} />
+          <ActivityIndicator size="large" color="#375A4E" />
         </View>
       ) : (
         <FlatList
@@ -190,28 +209,45 @@ export default function BookshelfScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: "#F7F5F0",
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
-    paddingTop: SIZES.padding * 2,
-    paddingBottom: SIZES.padding,
+    paddingTop: SIZES.padding * 1.5,
+    paddingBottom: SIZES.padding * 0.85,
     paddingHorizontal: SIZES.padding,
-    backgroundColor: Colors.light.background,
+  },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   headerTitle: {
-    fontSize: SIZES.h1,
-    fontWeight: "bold",
-    color: Colors.light.text,
+    fontSize: SIZES.h1 + 2,
+    fontWeight: "700",
+    color: "#24332D",
+  },
+  bookCountBadge: {
+    backgroundColor: "#E8EFEA",
+    borderRadius: SIZES.radius * 2,
+    paddingVertical: SIZES.base / 2,
+    paddingHorizontal: SIZES.base * 1.25,
+  },
+  bookCountText: {
+    color: "#557A68",
+    fontSize: SIZES.body4 - 2,
+    fontWeight: "700",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    borderWidth: 1,
+    borderColor: "#E4E1D8",
+    borderRadius: SIZES.radius * 1.25,
     marginHorizontal: PADDING,
     paddingHorizontal: SIZES.base * 1.5,
-    marginBottom: SIZES.base,
+    marginBottom: SIZES.base * 1.5,
   },
   searchIcon: {
     marginRight: SIZES.base,
@@ -220,31 +256,33 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     fontSize: SIZES.body3,
-    color: Colors.light.text,
+    color: "#24332D",
   },
   statusFilterContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: SIZES.base,
+    justifyContent: "space-between",
+    paddingVertical: SIZES.base / 2,
     paddingHorizontal: PADDING,
-    backgroundColor: Colors.light.background,
-    marginBottom: SIZES.base,
+    marginBottom: SIZES.base * 1.5,
   },
   statusButton: {
-    paddingVertical: SIZES.base,
-    paddingHorizontal: SIZES.base * 1.5,
+    paddingVertical: SIZES.base * 0.85,
+    paddingHorizontal: SIZES.base,
     borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   activeStatusButton: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#E8EFEA",
+    borderColor: "#D9E5DA",
   },
   statusButtonText: {
-    fontSize: SIZES.body4,
-    color: Colors.light.text,
-    fontWeight: "bold",
+    fontSize: SIZES.body4 - 2,
+    color: "#78857E",
+    fontWeight: "600",
   },
   activeStatusButtonText: {
-    color: "white",
+    color: "#375A4E",
   },
   listContentContainer: {
     paddingHorizontal: PADDING,
@@ -255,16 +293,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: SIZES.padding,
-    marginTop: SIZES.height / 5,
+    marginTop: SIZES.height / 6,
+  },
+  emptyIconCircle: {
+    width: SIZES.padding * 2.4,
+    height: SIZES.padding * 2.4,
+    borderRadius: SIZES.padding * 1.2,
+    backgroundColor: "#E8EFEA",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SIZES.padding,
   },
   emptyText: {
     fontSize: SIZES.h3,
-    color: "#555",
+    color: "#405148",
+    fontWeight: "700",
     marginBottom: SIZES.base,
   },
   emptySubText: {
     fontSize: SIZES.body4,
-    color: "#888",
+    color: "#87958C",
     marginBottom: SIZES.padding,
   },
   row: {
@@ -273,40 +321,63 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding,
   },
   bookItem: {
-    marginTop: SIZES.padding,
+    marginTop: SIZES.base,
     width: BOOK_WIDTH,
-    alignItems: "center",
+    alignItems: "flex-start",
+  },
+  coverContainer: {
+    width: BOOK_WIDTH,
+    height: BOOK_WIDTH * 1.5,
+    marginBottom: SIZES.base,
+    borderRadius: SIZES.radius * 1.25,
+    shadowColor: "#3A493F",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   bookCoverPlaceholder: {
     width: BOOK_WIDTH,
     height: BOOK_WIDTH * 1.5,
-    backgroundColor: "#e0e0e0",
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.base,
+    backgroundColor: "#E8EFEA",
+    borderRadius: SIZES.radius * 1.25,
     justifyContent: "center",
     alignItems: "center",
   },
+  placeholderInitial: { fontSize: SIZES.h2 + 4, color: "#557A68", fontWeight: "700" },
   bookTitle: {
     fontSize: SIZES.body4,
-    textAlign: "center",
-    color: Colors.light.text,
+    textAlign: "left",
+    color: "#24332D",
+    fontWeight: "700",
   },
   bookCover: {
     width: BOOK_WIDTH,
     height: BOOK_WIDTH * 1.5,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.base,
-    backgroundColor: "#eee",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: SIZES.radius * 1.25,
+    backgroundColor: "#E9E7E1",
   },
   bookAuthor: {
     fontSize: 12,
-    color: "#888",
-    textAlign: "center",
+    color: "#87958C",
+    textAlign: "left",
+    marginTop: 2,
+  },
+  bookStatusBadge: {
+    position: "absolute",
+    top: SIZES.base,
+    left: SIZES.base,
+    backgroundColor: "rgba(255, 253, 252, 0.94)",
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.base,
+    paddingVertical: SIZES.base / 2,
+  },
+  readingBookStatusBadge: { backgroundColor: "#DCEBDD" },
+  finishedBookStatusBadge: { backgroundColor: "#F1E8D9" },
+  bookStatusText: {
+    color: "#405148",
+    fontSize: SIZES.body4 - 4,
+    fontWeight: "700",
   },
   floatingButton: {
     position: "absolute",
@@ -315,10 +386,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#3A493F",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
