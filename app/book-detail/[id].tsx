@@ -4,6 +4,7 @@ import MemoList from "@/components/MemoList";
 import SentenceList from "@/components/SentenceList";
 import SuccessModal from "@/components/SuccessModal";
 import { SIZES } from "@/constants/theme";
+import { showDialog } from "@/lib/appFeedback";
 import { BookStatus } from "@/types/book";
 import { useAlbumViewModel } from "@/view-models/useAlbumViewModel";
 import { useBookDetailViewModel } from "@/view-models/useBookDetailViewModel";
@@ -12,7 +13,6 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -59,12 +59,16 @@ export default function BookDetailScreen() {
     isDelete,
     successType,
     bookEditModalVisible,
+    isBookOptionsModalVisible,
+    isBookDeleteConfirmVisible,
     editTitle,
     editAuthor,
     setEditTitle,
     setEditAuthor,
     setBookEditModalVisible,
+    setIsBookOptionsModalVisible,
     sentenceEditModalVisible,
+    selectedSentenceForOptions,
     editContent,
     editPage,
     editingTags,
@@ -72,6 +76,7 @@ export default function BookDetailScreen() {
     setEditPage,
     setSentenceEditModalVisible,
     memoEditModalVisible,
+    selectedMemoForOptions,
     memoContent,
     memoPage,
     setMemoContent,
@@ -100,10 +105,20 @@ export default function BookDetailScreen() {
     handleAnimationFinish,
     handleDeleteFinish,
     handleBookOptions,
+    openBookEditModal,
+    handleBookDeleteRequest,
+    cancelBookDelete,
+    confirmBookDelete,
     updateBook,
     handleSentenceOptions,
+    closeSentenceOptions,
+    editSelectedSentence,
+    deleteSelectedSentence,
     updateSentence,
     handleMemoOptions,
+    closeMemoOptions,
+    editSelectedMemo,
+    deleteSelectedMemo,
     updateMemo,
     addMemo,
     handleUpdateStatus,
@@ -132,19 +147,19 @@ export default function BookDetailScreen() {
   useEffect(() => {
     if (newPhotoUri) {
       router.setParams({ newPhotoUri: "" });
-      Alert.alert(
-        "사진 저장",
-        "선택하신 책에 공유된 사진을 저장하시겠습니까?",
-        [
-          { text: "취소", style: "cancel" },
+      showDialog({
+        title: "사진을 저장할까요?",
+        description: "선택한 책의 앨범에 사진을 추가할게요.",
+        actions: [
+          { label: "취소" },
           {
-            text: "저장",
+            label: "저장하기",
             onPress: async () => {
               await uploadSharedPhoto(newPhotoUri as string);
             },
           },
         ],
-      );
+      });
     }
   }, [newPhotoUri, uploadSharedPhoto]);
 
@@ -177,11 +192,7 @@ export default function BookDetailScreen() {
           onPress={handleBookOptions}
           style={styles.settingsButton}
         >
-          <Ionicons
-            name="settings-outline"
-            size={24}
-            color="#375A4E"
-          />
+          <Ionicons name="settings-outline" size={24} color="#375A4E" />
         </TouchableOpacity>
       </View>
 
@@ -282,11 +293,7 @@ export default function BookDetailScreen() {
             onPress={() => setReviewModalVisible(true)}
           >
             <Text style={styles.ratingLabel}>리뷰 작성하기</Text>
-            <Ionicons
-              name="create-outline"
-              size={24}
-              color="#557A68"
-            />
+            <Ionicons name="create-outline" size={24} color="#557A68" />
           </TouchableOpacity>
         )
       )}
@@ -391,6 +398,202 @@ export default function BookDetailScreen() {
           />
         )}
       </View>
+
+      <Modal
+        visible={isBookOptionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsBookOptionsModalVisible(false)}
+      >
+        <View style={styles.bookOptionsOverlay}>
+          <View style={styles.bookOptionsCard}>
+            <TouchableOpacity
+              style={styles.bookOptionsClose}
+              onPress={() => setIsBookOptionsModalVisible(false)}
+              accessibilityLabel="책 관리 모달 닫기"
+            >
+              <Ionicons name="close" size={22} color="#64736A" />
+            </TouchableOpacity>
+            <Text style={styles.bookOptionsTitle}>책 관리</Text>
+            <TouchableOpacity
+              style={styles.bookOptionButton}
+              onPress={openBookEditModal}
+              activeOpacity={0.8}
+            >
+              <View style={styles.bookOptionIcon}>
+                <Ionicons name="create-outline" size={21} color="#557A68" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookOptionTitle}>책 정보 수정</Text>
+                <Text style={styles.bookOptionDescription}>
+                  제목과 저자를 수정해요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#A2AEA5" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bookOptionButton, styles.bookDeleteOptionButton]}
+              onPress={handleBookDeleteRequest}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[styles.bookOptionIcon, styles.bookDeleteOptionIcon]}
+              >
+                <Ionicons name="trash-outline" size={21} color="#B85F55" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookDeleteOptionTitle}>책 삭제하기</Text>
+                <Text style={styles.bookOptionDescription}>
+                  저장된 문장과 메모도 함께 삭제돼요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C69088" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={isBookDeleteConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelBookDelete}
+      >
+        <View style={styles.bookOptionsOverlay}>
+          <View style={styles.bookDeleteConfirmCard}>
+            <View style={styles.bookDeleteWarningIcon}>
+              <Ionicons name="alert-outline" size={28} color="#B85F55" />
+            </View>
+            <Text style={styles.bookDeleteConfirmTitle}>책을 삭제할까요?</Text>
+            <Text style={styles.bookDeleteConfirmDescription}>
+              이 책에 저장된 문장과 메모도 함께 삭제됩니다.{`\n`}삭제한 기록은
+              되돌릴 수 없어요.
+            </Text>
+            <View style={styles.bookDeleteConfirmButtons}>
+              <TouchableOpacity
+                style={styles.bookDeleteCancelButton}
+                onPress={cancelBookDelete}
+              >
+                <Text style={styles.bookDeleteCancelButtonText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.bookDeleteConfirmButton}
+                onPress={confirmBookDelete}
+              >
+                <Text style={styles.bookDeleteConfirmButtonText}>삭제하기</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={Boolean(selectedSentenceForOptions)}
+        transparent
+        animationType="fade"
+        onRequestClose={closeSentenceOptions}
+      >
+        <View style={styles.bookOptionsOverlay}>
+          <View style={styles.bookOptionsCard}>
+            <TouchableOpacity
+              style={styles.bookOptionsClose}
+              onPress={closeSentenceOptions}
+              accessibilityLabel="문장 관리 모달 닫기"
+            >
+              <Ionicons name="close" size={22} color="#64736A" />
+            </TouchableOpacity>
+            <Text style={styles.bookOptionsTitle}>문장 관리</Text>
+            <TouchableOpacity
+              style={styles.bookOptionButton}
+              onPress={editSelectedSentence}
+              activeOpacity={0.8}
+            >
+              <View style={styles.bookOptionIcon}>
+                <Ionicons name="create-outline" size={21} color="#557A68" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookOptionTitle}>문장 수정</Text>
+                <Text style={styles.bookOptionDescription}>
+                  내용과 페이지, 태그를 수정해요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#A2AEA5" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bookOptionButton, styles.bookDeleteOptionButton]}
+              onPress={deleteSelectedSentence}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[styles.bookOptionIcon, styles.bookDeleteOptionIcon]}
+              >
+                <Ionicons name="trash-outline" size={21} color="#B85F55" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookDeleteOptionTitle}>문장 삭제</Text>
+                <Text style={styles.bookOptionDescription}>
+                  삭제한 문장은 되돌릴 수 없어요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C69088" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={Boolean(selectedMemoForOptions)}
+        transparent
+        animationType="fade"
+        onRequestClose={closeMemoOptions}
+      >
+        <View style={styles.bookOptionsOverlay}>
+          <View style={styles.bookOptionsCard}>
+            <TouchableOpacity
+              style={styles.bookOptionsClose}
+              onPress={closeMemoOptions}
+              accessibilityLabel="메모 관리 모달 닫기"
+            >
+              <Ionicons name="close" size={22} color="#64736A" />
+            </TouchableOpacity>
+            <Text style={styles.bookOptionsTitle}>메모 관리</Text>
+            <TouchableOpacity
+              style={styles.bookOptionButton}
+              onPress={editSelectedMemo}
+              activeOpacity={0.8}
+            >
+              <View style={styles.bookOptionIcon}>
+                <Ionicons name="create-outline" size={21} color="#557A68" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookOptionTitle}>메모 수정</Text>
+                <Text style={styles.bookOptionDescription}>
+                  내용과 페이지를 수정해요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#A2AEA5" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bookOptionButton, styles.bookDeleteOptionButton]}
+              onPress={deleteSelectedMemo}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[styles.bookOptionIcon, styles.bookDeleteOptionIcon]}
+              >
+                <Ionicons name="trash-outline" size={21} color="#B85F55" />
+              </View>
+              <View style={styles.bookOptionTextWrap}>
+                <Text style={styles.bookDeleteOptionTitle}>메모 삭제</Text>
+                <Text style={styles.bookOptionDescription}>
+                  삭제한 메모는 되돌릴 수 없어요
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C69088" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* 책 정보 수정 모달 */}
       <Modal
@@ -983,6 +1186,162 @@ const styles = StyleSheet.create({
   selectedTagText: {
     color: "white",
     fontWeight: "bold",
+  },
+  bookOptionsOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: SIZES.padding,
+    backgroundColor: "rgba(36, 51, 45, 0.46)",
+  },
+  bookOptionsCard: {
+    width: "100%",
+    maxWidth: 380,
+    alignItems: "center",
+    padding: SIZES.padding * 1.25,
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    backgroundColor: "#FFFEFA",
+    shadowColor: "#24332D",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  bookOptionsClose: {
+    position: "absolute",
+    top: SIZES.base,
+    right: SIZES.base,
+    padding: SIZES.base,
+  },
+  bookOptionsTitle: {
+    color: "#24332D",
+    fontSize: SIZES.h3,
+    fontWeight: "700",
+    marginTop: -SIZES.base,
+    marginBottom: -(SIZES.base / 2),
+  },
+  bookOptionsDescription: {
+    color: "#78857E",
+    fontSize: SIZES.body4 - 1,
+    textAlign: "center",
+    lineHeight: SIZES.body4 * 1.5,
+    marginTop: SIZES.base,
+    marginBottom: SIZES.padding,
+  },
+  bookOptionButton: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    padding: SIZES.padding * 0.85,
+    marginTop: SIZES.base,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    borderRadius: SIZES.radius * 1.15,
+    backgroundColor: "#F2F6F1",
+  },
+  bookDeleteOptionButton: {
+    borderColor: "#F0DEDA",
+    backgroundColor: "#FFF7F5",
+  },
+  bookOptionIcon: {
+    width: SIZES.padding * 2.2,
+    height: SIZES.padding * 2.2,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.padding * 1.1,
+    backgroundColor: "#FFFFFF",
+  },
+  bookDeleteOptionIcon: {
+    backgroundColor: "#FDECE8",
+  },
+  bookOptionTextWrap: {
+    flex: 1,
+    marginLeft: SIZES.base * 1.5,
+  },
+  bookOptionTitle: {
+    color: "#31443A",
+    fontSize: SIZES.body3,
+    fontWeight: "700",
+  },
+  bookDeleteOptionTitle: {
+    color: "#B85F55",
+    fontSize: SIZES.body3,
+    fontWeight: "700",
+  },
+  bookOptionDescription: {
+    color: "#7B897F",
+    fontSize: SIZES.body4 - 2,
+    marginTop: 3,
+  },
+  bookDeleteConfirmCard: {
+    width: "100%",
+    maxWidth: 340,
+    alignItems: "center",
+    padding: SIZES.padding * 1.25,
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "#F0DEDA",
+    backgroundColor: "#FFFEFA",
+    shadowColor: "#24332D",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  bookDeleteWarningIcon: {
+    width: SIZES.padding * 2.8,
+    height: SIZES.padding * 2.8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.padding * 1.4,
+    backgroundColor: "#FDECE8",
+    marginBottom: SIZES.padding,
+  },
+  bookDeleteConfirmTitle: {
+    color: "#24332D",
+    fontSize: SIZES.h3,
+    fontWeight: "700",
+  },
+  bookDeleteConfirmDescription: {
+    color: "#78857E",
+    fontSize: SIZES.body4 - 1,
+    lineHeight: SIZES.body4 * 1.55,
+    textAlign: "center",
+    marginTop: SIZES.base,
+  },
+  bookDeleteConfirmButtons: {
+    flexDirection: "row",
+    width: "100%",
+    gap: SIZES.base,
+    marginTop: SIZES.padding,
+  },
+  bookDeleteCancelButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: SIZES.padding * 0.6,
+    borderWidth: 1,
+    borderColor: "#DCE5DD",
+    borderRadius: SIZES.radius,
+    backgroundColor: "#F2F5F1",
+  },
+  bookDeleteCancelButtonText: {
+    color: "#64736A",
+    fontSize: SIZES.body3,
+    fontWeight: "700",
+  },
+  bookDeleteConfirmButton: {
+    flex: 1.2,
+    alignItems: "center",
+    paddingVertical: SIZES.padding * 0.6,
+    borderRadius: SIZES.radius,
+    backgroundColor: "#B85F55",
+  },
+  bookDeleteConfirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: SIZES.body3,
+    fontWeight: "700",
   },
   fab: {
     position: "absolute",

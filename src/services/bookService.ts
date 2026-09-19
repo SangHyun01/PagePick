@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 import { Book } from "../types/book";
 
 // 네이버 책 검색 API
@@ -112,6 +113,12 @@ export const addBook = async (book: Partial<Book>) => {
   const { error } = await supabase.from("books").insert([bookToInsert]);
 
   if (error) throw error;
+
+  trackEvent("book_added", {
+    has_cover: Boolean(finalCoverUrl),
+    source: book.isbn ? "isbn_or_search" : "manual",
+    status: book.status ?? "unknown",
+  });
 };
 
 // 책 상세 정보 업데이트 (제목, 저자, 상태, 리뷰 등)

@@ -1,4 +1,5 @@
 import { SIZES } from "@/constants/theme";
+import { showDialog, showToast } from "@/lib/appFeedback";
 import { supabase } from "@/lib/supabase";
 import * as userService from "@/services/userService";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,7 +8,6 @@ import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -66,29 +66,31 @@ export default function ResetPasswordScreen() {
 
   const handleUpdatePassword = async () => {
     if (password.length < 6) {
-      Alert.alert("확인", "비밀번호는 6자리 이상으로 입력해 주세요.");
+      showToast("비밀번호는 6자리 이상으로 입력해 주세요.", "info");
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("확인", "비밀번호가 일치하지 않습니다.");
+      showToast("비밀번호가 일치하지 않습니다.", "info");
       return;
     }
 
     setSubmitting(true);
     try {
       await userService.updatePassword(password);
-      Alert.alert("비밀번호를 변경했어요", "새 비밀번호로 다시 로그인해 주세요.", [
-        {
-          text: "로그인하기",
+      showDialog({
+        title: "비밀번호를 변경했어요",
+        description: "새 비밀번호로 다시 로그인해 주세요.",
+        actions: [{
+          label: "로그인하기",
           onPress: () => {
             void supabase.auth.signOut();
             router.replace("/auth");
           },
-        },
-      ]);
+        }],
+      });
     } catch (error) {
       console.error("Password update failed:", error);
-      Alert.alert("변경 실패", "비밀번호를 변경하지 못했습니다. 링크를 다시 요청해 주세요.");
+      showToast("비밀번호를 변경하지 못했습니다. 링크를 다시 요청해 주세요.", "error");
     } finally {
       setSubmitting(false);
     }

@@ -10,7 +10,8 @@ import {
   useRouter,
 } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, BackHandler } from "react-native";
+import { BackHandler } from "react-native";
+import { showToast } from "@/lib/appFeedback";
 
 export const useSelectBookViewModel = () => {
   const router = useRouter();
@@ -43,6 +44,7 @@ export const useSelectBookViewModel = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isAddBookModalVisible, setIsAddBookModalVisible] = useState(false);
 
   const handleCancel = useCallback(() => {
     router.replace("/(tabs)");
@@ -76,32 +78,28 @@ export const useSelectBookViewModel = () => {
       setBooks(data);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "책 목록을 불러오는데 실패했습니다.");
+      showToast("책 목록을 불러오는데 실패했습니다.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddNewBook = () => {
-    Alert.alert("새 책 추가", "어떤 방법으로 추가하시겠어요?", [
-      {
-        text: "바코드 스캔",
-        onPress: () =>
-          router.push({
-            pathname: "/scan-barcode",
-            params: { returnTo: "select-book" },
-          }),
-      },
-      {
-        text: "직접 입력",
-        onPress: () =>
-          router.push({
-            pathname: "/add-book",
-            params: { returnTo: "select-book" },
-          }),
-      },
-      { text: "취소", style: "cancel" },
-    ]);
+  const handleAddNewBook = () => setIsAddBookModalVisible(true);
+
+  const handleScanBarcode = () => {
+    setIsAddBookModalVisible(false);
+    router.push({
+      pathname: "/scan-barcode",
+      params: { returnTo: "select-book" },
+    });
+  };
+
+  const handleManualBookEntry = () => {
+    setIsAddBookModalVisible(false);
+    router.push({
+      pathname: "/add-book",
+      params: { returnTo: "select-book" },
+    });
   };
 
   const handleAnimationFinish = () => {
@@ -124,7 +122,7 @@ export const useSelectBookViewModel = () => {
     }
 
     if (!content) {
-      Alert.alert("오류", "저장할 문장이 없습니다.");
+      showToast("저장할 문장이 없습니다.", "error");
       return;
     }
     try {
@@ -148,7 +146,7 @@ export const useSelectBookViewModel = () => {
       }
     } catch (e: any) {
       console.error(e);
-      Alert.alert("저장 실패", e.message);
+      showToast(e.message || "문장을 저장하지 못했습니다.", "error");
     }
   };
 
@@ -158,8 +156,12 @@ export const useSelectBookViewModel = () => {
     books,
     loading,
     showSuccess,
+    isAddBookModalVisible,
+    setIsAddBookModalVisible,
     fetchBooks,
     handleAddNewBook,
+    handleScanBarcode,
+    handleManualBookEntry,
     handleAnimationFinish,
     handleSelectBook,
     handleCancel,

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 import { Sentence } from "../types/sentence";
 import { getUser, recalculateStreakAndLastReadDate } from "./userService";
 
@@ -41,6 +42,11 @@ export const addSentence = async (sentence: {
 }) => {
   const { error } = await supabase.from("sentences").insert([sentence]);
   if (error) throw error;
+
+  trackEvent("sentence_saved", {
+    has_page: sentence.page !== null,
+    tag_count: sentence.tags.length,
+  });
 };
 
 // 문장 수정

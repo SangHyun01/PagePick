@@ -2,7 +2,7 @@ import * as bookService from "@/services/bookService";
 import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert } from "react-native";
+import { showDialog, showToast } from "@/lib/appFeedback";
 
 export const useScanBarcodeViewModel = () => {
   const router = useRouter();
@@ -28,13 +28,13 @@ export const useScanBarcodeViewModel = () => {
           },
         });
       } else {
-        Alert.alert(
-          "알림",
-          "정보를 찾을 수 없는 책입니다.\n직접 입력하시겠습니까?",
-          [
-            { text: "다시 스캔", onPress: () => setScanned(false) },
+        showDialog({
+          title: "책 정보를 찾지 못했어요",
+          description: "다시 스캔하거나 직접 입력할 수 있어요.",
+          actions: [
+            { label: "다시 스캔", onPress: () => setScanned(false) },
             {
-              text: "직접 입력",
+              label: "직접 입력",
               onPress: () =>
                 router.replace({
                   pathname: "/add-book",
@@ -42,12 +42,11 @@ export const useScanBarcodeViewModel = () => {
                 }),
             },
           ],
-        );
+        });
       }
     } catch (error: any) {
-      Alert.alert("오류", error.message, [
-        { text: "확인", onPress: () => setScanned(false) },
-      ]);
+      showToast(error.message || "바코드 검색에 실패했습니다.", "error");
+      setScanned(false);
     }
   };
 

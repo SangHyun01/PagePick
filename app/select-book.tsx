@@ -2,11 +2,13 @@ import SuccessModal from "@/components/SuccessModal";
 import { SIZES } from "@/constants/theme";
 import { Book } from "@/types/book";
 import { useSelectBookViewModel } from "@/view-models/useSelectBookViewModel";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,7 +21,11 @@ export default function SelectBookScreen() {
     books,
     loading,
     showSuccess,
+    isAddBookModalVisible,
+    setIsAddBookModalVisible,
     handleAddNewBook,
+    handleScanBarcode,
+    handleManualBookEntry,
     handleAnimationFinish,
     handleSelectBook,
     handleCancel,
@@ -94,6 +100,50 @@ export default function SelectBookScreen() {
         onFinish={handleAnimationFinish}
         message="등록 완료!"
       />
+
+      <Modal
+        visible={isAddBookModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsAddBookModalVisible(false)}
+      >
+        <View style={styles.addBookModalOverlay}>
+          <View style={styles.addBookModalCard}>
+            <TouchableOpacity
+              style={styles.addBookModalClose}
+              onPress={() => setIsAddBookModalVisible(false)}
+              accessibilityLabel="새 책 추가 모달 닫기"
+            >
+              <Ionicons name="close" size={22} color="#64736A" />
+            </TouchableOpacity>
+            <Text style={styles.addBookModalTitle}>새 책을 추가해볼까요?</Text>
+            <Text style={styles.addBookModalDescription}>
+              책을 찾는 방법을 선택해주세요.
+            </Text>
+            <TouchableOpacity style={styles.addBookOption} onPress={handleScanBarcode} activeOpacity={0.8}>
+              <View style={styles.addBookOptionIcon}>
+                <Ionicons name="barcode-outline" size={22} color="#557A68" />
+              </View>
+              <View style={styles.addBookOptionTextWrap}>
+                <Text style={styles.addBookOptionTitle}>바코드로 찾기</Text>
+                <Text style={styles.addBookOptionDescription}>책 뒤표지의 바코드를 스캔해요</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#A2AEA5" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.addBookOption} onPress={handleManualBookEntry} activeOpacity={0.8}>
+              <View style={styles.addBookOptionIcon}>
+                <Ionicons name="create-outline" size={21} color="#557A68" />
+              </View>
+              <View style={styles.addBookOptionTextWrap}>
+                <Text style={styles.addBookOptionTitle}>직접 입력하기</Text>
+                <Text style={styles.addBookOptionDescription}>책 정보를 직접 기록해요</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#A2AEA5" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -169,23 +219,35 @@ const styles = StyleSheet.create({
   },
   emptySubText: { fontSize: SIZES.body4, color: "#888" },
 
-  modalBackground: {
+  addBookModalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
     justifyContent: "center",
+    padding: SIZES.padding,
+    backgroundColor: "rgba(36, 51, 45, 0.46)",
+  },
+  addBookModalCard: {
+    width: "100%",
+    maxWidth: 380,
     alignItems: "center",
+    padding: SIZES.padding * 1.25,
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    backgroundColor: "#FFFEFA",
+    shadowColor: "#24332D",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 8,
   },
-  lottieContainer: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    elevation: 5,
-  },
-  successText: {
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
+  addBookModalClose: { position: "absolute", top: SIZES.base, right: SIZES.base, padding: SIZES.base },
+  addBookModalTitle: { color: "#24332D", fontSize: SIZES.h3, fontWeight: "700", marginTop: SIZES.padding },
+  addBookModalDescription: { color: "#78857E", fontSize: SIZES.body4 - 1, marginTop: SIZES.base, marginBottom: SIZES.padding },
+  addBookOption: { width: "100%", flexDirection: "row", alignItems: "center", padding: SIZES.padding * 0.85, marginTop: SIZES.base, borderWidth: 1, borderColor: "#E1E7DF", borderRadius: SIZES.radius * 1.15, backgroundColor: "#F2F6F1" },
+  addBookOptionIcon: { width: SIZES.padding * 2.2, height: SIZES.padding * 2.2, alignItems: "center", justifyContent: "center", borderRadius: SIZES.padding * 1.1, backgroundColor: "#FFFFFF" },
+  addBookOptionTextWrap: { flex: 1, marginLeft: SIZES.base * 1.5 },
+  addBookOptionTitle: { color: "#31443A", fontSize: SIZES.body3, fontWeight: "700" },
+  addBookOptionDescription: { color: "#7B897F", fontSize: SIZES.body4 - 2, marginTop: 3 },
+
 });

@@ -3,7 +3,7 @@ import { Action, manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
+import { showToast } from "@/lib/appFeedback";
 
 interface AlbumViewModelProps {
   bookId: number;
@@ -79,11 +79,7 @@ export const useAlbumViewModel = ({
 
       await loadPhotos();
 
-      Alert.alert("저장 완료", "사진이 성공적으로 저장되었습니다.", [
-        {
-          text: "확인",
-        },
-      ]);
+      showToast("사진을 저장했어요.", "success");
     } catch (e) {
       console.error("공유 사진 업로드 실패:", e);
     } finally {

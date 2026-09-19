@@ -1,7 +1,7 @@
 import { correctSpelling } from "@/services/aiService";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { showToast } from "@/lib/appFeedback";
 
 export const useWriteViewModel = () => {
   const router = useRouter();
@@ -23,7 +23,7 @@ export const useWriteViewModel = () => {
 
   const handleAiFix = async () => {
     if (!content.trim()) {
-      Alert.alert("알림", "교정할 문장이 없습니다.");
+      showToast("교정할 문장이 없습니다.", "info");
       return;
     }
 
@@ -31,10 +31,10 @@ export const useWriteViewModel = () => {
     try {
       const fixedText = await correctSpelling(content);
       setContent(fixedText);
-      Alert.alert("완료", "문장의 맞춤법과 띄어쓰기가 교정되었어요!");
+      showToast("문장의 맞춤법과 띄어쓰기를 교정했어요.", "success");
     } catch (e: any) {
       console.error(e);
-      Alert.alert("오류", "맞춤법 교정에 실패했습니다. 다시 시도해주세요.");
+      showToast("맞춤법 교정에 실패했습니다. 다시 시도해주세요.", "error");
     } finally {
       setIsFixing(false);
     }
@@ -48,7 +48,7 @@ export const useWriteViewModel = () => {
 
   const navigateToNext = (pathname: "/select-book" | "/add-book") => {
     if (!page || !content) {
-      Alert.alert("알림", "페이지와 문장을 모두 입력해주세요.");
+      showToast("페이지와 문장을 모두 입력해주세요.", "info");
       return;
     }
     router.push({

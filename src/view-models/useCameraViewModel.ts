@@ -6,7 +6,8 @@ import * as Clipboard from "expo-clipboard";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Alert, Image, LayoutChangeEvent } from "react-native";
+import { Image, LayoutChangeEvent } from "react-native";
+import { showToast } from "@/lib/appFeedback";
 
 export const useCameraViewModel = () => {
   const router = useRouter();
@@ -50,7 +51,7 @@ export const useCameraViewModel = () => {
       setSelectedIndices([]);
     } catch (error) {
       console.error(error);
-      Alert.alert("오류", "사진 처리 중 문제가 발생했습니다.");
+      showToast("사진 처리 중 문제가 발생했습니다.", "error");
     }
   };
 
@@ -69,7 +70,7 @@ export const useCameraViewModel = () => {
 
   const handleComplete = async () => {
     if (selectedIndices.length === 0) {
-      Alert.alert("알림", "저장할 문장을 터치해서 선택해주세요.");
+      showToast("저장할 문장을 터치해서 선택해주세요.", "info");
       return;
     }
 

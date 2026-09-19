@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 import { Memo, InsertMemo } from "../types/memo";
 
 // 모든 메모 불러오기
@@ -17,6 +18,8 @@ export const getMemosByBookId = async (bookId: number): Promise<Memo[]> => {
 export const addMemo = async (memo: InsertMemo) => {
   const { error } = await supabase.from("memos").insert([memo]);
   if (error) throw error;
+
+  trackEvent("memo_created", { has_page: Boolean(memo.page) });
 };
 
 // 메모 수정

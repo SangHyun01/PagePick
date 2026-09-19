@@ -1,11 +1,11 @@
 import { SIZES } from "@/constants/theme";
+import { showToast } from "@/lib/appFeedback";
 import * as userService from "@/services/userService";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,14 +26,11 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     try {
       await userService.requestPasswordReset(email.trim());
-      Alert.alert(
-        "재설정 메일을 보냈어요",
-        "입력한 이메일이 가입되어 있다면 비밀번호 재설정 링크가 전송됩니다. 메일함을 확인해 주세요.",
-        [{ text: "확인", onPress: () => router.back() }],
-      );
+      showToast("재설정 메일을 보냈어요. 메일함을 확인해 주세요.", "success");
+      router.back();
     } catch (error) {
       console.error("Password reset request failed:", error);
-      Alert.alert("요청 실패", "잠시 후 다시 시도해 주세요.");
+      showToast("요청에 실패했어요. 잠시 후 다시 시도해 주세요.", "error");
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { UserProfile } from "@/types/auth";
 import { Sentence } from "@/types/sentence";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
+import { showToast } from "@/lib/appFeedback";
 
 // 색상 생성 유틸리티
 const generateColor = (index: number) => {
@@ -154,7 +154,7 @@ export const useStatsViewModel = () => {
           setShowCongratsAnimation(true);
         } catch (error) {
           console.error("Failed to grant streak reward:", error);
-          Alert.alert("오류", "보상 지급에 실패했습니다.");
+          showToast("보상 지급에 실패했습니다.", "error");
         }
       }
     },

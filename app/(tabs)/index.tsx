@@ -1,5 +1,6 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import { SIZES } from "@/constants/theme";
+import { trackEvent } from "@/lib/analytics";
 import { getTodaysMusic } from "@/services/musicService";
 import { AudioTrack } from "@/types/music";
 import { useHomeViewModel } from "@/view-models/useHomeViewModel";
@@ -294,7 +295,10 @@ export default function HomeScreen() {
           <View style={styles.actionContainer}>
             <TouchableOpacity
               style={styles.mainButton}
-              onPress={() => router.push("/camera")}
+              onPress={() => {
+                trackEvent("sentence_capture_started", { source: "home" });
+                router.push("/camera");
+              }}
               activeOpacity={0.8}
             >
               <View style={styles.iconCircle}>

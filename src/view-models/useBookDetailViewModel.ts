@@ -7,7 +7,7 @@ import { Memo } from "@/types/memo";
 import { Sentence } from "@/types/sentence";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
+import { showDialog, showToast } from "@/lib/appFeedback";
 
 export interface BookDetailViewModelProps {
   bookId: number;
@@ -31,6 +31,10 @@ export const useBookDetailViewModel = ({
 
   // 책 정보 수정 모달
   const [bookEditModalVisible, setBookEditModalVisible] = useState(false);
+  const [isBookOptionsModalVisible, setIsBookOptionsModalVisible] =
+    useState(false);
+  const [isBookDeleteConfirmVisible, setIsBookDeleteConfirmVisible] =
+    useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editAuthor, setEditAuthor] = useState("");
 
@@ -41,12 +45,16 @@ export const useBookDetailViewModel = ({
   const [editContent, setEditContent] = useState("");
   const [editPage, setEditPage] = useState("");
   const [editingTags, setEditingTags] = useState<string[]>([]);
+  const [selectedSentenceForOptions, setSelectedSentenceForOptions] =
+    useState<Sentence | null>(null);
 
   // 메모 수정 모달
   const [memoEditModalVisible, setMemoEditModalVisible] = useState(false);
   const [editingMemo, setEditingMemo] = useState<Memo | null>(null);
   const [memoContent, setMemoContent] = useState("");
   const [memoPage, setMemoPage] = useState("");
+  const [selectedMemoForOptions, setSelectedMemoForOptions] =
+    useState<Memo | null>(null);
 
   // 메모 추가 모달
   const [isMemoAddModalVisible, setMemoAddModalVisible] = useState(false);
@@ -81,7 +89,7 @@ export const useBookDetailViewModel = ({
       setMemos(memosData);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "데이터를 불러오는데 실패했습니다.");
+      showToast("데이터를 불러오는데 실패했습니다.", "error");
     } finally {
       setLoading(false);
     }
@@ -110,22 +118,26 @@ export const useBookDetailViewModel = ({
 
   // 책 관련 이벤트
   const handleBookOptions = () => {
-    Alert.alert("책 관리", "이 책을 어떻게 하시겠어요?", [
-      { text: "책 정보 수정", onPress: () => setBookEditModalVisible(true) },
-      { text: "책 삭제하기", style: "destructive", onPress: confirmDeleteBook },
-      { text: "취소", style: "cancel" },
-    ]);
+    setIsBookOptionsModalVisible(true);
   };
 
-  const confirmDeleteBook = () => {
-    Alert.alert(
-      "경고",
-      "책을 삭제하면 저장된 모든 문장들과 메모들도 모두 사라집니다.\n정말 삭제하시겠습니까?",
-      [
-        { text: "취소", style: "cancel" },
-        { text: "삭제", style: "destructive", onPress: deleteBook },
-      ],
-    );
+  const openBookEditModal = () => {
+    setIsBookOptionsModalVisible(false);
+    setBookEditModalVisible(true);
+  };
+
+  const handleBookDeleteRequest = () => {
+    setIsBookOptionsModalVisible(false);
+    setIsBookDeleteConfirmVisible(true);
+  };
+
+  const cancelBookDelete = () => {
+    setIsBookDeleteConfirmVisible(false);
+  };
+
+  const confirmBookDelete = () => {
+    setIsBookDeleteConfirmVisible(false);
+    deleteBook();
   };
 
   const deleteBook = async () => {
@@ -137,14 +149,14 @@ export const useBookDetailViewModel = ({
       setLoading(false);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "책 삭제에 실패했습니다.");
+      showToast("책 삭제에 실패했습니다.", "error");
       setLoading(false);
     }
   };
 
   const updateBook = async () => {
     if (!editTitle.trim()) {
-      Alert.alert("알림", "책 제목을 입력해주세요.");
+      showToast("책 제목을 입력해주세요.", "info");
       return;
     }
     try {
@@ -161,21 +173,21 @@ export const useBookDetailViewModel = ({
       setIsSuccess(true);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "수정에 실패했습니다.");
+      showToast("수정에 실패했습니다.", "error");
     }
   };
 
   const handleUpdateStatus = async (status: BookStatus) => {
     // 읽고 싶은 책 -> 읽는 중 (최초 한번만)
     if (book?.status === "wish" && status === "reading" && !book.started_at) {
-      Alert.alert("알림", "오늘부터 읽으시겠습니까?", [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "확인",
-          onPress: async () => {
+      showDialog({
+        title: "읽기를 시작할까요?",
+        description: "오늘을 독서 시작일로 기록할게요.",
+        actions: [
+          { label: "취소" },
+          {
+            label: "시작하기",
+            onPress: async () => {
             try {
               const updates: Partial<Book> = {
                 status: "reading",
@@ -185,11 +197,12 @@ export const useBookDetailViewModel = ({
               setBook((prev) => (prev ? { ...prev, ...updates } : null));
             } catch (error) {
               console.error("Failed to update book status:", error);
-              Alert.alert("오류", "책 상태 변경에 실패했습니다.");
+              showToast("책 상태 변경에 실패했습니다.", "error");
             }
+            },
           },
-        },
-      ]);
+        ],
+      });
     } else if (status === "finished" && !book?.finished_at) {
       setReviewModalVisible(true);
     } else {
@@ -198,7 +211,7 @@ export const useBookDetailViewModel = ({
         setBook((prev) => (prev ? { ...prev, status } : null));
       } catch (error) {
         console.error("Failed to update book status:", error);
-        Alert.alert("오류", "책 상태 변경에 실패했습니다.");
+        showToast("책 상태 변경에 실패했습니다.", "error");
       }
     }
   };
@@ -206,7 +219,7 @@ export const useBookDetailViewModel = ({
   // 리뷰 관련 이벤트
   const handleSubmitReview = async () => {
     if (newRating === 0) {
-      Alert.alert("알림", "별점을 선택해주세요.");
+      showToast("별점을 선택해주세요.", "info");
       return;
     }
     try {
@@ -227,7 +240,7 @@ export const useBookDetailViewModel = ({
       setIsSuccess(true);
     } catch (error) {
       console.error("Failed to submit review:", error);
-      Alert.alert("오류", "리뷰 등록에 실패했습니다.");
+      showToast("리뷰 등록에 실패했습니다.", "error");
     }
   };
 
@@ -250,7 +263,7 @@ export const useBookDetailViewModel = ({
 
   const handleUpdateReview = async () => {
     if (editingRating === 0) {
-      Alert.alert("알림", "별점을 선택해주세요.");
+      showToast("별점을 선택해주세요.", "info");
       return;
     }
     try {
@@ -265,17 +278,20 @@ export const useBookDetailViewModel = ({
       setIsSuccess(true);
     } catch (error) {
       console.error("Failed to update review:", error);
-      Alert.alert("오류", "리뷰 수정에 실패했습니다.");
+      showToast("리뷰 수정에 실패했습니다.", "error");
     }
   };
 
   const handleDeleteReview = async () => {
-    Alert.alert("리뷰 삭제", "정말 리뷰를 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: async () => {
+    showDialog({
+      title: "리뷰를 삭제할까요?",
+      description: "삭제한 리뷰는 되돌릴 수 없어요.",
+      actions: [
+        { label: "취소" },
+        {
+          label: "삭제하기",
+          tone: "destructive",
+          onPress: async () => {
           try {
             const updates = {
               rating: null,
@@ -286,29 +302,33 @@ export const useBookDetailViewModel = ({
             setReviewEditModalVisible(false);
           } catch (error) {
             console.error("Failed to delete review:", error);
-            Alert.alert("오류", "리뷰 삭제에 실패했습니다.");
+            showToast("리뷰 삭제에 실패했습니다.", "error");
           }
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   // 문장 관련 이벤트
   const handleSentenceOptions = (sentence: Sentence) => {
-    Alert.alert(
-      "문장 관리",
-      "원하시는 작업을 선택하세요.",
-      [
-        { text: "수정하기", onPress: () => openSentenceEditModal(sentence) },
-        {
-          text: "삭제하기",
-          onPress: () => confirmDeleteSentence(sentence.id),
-          style: "destructive",
-        },
-        { text: "취소", style: "cancel" },
-      ],
-      { cancelable: true },
-    );
+    setSelectedSentenceForOptions(sentence);
+  };
+
+  const closeSentenceOptions = () => setSelectedSentenceForOptions(null);
+
+  const editSelectedSentence = () => {
+    if (!selectedSentenceForOptions) return;
+    const sentence = selectedSentenceForOptions;
+    closeSentenceOptions();
+    openSentenceEditModal(sentence);
+  };
+
+  const deleteSelectedSentence = () => {
+    if (!selectedSentenceForOptions) return;
+    const id = selectedSentenceForOptions.id;
+    closeSentenceOptions();
+    confirmDeleteSentence(id);
   };
 
   const openSentenceEditModal = (sentence: Sentence) => {
@@ -320,10 +340,14 @@ export const useBookDetailViewModel = ({
   };
 
   const confirmDeleteSentence = (id: number) => {
-    Alert.alert("삭제 확인", "정말 이 문장을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      { text: "삭제", style: "destructive", onPress: () => deleteSentence(id) },
-    ]);
+    showDialog({
+      title: "문장을 삭제할까요?",
+      description: "삭제한 문장은 되돌릴 수 없어요.",
+      actions: [
+        { label: "취소" },
+        { label: "삭제하기", tone: "destructive", onPress: () => deleteSentence(id) },
+      ],
+    });
   };
 
   const deleteSentence = async (id: number) => {
@@ -334,13 +358,13 @@ export const useBookDetailViewModel = ({
       setIsDelete(true);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "삭제에 실패했습니다.");
+      showToast("삭제에 실패했습니다.", "error");
     }
   };
 
   const updateSentence = async () => {
     if (!editingSentence || !editContent.trim()) {
-      Alert.alert("알림", "문장 내용을 입력해주세요.");
+      showToast("문장 내용을 입력해주세요.", "info");
       return;
     }
     try {
@@ -367,7 +391,7 @@ export const useBookDetailViewModel = ({
       setIsSuccess(true);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "수정에 실패했습니다.");
+      showToast("수정에 실패했습니다.", "error");
     }
   };
 
@@ -379,20 +403,23 @@ export const useBookDetailViewModel = ({
 
   // 메모 관련 이벤트
   const handleMemoOptions = (memo: Memo) => {
-    Alert.alert(
-      "메모 관리",
-      "원하시는 작업을 선택하세요.",
-      [
-        { text: "수정하기", onPress: () => openMemoEditModal(memo) },
-        {
-          text: "삭제하기",
-          onPress: () => confirmDeleteMemo(memo.id),
-          style: "destructive",
-        },
-        { text: "취소", style: "cancel" },
-      ],
-      { cancelable: true },
-    );
+    setSelectedMemoForOptions(memo);
+  };
+
+  const closeMemoOptions = () => setSelectedMemoForOptions(null);
+
+  const editSelectedMemo = () => {
+    if (!selectedMemoForOptions) return;
+    const memo = selectedMemoForOptions;
+    closeMemoOptions();
+    openMemoEditModal(memo);
+  };
+
+  const deleteSelectedMemo = () => {
+    if (!selectedMemoForOptions) return;
+    const id = selectedMemoForOptions.id;
+    closeMemoOptions();
+    confirmDeleteMemo(id);
   };
 
   const openMemoEditModal = (memo: Memo) => {
@@ -403,10 +430,14 @@ export const useBookDetailViewModel = ({
   };
 
   const confirmDeleteMemo = (id: number) => {
-    Alert.alert("삭제 확인", "정말 이 메모를 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      { text: "삭제", style: "destructive", onPress: () => deleteMemo(id) },
-    ]);
+    showDialog({
+      title: "메모를 삭제할까요?",
+      description: "삭제한 메모는 되돌릴 수 없어요.",
+      actions: [
+        { label: "취소" },
+        { label: "삭제하기", tone: "destructive", onPress: () => deleteMemo(id) },
+      ],
+    });
   };
 
   const deleteMemo = async (id: number) => {
@@ -417,13 +448,13 @@ export const useBookDetailViewModel = ({
       setIsDelete(true);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "삭제에 실패했습니다.");
+      showToast("삭제에 실패했습니다.", "error");
     }
   };
 
   const updateMemo = async () => {
     if (!editingMemo || !memoContent.trim()) {
-      Alert.alert("알림", "메모 내용을 입력해주세요.");
+      showToast("메모 내용을 입력해주세요.", "info");
       return;
     }
     try {
@@ -448,13 +479,13 @@ export const useBookDetailViewModel = ({
       setIsSuccess(true);
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "수정에 실패했습니다.");
+      showToast("수정에 실패했습니다.", "error");
     }
   };
 
   const addMemo = async () => {
     if (!newMemoContent.trim()) {
-      Alert.alert("알림", "메모 내용을 입력해주세요.");
+      showToast("메모 내용을 입력해주세요.", "info");
       return;
     }
     try {
@@ -478,7 +509,7 @@ export const useBookDetailViewModel = ({
       setNewMemoPage("");
     } catch (e) {
       console.error(e);
-      Alert.alert("오류", "메모 저장에 실패했습니다.");
+      showToast("메모 저장에 실패했습니다.", "error");
     }
   };
 
@@ -494,14 +525,18 @@ export const useBookDetailViewModel = ({
 
     // 책 정보 수정 모달
     bookEditModalVisible,
+    isBookOptionsModalVisible,
+    isBookDeleteConfirmVisible,
     editTitle,
     editAuthor,
     setEditTitle,
     setEditAuthor,
     setBookEditModalVisible,
+    setIsBookOptionsModalVisible,
 
     // 문장 수정 모달
     sentenceEditModalVisible,
+    selectedSentenceForOptions,
     editContent,
     editPage,
     editingTags,
@@ -511,6 +546,7 @@ export const useBookDetailViewModel = ({
 
     // 메모 수정 모달
     memoEditModalVisible,
+    selectedMemoForOptions,
     memoContent,
     memoPage,
     setMemoContent,
@@ -545,11 +581,21 @@ export const useBookDetailViewModel = ({
     handleAnimationFinish,
     handleDeleteFinish,
     handleBookOptions,
+    openBookEditModal,
+    handleBookDeleteRequest,
+    cancelBookDelete,
+    confirmBookDelete,
     updateBook,
     handleUpdateStatus,
     handleSentenceOptions,
+    closeSentenceOptions,
+    editSelectedSentence,
+    deleteSelectedSentence,
     updateSentence,
     handleMemoOptions,
+    closeMemoOptions,
+    editSelectedMemo,
+    deleteSelectedMemo,
     updateMemo,
     addMemo,
     handleSubmitReview,

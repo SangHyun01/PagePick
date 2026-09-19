@@ -4,7 +4,7 @@ import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useState } from "react";
-import { Alert } from "react-native";
+import { showDialog, showToast } from "@/lib/appFeedback";
 
 import {
   useAnimatedStyle,
@@ -43,23 +43,27 @@ export const usePhotoDetailViewModel = ({
   // 사진 삭제
   const handleDelete = async () => {
     closeMenu();
-    Alert.alert("사진 삭제", "정말로 이 사진을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: async () => {
+    showDialog({
+      title: "사진을 삭제할까요?",
+      description: "삭제한 사진은 되돌릴 수 없어요.",
+      actions: [
+        { label: "취소" },
+        {
+          label: "삭제하기",
+          tone: "destructive",
+          onPress: async () => {
           try {
             await deletePhoto(photoUrl);
-            Alert.alert("성공", "사진이 삭제되었습니다.");
+            showToast("사진을 삭제했어요.", "success");
             router.back();
           } catch (error) {
             console.error(error);
-            Alert.alert("오류", "사진을 삭제하는 데 실패했습니다.");
+            showToast("사진을 삭제하지 못했습니다.", "error");
           }
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   // 갤러리에 다운로드
@@ -67,10 +71,7 @@ export const usePhotoDetailViewModel = ({
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "권한 거부됨",
-          "사진을 저장하려면 앨범 접근 권한을 허용해주세요.",
-        );
+        showToast("사진을 저장하려면 앨범 접근 권한이 필요합니다.", "info");
         return;
       }
 
@@ -82,10 +83,10 @@ export const usePhotoDetailViewModel = ({
 
       await MediaLibrary.createAssetAsync(uri);
 
-      Alert.alert("저장 완료", "사진이 앨범에 저장되었습니다.");
+      showToast("사진을 앨범에 저장했어요.", "success");
     } catch (error: any) {
       console.error(error);
-      Alert.alert("실패", "다운로드 중 오류가 발생했습니다.");
+      showToast("다운로드 중 오류가 발생했습니다.", "error");
     }
   };
 
@@ -94,7 +95,7 @@ export const usePhotoDetailViewModel = ({
     try {
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert("알림", "이 기기에서는 공유 기능을 사용할 수 없습니다.");
+        showToast("이 기기에서는 공유 기능을 사용할 수 없습니다.", "info");
         return;
       }
 
@@ -112,7 +113,7 @@ export const usePhotoDetailViewModel = ({
       });
     } catch (error) {
       console.error("공유 실패:", error);
-      Alert.alert("실패", "공유하는 중 오류가 발생했습니다.");
+      showToast("공유하는 중 오류가 발생했습니다.", "error");
     } finally {
       closeMenu();
     }

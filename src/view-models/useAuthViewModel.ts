@@ -7,7 +7,8 @@ import {
 } from "@react-native-google-signin/google-signin";
 import Constans from "expo-constants";
 import { useMemo, useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Linking } from "react-native";
+import { showDialog, showToast } from "@/lib/appFeedback";
 
 const GOOGLE_WEB_CLIENT_ID = Constans.expoConfig?.extra?.googleWebClientId;
 
@@ -63,14 +64,14 @@ export const useAuthViewModel = () => {
       }
     } catch (error) {
       console.log("에러 발생:", error);
-      Alert.alert("알림", "페이지를 여는 데 실패했습니다.");
+      showToast("페이지를 여는 데 실패했습니다.", "error");
     }
   };
 
   const contactDeveloper = () => {
     const mailtoUrl = `mailto:${developerEmail}`;
     Linking.openURL(mailtoUrl).catch(() =>
-      Alert.alert("알림", "메일 앱을 열 수 없습니다."),
+      showToast("메일 앱을 열 수 없습니다.", "error"),
     );
   };
 
@@ -94,13 +95,13 @@ export const useAuthViewModel = () => {
           throw new Error("비밀번호는 6자리 이상이어야 합니다.");
         }
         await userService.signUp({ email: email.trim(), password });
-        Alert.alert("환영합니다!", "회원가입이 완료되었습니다.");
+        showToast("회원가입이 완료되었습니다.", "success");
       }
     } catch (error: any) {
       const errorMessage = isLoginMode
         ? "가입한 정보와 일치하지 않습니다."
         : error.message;
-      Alert.alert(isLoginMode ? "로그인 실패" : "회원가입 실패", errorMessage);
+      showToast(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -137,15 +138,12 @@ export const useAuthViewModel = () => {
             return;
 
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            Alert.alert("오류", "구글 플레이 서비스를 사용할 수 없습니다.");
+            showToast("구글 플레이 서비스를 사용할 수 없습니다.", "error");
             return;
         }
       }
       console.error("Google Login Error:", error);
-      Alert.alert(
-        "로그인 실패",
-        error.message || "알 수 없는 오류가 발생했습니다.",
-      );
+      showToast(error.message || "알 수 없는 오류가 발생했습니다.", "error");
     } finally {
       setSocialLoading(false);
     }
@@ -165,44 +163,48 @@ export const useAuthViewModel = () => {
   };
 
   const handleLogout = async () => {
-    Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "로그아웃",
-        style: "destructive",
-        onPress: async () => {
+    showDialog({
+      title: "로그아웃할까요?",
+      description: "언제든 다시 로그인할 수 있어요.",
+      actions: [
+        { label: "취소" },
+        {
+          label: "로그아웃",
+          tone: "destructive",
+          onPress: async () => {
           try {
             await userService.signOut();
           } catch (e) {
             console.log("에러 발생: ", e);
-            Alert.alert("오류", "로그아웃에 실패했습니다.");
+            showToast("로그아웃에 실패했습니다.", "error");
           }
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   const handleDeleteAccount = async () => {
-    Alert.alert(
-      "회원 탈퇴",
-      "정말 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
-      [
-        { text: "취소", style: "cancel" },
+    showDialog({
+      title: "회원 탈퇴할까요?",
+      description: "계정과 저장된 기록은 되돌릴 수 없어요.",
+      actions: [
+        { label: "취소" },
         {
-          text: "삭제",
-          style: "destructive",
+          label: "탈퇴하기",
+          tone: "destructive",
           onPress: async () => {
             try {
               await userService.deleteAccount();
-              Alert.alert("완료", "회원 탈퇴가 완료되었습니다.");
+              showToast("회원 탈퇴가 완료되었습니다.", "success");
             } catch (e: any) {
-              Alert.alert("오류", "탈퇴 처리 중 문제가 발생했습니다.");
+              showToast("탈퇴 처리 중 문제가 발생했습니다.", "error");
               console.error(e);
             }
           },
         },
       ],
-    );
+    });
   };
 
   return {

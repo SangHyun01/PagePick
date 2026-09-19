@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { durationBucket, trackEvent } from "../lib/analytics";
 import { ReadingSession } from "../types/readingSession";
 import { getUser } from "./userService";
 
@@ -25,6 +26,12 @@ export const addReadingSession = async (
     console.error("Error adding reading session:", error);
     throw error;
   }
+
+  trackEvent("reading_session_completed", {
+    duration_bucket: durationBucket(session.duration_seconds),
+    has_music: Boolean(session.audio_track_id),
+    mode: session.mode,
+  });
 };
 
 export const getTodayReadingDuration = async (userId: string): Promise<number> => {

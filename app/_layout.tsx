@@ -1,4 +1,10 @@
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
+import AppFeedbackProvider from "@/components/AppFeedbackProvider";
+import {
+  identifyAnalyticsUser,
+  resetAnalyticsUser,
+  trackScreenView,
+} from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
 import * as userService from "@/services/userService";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -44,6 +50,19 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      identifyAnalyticsUser(session.user.id);
+    } else if (initialized) {
+      resetAnalyticsUser();
+    }
+  }, [initialized, session?.user?.id]);
+
+  useEffect(() => {
+    if (!initialized || !session?.user?.id) return;
+    trackScreenView(segments.join("/") || "home");
+  }, [initialized, segments, session?.user?.id]);
 
   useEffect(() => {
     // 화면 전환 전에 수신한 복구 딥링크도 놓치지 않도록 앱 최상단에서 처리한다.
@@ -124,8 +143,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        <StatusBar style="dark" />
-        <Stack>
+        <AppFeedbackProvider>
+          <StatusBar style="dark" />
+          <Stack>
           {/* 로그인/회원가입 화면 등록 */}
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen
@@ -162,7 +182,8 @@ export default function RootLayout() {
             name="book-detail/[id]"
             options={{ headerShown: false }}
           />
-        </Stack>
+          </Stack>
+        </AppFeedbackProvider>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );

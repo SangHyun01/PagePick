@@ -3,7 +3,8 @@ import { BookStatus } from "@/types/book";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
+import { showDialog, showToast } from "@/lib/appFeedback";
 
 export const useAddBookViewModel = () => {
   const router = useRouter();
@@ -49,11 +50,14 @@ export const useAddBookViewModel = () => {
   };
 
   const handleImageAction = () => {
-    Alert.alert("표지 이미지 등록", "어떤 이미지를 사용하시겠어요?", [
-      { text: "갤러리에서 선택", onPress: pickImageFromLibrary },
-      { text: "카메라 촬영", onPress: pickImageFromCamera },
-      { text: "취소", style: "cancel" },
-    ]);
+    showDialog({
+      title: "표지 이미지를 추가할까요?",
+      description: "이미지를 선택하거나 직접 촬영할 수 있어요.",
+      actions: [
+        { label: "갤러리", onPress: pickImageFromLibrary },
+        { label: "카메라", onPress: pickImageFromCamera },
+      ],
+    });
   };
 
   const pickImageFromLibrary = async () => {
@@ -72,7 +76,7 @@ export const useAddBookViewModel = () => {
   const pickImageFromCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== "granted") {
-      Alert.alert("알림", "카메라 권한이 필요합니다.");
+      showToast("카메라 권한이 필요합니다.", "info");
       return;
     }
 
@@ -89,7 +93,7 @@ export const useAddBookViewModel = () => {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert("알림", "책 제목을 입력해주세요.");
+      showToast("책 제목을 입력해주세요.", "info");
       return;
     }
 
@@ -114,7 +118,7 @@ export const useAddBookViewModel = () => {
       await bookService.addBook(bookToAdd);
       setIsSuccess(true);
     } catch (e: any) {
-      Alert.alert("오류", e.message || "책 추가에 실패했습니다.");
+      showToast(e.message || "책 추가에 실패했습니다.", "error");
     } finally {
       setLoading(false);
     }
