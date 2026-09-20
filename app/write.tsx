@@ -1,4 +1,4 @@
-import { Colors, SIZES } from "@/constants/theme";
+import { SIZES } from "@/constants/theme";
 import { useWriteViewModel } from "@/view-models/useWriteViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -41,7 +41,7 @@ export default function WriteScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={SIZES.h2} color="#333" />
+          <Ionicons name="chevron-back" size={SIZES.h2} color="#375A4E" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>문장 다듬기</Text>
         <View style={{ width: SIZES.padding }} />
@@ -63,7 +63,7 @@ export default function WriteScreen() {
         <TouchableOpacity
           onPress={handleAiFix}
           disabled={isFixing || !content}
-          style={styles.aiButton}
+          style={[styles.aiButton, (!content || isFixing) && styles.aiButtonDisabled]}
         >
           {isFixing ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -139,7 +139,7 @@ export default function WriteScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F5F0",
     paddingTop: SIZES.padding * 2,
     paddingHorizontal: SIZES.padding,
   },
@@ -149,14 +149,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: SIZES.base * 2,
   },
-  backButton: { fontSize: SIZES.body3, color: "#007AFF" },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: "bold" },
+  backButton: { fontSize: SIZES.body3, color: "#375A4E" },
+  headerTitle: { fontSize: SIZES.h3, fontWeight: "700", color: "#24332D" },
 
   pageInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    borderRadius: SIZES.radius * 0.8,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.15,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
     paddingHorizontal: SIZES.base * 2,
     paddingVertical: SIZES.base,
     marginBottom: SIZES.padding,
@@ -164,18 +166,18 @@ const styles = StyleSheet.create({
   pageInputLabel: {
     fontSize: SIZES.body3,
     fontWeight: "600",
-    color: "#333",
+    color: "#405148",
     marginRight: SIZES.base,
   },
   pageInput: {
     flex: 1,
     fontSize: SIZES.body3,
-    color: "#333",
+    color: "#24332D",
   },
 
   aiButton: {
     flexDirection: "row",
-    backgroundColor: "#4d76ff",
+    backgroundColor: "#557A68",
     paddingVertical: SIZES.base,
     paddingHorizontal: SIZES.base * 2,
     borderRadius: SIZES.radius,
@@ -187,18 +189,21 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body4,
     fontWeight: "600",
   },
+  aiButtonDisabled: { backgroundColor: "#AAB8AF" },
 
   inputContainer: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    borderRadius: SIZES.radius * 1.25,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
     padding: SIZES.padding,
     marginBottom: SIZES.padding,
   },
   textInput: {
     fontSize: SIZES.body3,
     lineHeight: SIZES.padding,
-    color: "#333",
+    color: "#24332D",
     flex: 1,
   },
 
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
   tagTitle: {
     fontSize: SIZES.body4,
     fontWeight: "600",
-    color: Colors.light.icon,
+    color: "#647A6B",
     marginBottom: SIZES.base,
   },
   tagList: {
@@ -217,17 +222,19 @@ const styles = StyleSheet.create({
     gap: SIZES.base,
   },
   tag: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#EEF3EE",
+    borderWidth: 1,
+    borderColor: "#E0E9E0",
     borderRadius: SIZES.radius * 2,
     paddingVertical: SIZES.base,
     paddingHorizontal: SIZES.base * 1.5,
   },
   selectedTag: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: "#375A4E",
   },
   tagText: {
     fontSize: SIZES.body4,
-    color: Colors.light.text,
+    color: "#557064",
   },
   selectedTagText: {
     color: "white",
@@ -247,12 +254,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#375A4E",
   },
   secondaryButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFDFC",
     borderWidth: 1,
-    borderColor: "#007AFF",
+    borderColor: "#375A4E",
   },
   buttonText: {
     fontSize: SIZES.body3,
@@ -262,6 +269,6 @@ const styles = StyleSheet.create({
     color: "white",
   },
   secondaryButtonText: {
-    color: "#007AFF",
+    color: "#375A4E",
   },
 });

@@ -47,18 +47,20 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={SIZES.h2} color="#333" />
+          <Ionicons name="chevron-back" size={SIZES.h2} color="#375A4E" />
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <Ionicons name="key-outline" size={SIZES.largeTitle} color="#007AFF" />
+          <View style={styles.iconCircle}>
+            <Ionicons name="key-outline" size={SIZES.h2} color="#375A4E" />
+          </View>
           <Text style={styles.title}>비밀번호를 잊으셨나요?</Text>
           <Text style={styles.description}>
             가입할 때 사용한 이메일을 입력하면{`\n`}비밀번호를 다시 설정할 수 있는 링크를 보내드려요.
           </Text>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={SIZES.h3} color="#666" />
+            <Ionicons name="mail-outline" size={SIZES.h3} color="#557A68" />
             <TextInput
               style={styles.input}
               value={email}
@@ -90,40 +92,51 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingView: { flex: 1, backgroundColor: "#fff" },
+  keyboardAvoidingView: { flex: 1, backgroundColor: "#F7F5F0" },
   scrollContent: { flexGrow: 1, padding: SIZES.padding },
   backButton: { paddingVertical: SIZES.base, alignSelf: "flex-start" },
   content: { flex: 1, justifyContent: "center", paddingBottom: SIZES.largeTitle },
+  iconCircle: {
+    width: SIZES.padding * 3,
+    height: SIZES.padding * 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.padding * 1.5,
+    backgroundColor: "#E8F0E9",
+    marginBottom: SIZES.base,
+  },
   title: {
     marginTop: SIZES.padding,
     fontSize: SIZES.h1,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: "700",
+    color: "#24332D",
   },
   description: {
     marginTop: SIZES.base,
-    color: "#666",
+    color: "#78857E",
     fontSize: SIZES.body4,
     lineHeight: SIZES.body3 * 1.5,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    borderRadius: SIZES.radius * 1.15,
+    backgroundColor: "#FFFDFC",
     marginTop: SIZES.padding * 2,
-    paddingBottom: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
     gap: SIZES.base,
   },
-  input: { flex: 1, height: SIZES.padding * 1.7, fontSize: SIZES.body3, color: "#333" },
+  input: { flex: 1, height: SIZES.padding * 1.7, fontSize: SIZES.body3, color: "#24332D" },
   button: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: SIZES.padding * 1.5,
     padding: SIZES.base * 2,
     borderRadius: SIZES.radius,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#375A4E",
   },
-  disabledButton: { backgroundColor: "#A9D3FF" },
+  disabledButton: { backgroundColor: "#AAB8AF" },
   buttonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
 });

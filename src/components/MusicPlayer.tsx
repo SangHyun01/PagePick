@@ -85,6 +85,9 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
   return (
     <View style={styles.container}>
       <View style={styles.titleRow}>
+        <View style={styles.musicIcon}>
+          <Ionicons name="musical-note" size={17} color="#375A4E" />
+        </View>
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {track.title}
@@ -93,6 +96,14 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
             {track.artist}
           </Text>
         </View>
+        <TouchableOpacity
+          style={styles.playlistButton}
+          onPress={openPlaylist}
+          accessibilityRole="button"
+          accessibilityLabel="음악 목록 열기"
+        >
+          <Ionicons name="list" size={19} color="#557A68" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.progressSection}>
@@ -119,7 +130,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
           <Ionicons
             name="repeat"
             size={22}
-            color={loop ? "#007AFF" : "#666"}
+            color={loop ? "#375A4E" : "#9AA79F"}
           />
         </TouchableOpacity>
 
@@ -127,7 +138,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
           <Ionicons
             name="play-back"
             size={24}
-            color={isLoaded ? "white" : "#666"}
+            color={isLoaded ? "#557A68" : "#B8C1BA"}
           />
         </TouchableOpacity>
 
@@ -137,12 +148,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
           disabled={!isLoaded}
         >
           {isBuffering && !isPlaying ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color="#FFFDFC" />
           ) : (
             <Ionicons
               name={isPlaying ? "pause" : "play"}
               size={28}
-              color="white"
+              color="#FFFDFC"
             />
           )}
         </TouchableOpacity>
@@ -151,20 +162,17 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
           <Ionicons
             name="play-forward"
             size={24}
-            color={isLoaded ? "white" : "#666"}
+            color={isLoaded ? "#557A68" : "#B8C1BA"}
           />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.listButton} onPress={openPlaylist}>
-          <Ionicons name="list" size={22} color="white" />
-        </TouchableOpacity>
       </View>
 
       <BottomSheet
         isVisible={isPlaylistVisible}
         onClose={() => setIsPlaylistVisible(false)}
       >
-        <Text style={styles.sheetTitle}>Playlist</Text>
+        <Text style={styles.sheetTitle}>음악 플레이리스트</Text>
         {playlist.map((item) => (
           <TouchableOpacity
             key={item.id}
@@ -189,7 +197,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
               </Text>
             </View>
             {item.id === track.id && (
-              <Ionicons name="musical-note" size={18} color="#007AFF" />
+              <Ionicons name="musical-note" size={18} color="#375A4E" />
             )}
           </TouchableOpacity>
         ))}
@@ -200,27 +208,43 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ track, onTrackChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#2C2C2E",
-    padding: SIZES.base,
-    borderRadius: SIZES.radius,
+    backgroundColor: "#FFFDFC",
+    padding: SIZES.padding * 0.85,
+    borderRadius: SIZES.radius * 1.35,
     marginHorizontal: SIZES.padding,
     marginBottom: SIZES.base,
+    borderWidth: 1,
+    borderColor: "#E4E8E0",
+    shadowColor: "#3A493F",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SIZES.base,
+    paddingHorizontal: SIZES.base / 2,
+  },
+  musicIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E8F0E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SIZES.base,
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    color: "white",
+    color: "#24332D",
     fontSize: SIZES.body3,
     fontWeight: "bold",
   },
   artist: {
-    color: "#9A9A9A",
+    color: "#78857E",
     fontSize: SIZES.body4,
   },
   progressSection: {
@@ -232,13 +256,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 3,
-    backgroundColor: "#4A4A4A",
+    backgroundColor: "#E6EDE6",
     borderRadius: 1.5,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#007AFF",
+    backgroundColor: "#557A68",
     borderRadius: 1.5,
   },
   timeRow: {
@@ -247,37 +271,43 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   timeText: {
-    color: "#9A9A9A",
+    color: "#87958C",
     fontSize: SIZES.body4 - 2,
   },
   controlsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 32,
-    marginTop: SIZES.base,
-    paddingBottom: 4,
+    gap: 30,
+    marginTop: SIZES.base / 2,
+    paddingBottom: 2,
   },
   playButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#4A4A4A",
+    backgroundColor: "#375A4E",
     justifyContent: "center",
     alignItems: "center",
   },
   loopButton: {
+    padding: SIZES.base / 2,
     position: "absolute",
-    left: SIZES.base,
+    left: SIZES.base / 2,
   },
-  listButton: {
-    position: "absolute",
-    right: SIZES.base,
+  playlistButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F1F4F0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: SIZES.base,
   },
   sheetTitle: {
     fontSize: SIZES.h3,
     fontWeight: "bold",
-    color: "#333",
+    color: "#24332D",
     marginBottom: SIZES.padding,
   },
   playlistItem: {
@@ -285,10 +315,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: SIZES.base * 1.5,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E0E0E0",
+    borderBottomColor: "#E5E9E3",
   },
   playlistItemActive: {
-    backgroundColor: "#F0F7FF",
+    backgroundColor: "#E8F0E9",
     marginHorizontal: -SIZES.padding,
     paddingHorizontal: SIZES.padding,
     borderRadius: SIZES.radius,
@@ -299,14 +329,14 @@ const styles = StyleSheet.create({
   playlistItemTitle: {
     fontSize: SIZES.body3,
     fontWeight: "600",
-    color: "#333",
+    color: "#24332D",
   },
   playlistItemTitleActive: {
-    color: "#007AFF",
+    color: "#375A4E",
   },
   playlistItemArtist: {
     fontSize: SIZES.body4,
-    color: "#999",
+    color: "#78857E",
     marginTop: 2,
   },
 });

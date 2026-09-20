@@ -463,14 +463,15 @@ const styles = StyleSheet.create({
   },
   completeButtonText: { color: "#375A4E", fontSize: SIZES.h4, fontWeight: "bold" },
   bottomContainer: {
-    paddingBottom: SIZES.base,
+    marginTop: -SIZES.base,
+    paddingBottom: SIZES.base * 2,
   },
   actionContainer: {
     paddingHorizontal: SIZES.padding,
     paddingTop: SIZES.base,
     backgroundColor: "#F7F5F0",
   },
-  musicSection: { marginTop: SIZES.padding },
+  musicSection: { marginTop: SIZES.base },
   mainButton: {
     backgroundColor: "#FFFDFC",
     borderRadius: SIZES.radius,

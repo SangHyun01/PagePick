@@ -1,8 +1,8 @@
 import { SIZES } from "@/constants/theme";
 import { useCameraViewModel } from "@/view-models/useCameraViewModel";
+import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import {
-  Button,
   Image,
   StyleSheet,
   Text,
@@ -35,8 +35,22 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.message}>카메라 권한이 필요합니다.</Text>
-        <Button onPress={requestPermission} title="권한 허용하기" />
+        <View style={styles.permissionCard}>
+          <View style={styles.permissionIcon}>
+            <Ionicons name="camera-outline" size={30} color="#375A4E" />
+          </View>
+          <Text style={styles.permissionTitle}>카메라 권한이 필요해요</Text>
+          <Text style={styles.message}>
+            책 속 문장을 촬영해{`\n`}손쉽게 기록할 수 있어요.
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.permissionButtonText}>권한 허용하기</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -66,10 +80,10 @@ export default function CameraScreen() {
                   width: frame.width,
                   height: frame.height,
                   backgroundColor: isSelected
-                    ? "rgba(255, 255, 0, 0.4)"
+                    ? "rgba(145, 184, 150, 0.36)"
                     : "transparent",
-                  borderColor: isSelected ? "#E6B800" : "transparent",
-                  borderWidth: 1,
+                  borderColor: isSelected ? "#375A4E" : "transparent",
+                  borderWidth: isSelected ? 2 : 1,
                   borderRadius: 4,
                 }}
               />
@@ -83,7 +97,7 @@ export default function CameraScreen() {
           ]}
         >
           <TouchableOpacity onPress={resetCamera} style={styles.cancelButton}>
-            <Text style={styles.buttonText}>다시 찍기</Text>
+            <Text style={[styles.buttonText, styles.cancelButtonText]}>다시 찍기</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleComplete} style={styles.saveButton}>
             <Text style={styles.buttonText}>
@@ -121,16 +135,60 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   permissionContainer: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "#F7F5F0",
     justifyContent: "center",
     alignItems: "center",
+    padding: SIZES.padding,
+  },
+  permissionCard: {
+    width: "100%",
+    maxWidth: 360,
+    alignItems: "center",
+    padding: SIZES.padding * 1.5,
+    borderRadius: SIZES.radius * 2,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    backgroundColor: "#FFFEFA",
+    shadowColor: "#24332D",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  permissionIcon: {
+    width: SIZES.padding * 3,
+    height: SIZES.padding * 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.padding * 1.5,
+    backgroundColor: "#E8F0E9",
+    marginBottom: SIZES.padding,
+  },
+  permissionTitle: {
+    color: "#24332D",
+    fontSize: SIZES.h3,
+    fontWeight: "700",
   },
   container: { flex: 1, backgroundColor: "black" },
   message: {
     textAlign: "center",
-    paddingBottom: SIZES.base,
+    paddingTop: SIZES.base,
+    fontSize: SIZES.body4,
+    lineHeight: SIZES.body4 * 1.55,
+    color: "#78857E",
+  },
+  permissionButton: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    marginTop: SIZES.padding,
+    paddingVertical: SIZES.padding * 0.65,
+    borderRadius: SIZES.radius,
+    backgroundColor: "#375A4E",
+  },
+  permissionButtonText: {
+    color: "#FFFFFF",
     fontSize: SIZES.body3,
-    color: "white",
+    fontWeight: "700",
   },
   camera: { flex: 1 },
   previewImage: { width: "100%", height: "100%", backgroundColor: "black" },
@@ -178,17 +236,20 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     padding: SIZES.base * 2,
-    backgroundColor: "#555",
+    backgroundColor: "rgba(255, 253, 252, 0.92)",
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
     borderRadius: SIZES.radius * 0.8,
     width: SIZES.width * 0.35,
     alignItems: "center",
   },
   saveButton: {
     padding: SIZES.base * 2,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#375A4E",
     borderRadius: SIZES.radius * 0.8,
     width: SIZES.width * 0.35,
     alignItems: "center",
   },
   buttonText: { color: "white", fontWeight: "bold", fontSize: SIZES.body3 },
+  cancelButtonText: { color: "#405148" },
 });

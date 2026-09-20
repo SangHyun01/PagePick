@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F5F0",
   },
   headerTitle: {
-    fontSize: SIZES.h1 + 2,
+    fontSize: SIZES.h1,
     fontWeight: "700",
     paddingTop: SIZES.padding * 1.5,
     paddingHorizontal: SIZES.padding,

@@ -83,7 +83,7 @@ export default function SelectBookScreen() {
           data={books}
           renderItem={renderBookItem}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>등록된 책이 없습니다.</Text>
@@ -151,7 +151,7 @@ export default function SelectBookScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F5F0",
     paddingTop: SIZES.padding * 2,
   },
   header: {
@@ -159,65 +159,70 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: SIZES.padding,
-    paddingBottom: SIZES.base * 2,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    paddingBottom: SIZES.base * 1.5,
   },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: "bold" },
-  backText: { fontSize: SIZES.body3, color: "#666" },
-  addText: { fontSize: SIZES.body3, color: "#007AFF", fontWeight: "bold" },
+  headerTitle: { fontSize: SIZES.h3, fontWeight: "700", color: "#24332D" },
+  backText: { fontSize: SIZES.body3, color: "#557A68", fontWeight: "600" },
+  addText: { fontSize: SIZES.body3, color: "#375A4E", fontWeight: "700" },
 
   contentPreview: {
-    backgroundColor: "#f9f9f9",
-    padding: SIZES.base * 2,
+    backgroundColor: "#FFFDFC",
+    padding: SIZES.padding * 0.9,
     margin: SIZES.padding,
-    borderRadius: SIZES.radius * 0.8,
+    borderRadius: SIZES.radius * 1.25,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
   },
   previewLabel: {
     fontSize: SIZES.h4,
-    color: "#888",
+    color: "#647A6B",
     marginBottom: SIZES.base / 2,
   },
-  previewText: { fontSize: SIZES.body4, color: "#333", fontStyle: "italic" },
+  previewText: { fontSize: SIZES.body4, color: "#405148", fontStyle: "italic", lineHeight: SIZES.body4 * 1.45 },
+
+  listContent: { paddingHorizontal: SIZES.padding, paddingBottom: SIZES.padding * 2 },
 
   bookItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SIZES.base * 1.5,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    padding: SIZES.base * 1.25,
+    marginBottom: SIZES.base,
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    borderRadius: SIZES.radius * 1.15,
+    backgroundColor: "#FFFDFC",
   },
   bookCover: {
     width: SIZES.largeTitle,
     height: SIZES.largeTitle * 1.5,
-    borderRadius: SIZES.base / 2,
-    backgroundColor: "#eee",
+    borderRadius: SIZES.radius,
+    backgroundColor: "#E9E7E1",
   },
   bookPlaceholder: {
     width: SIZES.largeTitle,
     height: SIZES.largeTitle * 1.5,
-    borderRadius: SIZES.base / 2,
-    backgroundColor: "#ddd",
+    borderRadius: SIZES.radius,
+    backgroundColor: "#E8EFEA",
     justifyContent: "center",
     alignItems: "center",
   },
-  placeholderText: { fontSize: SIZES.h2, fontWeight: "bold", color: "#fff" },
+  placeholderText: { fontSize: SIZES.h2, fontWeight: "700", color: "#557A68" },
   bookInfo: { flex: 1, marginLeft: SIZES.base * 2 },
   bookTitle: {
     fontSize: SIZES.body3,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: "700",
+    color: "#24332D",
     marginBottom: SIZES.base / 2,
   },
-  bookAuthor: { fontSize: SIZES.body4, color: "#888" },
+  bookAuthor: { fontSize: SIZES.body4, color: "#87958C" },
 
   emptyContainer: { alignItems: "center", marginTop: SIZES.largeTitle },
   emptyText: {
     fontSize: SIZES.body3,
-    color: "#333",
+    color: "#405148",
     marginBottom: SIZES.base / 2,
   },
-  emptySubText: { fontSize: SIZES.body4, color: "#888" },
+  emptySubText: { fontSize: SIZES.body4, color: "#87958C" },
 
   addBookModalOverlay: {
     flex: 1,

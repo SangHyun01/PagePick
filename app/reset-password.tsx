@@ -100,7 +100,7 @@ export default function ResetPasswordScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#375A4E" />
         <Text style={styles.statusText}>재설정 링크를 확인하고 있어요.</Text>
       </View>
     );
@@ -110,7 +110,9 @@ export default function ResetPasswordScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Ionicons name="alert-circle-outline" size={SIZES.largeTitle} color="#E05252" />
+        <View style={[styles.iconCircle, styles.errorIconCircle]}>
+          <Ionicons name="alert-circle-outline" size={SIZES.h2} color="#B85F55" />
+        </View>
         <Text style={styles.title}>링크를 확인할 수 없어요</Text>
         <Text style={styles.errorDescription}>
           링크가 만료되었거나 이미 사용되었을 수 있습니다.{`\n`}새 재설정 메일을 요청해 주세요.
@@ -133,7 +135,9 @@ export default function ResetPasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
-          <Ionicons name="lock-closed-outline" size={SIZES.largeTitle} color="#007AFF" />
+          <View style={styles.iconCircle}>
+            <Ionicons name="lock-closed-outline" size={SIZES.h2} color="#375A4E" />
+          </View>
           <Text style={styles.title}>새 비밀번호 설정</Text>
           <Text style={styles.description}>새로 사용할 비밀번호를 입력해 주세요.</Text>
 
@@ -175,7 +179,7 @@ function PasswordInput({
 }) {
   return (
     <View style={styles.inputContainer}>
-      <Ionicons name="lock-closed-outline" size={SIZES.h3} color="#666" />
+      <Ionicons name="lock-closed-outline" size={SIZES.h3} color="#557A68" />
       <TextInput
         style={styles.input}
         value={value}
@@ -190,17 +194,27 @@ function PasswordInput({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: SIZES.padding },
-  keyboardAvoidingView: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#F7F5F0", padding: SIZES.padding },
+  keyboardAvoidingView: { flex: 1, backgroundColor: "#F7F5F0" },
   scrollContent: { flexGrow: 1, padding: SIZES.padding },
   centered: { alignItems: "center", justifyContent: "center" },
   content: { flex: 1, justifyContent: "center", paddingBottom: SIZES.largeTitle },
-  title: { marginTop: SIZES.padding, fontSize: SIZES.h1, fontWeight: "bold", color: "#333" },
-  description: { marginTop: SIZES.base, color: "#666", fontSize: SIZES.body4 },
-  statusText: { marginTop: SIZES.padding, color: "#666", fontSize: SIZES.body4 },
+  iconCircle: {
+    width: SIZES.padding * 3,
+    height: SIZES.padding * 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.padding * 1.5,
+    backgroundColor: "#E8F0E9",
+    marginBottom: SIZES.base,
+  },
+  errorIconCircle: { backgroundColor: "#FDECE8" },
+  title: { marginTop: SIZES.padding, fontSize: SIZES.h1, fontWeight: "700", color: "#24332D" },
+  description: { marginTop: SIZES.base, color: "#78857E", fontSize: SIZES.body4 },
+  statusText: { marginTop: SIZES.padding, color: "#78857E", fontSize: SIZES.body4 },
   errorDescription: {
     marginTop: SIZES.base,
-    color: "#666",
+    color: "#78857E",
     fontSize: SIZES.body4,
     lineHeight: SIZES.body3 * 1.5,
     textAlign: "center",
@@ -208,21 +222,23 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    borderRadius: SIZES.radius * 1.15,
+    backgroundColor: "#FFFDFC",
     marginTop: SIZES.padding * 1.5,
-    paddingBottom: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
     gap: SIZES.base,
   },
-  input: { flex: 1, height: SIZES.padding * 1.7, fontSize: SIZES.body3, color: "#333" },
+  input: { flex: 1, height: SIZES.padding * 1.7, fontSize: SIZES.body3, color: "#24332D" },
   button: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: SIZES.padding * 1.5,
     padding: SIZES.base * 2,
     borderRadius: SIZES.radius,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#375A4E",
   },
-  disabledButton: { backgroundColor: "#A9D3FF" },
+  disabledButton: { backgroundColor: "#AAB8AF" },
   buttonText: { color: "#fff", fontSize: SIZES.body3, fontWeight: "bold" },
 });

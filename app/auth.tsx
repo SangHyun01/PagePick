@@ -47,8 +47,8 @@ export default function AuthScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
-        <Ionicons name="library" size={SIZES.largeTitle} color="#007AFF" />
-        <Text style={styles.title}>내 손안의 서재</Text>
+        <Text style={styles.brand}>PagePick</Text>
+        <Text style={styles.title}>나만의 독서 아카이브</Text>
         <Text style={styles.subtitle}>
           {isLoginMode
             ? "로그인하여 서재를 확인하세요"
@@ -60,7 +60,7 @@ export default function AuthScreen() {
           <Ionicons
             name="mail-outline"
             size={SIZES.h3}
-            color="#666"
+            color="#557A68"
             style={styles.icon}
           />
           <TextInput
@@ -78,7 +78,7 @@ export default function AuthScreen() {
           <Ionicons
             name="lock-closed-outline"
             size={SIZES.h3}
-            color="#666"
+            color="#557A68"
             style={styles.icon}
           />
           <TextInput
@@ -97,7 +97,7 @@ export default function AuthScreen() {
             <Ionicons
               name="checkmark-circle-outline"
               size={SIZES.h3}
-              color="#666"
+              color="#557A68"
               style={styles.icon}
             />
             <TextInput
@@ -201,32 +201,40 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F5F0",
     padding: SIZES.padding,
     justifyContent: "center",
   },
-  header: { alignItems: "center", marginBottom: SIZES.padding * 1.5 },
+  header: { alignItems: "center", marginBottom: SIZES.padding * 1.75 },
+  brand: {
+    color: "#375A4E",
+    fontSize: SIZES.h3,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
   title: {
     fontSize: SIZES.h2,
-    fontWeight: "bold",
-    color: "#333",
-    marginTop: SIZES.base,
+    fontWeight: "700",
+    color: "#24332D",
+    marginTop: SIZES.base * 1.25,
   },
-  subtitle: { fontSize: SIZES.body3, color: "#888", marginTop: SIZES.base / 2 },
+  subtitle: { fontSize: SIZES.body3, color: "#78857E", marginTop: SIZES.base },
   form: { width: "100%" },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderWidth: 1,
+    borderColor: "#E1E7DF",
+    borderRadius: SIZES.radius * 1.15,
+    backgroundColor: "#FFFDFC",
     marginBottom: SIZES.padding,
-    paddingBottom: SIZES.base,
+    paddingHorizontal: SIZES.base * 1.5,
   },
   icon: { marginRight: SIZES.base },
   input: {
     flex: 1,
     fontSize: SIZES.body3,
-    color: "#333",
+    color: "#24332D",
     height: SIZES.padding * 1.7,
   },
   buttonContainer: { marginTop: SIZES.base },
@@ -237,8 +245,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mainButton: {
-    backgroundColor: "#007AFF",
-    shadowColor: "#007AFF",
+    backgroundColor: "#375A4E",
+    shadowColor: "#24332D",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -251,25 +259,25 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.base,
     paddingVertical: SIZES.base / 2,
   },
-  forgotPasswordText: { color: "#007AFF", fontSize: SIZES.body4 },
+  forgotPasswordText: { color: "#557A68", fontSize: SIZES.body4, fontWeight: "600" },
   switchButton: {
     marginTop: SIZES.base,
     alignItems: "center",
     paddingVertical: SIZES.base,
   },
-  switchButtonText: { color: "#666", fontSize: SIZES.body4 },
+  switchButtonText: { color: "#557A68", fontSize: SIZES.body4, fontWeight: "600" },
   privacyButton: {
     marginTop: SIZES.padding * 1.5,
     alignItems: "center",
     padding: SIZES.base,
   },
   privacyButtonText: {
-    color: "#999",
+    color: "#87958C",
     fontSize: SIZES.body4,
     textDecorationLine: "underline",
   },
   disabledButton: {
-    backgroundColor: "#A9D3FF",
+    backgroundColor: "#AAB8AF",
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -282,8 +290,8 @@ const styles = StyleSheet.create({
     gap: SIZES.base,
     marginBottom: SIZES.padding,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "#eee" },
-  dividerText: { color: "#999", fontSize: SIZES.body4 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: "#E1E7DF" },
+  dividerText: { color: "#87958C", fontSize: SIZES.body4 },
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -293,9 +301,9 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.base,
   },
   googleButton: {
-    backgroundColor: "white",
+    backgroundColor: "#FFFDFC",
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#E1E7DF",
   },
   kakaoButton: {
     backgroundColor: "#FEE500",
