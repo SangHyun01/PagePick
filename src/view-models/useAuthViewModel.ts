@@ -1,3 +1,4 @@
+import { showDialog, showToast } from "@/lib/appFeedback";
 import { supabase } from "@/lib/supabase";
 import * as userService from "@/services/userService";
 import {
@@ -8,7 +9,6 @@ import {
 import Constans from "expo-constants";
 import { useMemo, useState } from "react";
 import { Linking } from "react-native";
-import { showDialog, showToast } from "@/lib/appFeedback";
 
 const GOOGLE_WEB_CLIENT_ID = Constans.expoConfig?.extra?.googleWebClientId;
 
@@ -50,7 +50,7 @@ export const useAuthViewModel = () => {
     "https://www.notion.so/PagePick-3040ea7070308053a72cdeea98896833?source=copy_link";
   const termsOfServiceUrl =
     "https://www.notion.so/PagePick-3040ea70703080718bdee52005e2ef1d?source=copy_link";
-  const appVersion = "1.1.6";
+  const appVersion = "1.2.1";
 
   const openUrl = async (url: string, fallbackUrl?: string) => {
     try {
