@@ -50,7 +50,7 @@ export const useAuthViewModel = () => {
     "https://www.notion.so/PagePick-3040ea7070308053a72cdeea98896833?source=copy_link";
   const termsOfServiceUrl =
     "https://www.notion.so/PagePick-3040ea70703080718bdee52005e2ef1d?source=copy_link";
-  const appVersion = "1.2.1";
+  const appVersion = "1.2.2";
 
   const openUrl = async (url: string, fallbackUrl?: string) => {
     try {
